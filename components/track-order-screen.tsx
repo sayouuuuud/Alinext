@@ -35,12 +35,29 @@ const STATUS_STEPS: { key: OrderStatus; labelAr: string; labelEn: string; labelH
 ]
 
 export function TrackOrderScreen() {
-  const { content } = useSiteContent()
+  const { content, tStr } = useSiteContent()
   const { locale } = useLanguage()
   const lang = locale
   const searchParams = useSearchParams()
   const [searchQuery, setSearchQuery] = useState('ORD-7830')
   const [copied, setCopied] = useState(false)
+
+  // The page header is admin-editable (pages.trackOrder); the built-in
+  // trilingual strings stay as the fallback.
+  const pageHeader = content?.pages?.trackOrder
+  const headerEyebrow =
+    tStr(pageHeader?.eyebrow, lang) ||
+    (lang === 'ar' ? 'نظام التتبع المباشر' : lang === 'he' ? 'מערכת מעקב בזמן אמת' : 'Live Order Tracking')
+  const headerTitle =
+    tStr(pageHeader?.title, lang) ||
+    (lang === 'ar' ? 'تتبع شحنتك وطلبك بكل دقة' : lang === 'he' ? 'מעקב אחר ההזמנה והמשלוח שלך' : 'Track Your Shipment & Order')
+  const headerLead =
+    tStr(pageHeader?.lead, lang) ||
+    (lang === 'ar'
+      ? 'أدخل رقم الطلب أو رقم الهاتف للاطلاع على خط سير الشحنة وتفاصيل التوصيل لحظة بلحظة.'
+      : lang === 'he'
+      ? 'הזן את מספר ההזמנה או מספר הטלפון כדי לצפות בסטטוס המשלוח בזמן אמת.'
+      : 'Enter your order ID or phone number to view real-time delivery status and courier updates.')
 
   React.useEffect(() => {
     const urlOrder = searchParams.get('order')
@@ -149,17 +166,13 @@ export function TrackOrderScreen() {
         <div className="text-center max-w-2xl mx-auto mb-10">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-semibold uppercase tracking-wider mb-4">
             <Truck className="size-4" />
-            <span>{lang === 'ar' ? 'نظام التتبع المباشر' : lang === 'he' ? 'מערכת מעקב בזמן אמת' : 'Live Order Tracking'}</span>
+            <span>{headerEyebrow}</span>
           </div>
           <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight">
-            {lang === 'ar' ? 'تتبع شحنتك وطلبك بكل دقة' : lang === 'he' ? 'מעקב אחר ההזמנה והמשלוח שלך' : 'Track Your Shipment & Order'}
+            {headerTitle}
           </h1>
           <p className="mt-3 text-muted-foreground text-sm md:text-base">
-            {lang === 'ar'
-              ? 'أدخل رقم الطلب أو رقم الهاتف للاطلاع على خط سير الشحنة وتفاصيل التوصيل لحظة بلحظة.'
-              : lang === 'he'
-              ? 'הזן את מספר ההזמנה או מספר הטלפון כדי לצפות בסטטוס המשלוח בזמן אמת.'
-              : 'Enter your order ID or phone number to view real-time delivery status and courier updates.'}
+            {headerLead}
           </p>
         </div>
 

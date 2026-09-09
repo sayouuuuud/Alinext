@@ -14,16 +14,16 @@ export function AdminToastContainer() {
       {toasts.map((toast) => (
         <div
           key={toast.id}
-          className={`pointer-events-auto flex items-center gap-3 rounded-xl border p-3.5 shadow-xl backdrop-blur-md transition-all animate-in slide-in-from-bottom-5 ${
+          className={`pointer-events-auto flex items-center gap-3 rounded-2xl border p-3.5 shadow-xl backdrop-blur-md transition-all animate-in slide-in-from-bottom-5 ${
             toast.type === 'success'
-              ? 'border-emerald-500/30 bg-emerald-950/90 text-emerald-200'
+              ? 'border-accent/40 bg-card/95 text-foreground'
               : toast.type === 'error'
-              ? 'border-destructive/40 bg-destructive/90 text-destructive-foreground'
-              : 'border-primary/40 bg-card/90 text-foreground'
+              ? 'border-destructive/40 bg-card/95 text-foreground'
+              : 'border-border bg-card/95 text-foreground'
           }`}
         >
-          {toast.type === 'success' && <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-400" />}
-          {toast.type === 'error' && <AlertCircle className="h-4 w-4 shrink-0 text-white" />}
+          {toast.type === 'success' && <CheckCircle2 className="h-4 w-4 shrink-0 text-accent" />}
+          {toast.type === 'error' && <AlertCircle className="h-4 w-4 shrink-0 text-destructive" />}
           {toast.type === 'info' && <Info className="h-4 w-4 shrink-0 text-primary" />}
 
           <span className="text-xs font-semibold">{toast.message}</span>

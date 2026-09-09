@@ -19,12 +19,14 @@ export function CtaSection() {
   const store = useStore()
 
   const cta = content.pages?.home?.cta
+  const eyebrow = tStr(cta?.eyebrow, locale) || t.home.cta.eyebrow
   const title = tStr(cta?.title, locale) || t.home.cta.title
   const lead = tStr(cta?.description, locale) || t.home.cta.lead
   const primaryText = tStr(cta?.buttonText, locale) || t.home.cta.primary
   const primaryLink = cta?.buttonLink || '/contact'
   const secondaryText = tStr(cta?.secondaryText, locale)
   const secondaryLink = cta?.secondaryLink || '/products'
+  const backgroundImage = cta?.backgroundImage
 
   useGSAP(
     () => {
@@ -46,27 +48,41 @@ export function CtaSection() {
   return (
     <section ref={sectionRef} id="contact" className="py-20 md:py-28">
       <div className="mx-auto max-w-6xl px-4 md:px-6">
-        <div className="flex flex-col items-center rounded-3xl bg-primary px-6 py-16 text-center md:px-16 md:py-24">
+        <div className="relative flex flex-col items-center overflow-hidden rounded-3xl bg-primary px-6 py-16 text-center md:px-16 md:py-24">
+          {backgroundImage && (
+            <>
+              <img
+                src={backgroundImage}
+                alt=""
+                aria-hidden="true"
+                className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-20"
+              />
+              <div
+                aria-hidden="true"
+                className="pointer-events-none absolute inset-0 bg-gradient-to-t from-primary via-primary/70 to-primary/40"
+              />
+            </>
+          )}
           <p
             data-cta-reveal
-            className="mb-5 text-xs font-semibold uppercase tracking-[0.2em] text-accent"
+            className="relative mb-5 text-xs font-semibold uppercase tracking-[0.2em] text-accent"
           >
-            {t.home.cta.eyebrow}
+            {eyebrow}
           </p>
           <h2
             data-cta-reveal
-            className="max-w-2xl text-balance text-3xl font-semibold tracking-tight text-primary-foreground md:text-5xl"
+            className="relative max-w-2xl text-balance text-3xl font-semibold tracking-tight text-primary-foreground md:text-5xl"
           >
             {title}
           </h2>
           <p
             data-cta-reveal
-            className="mt-5 max-w-xl text-pretty leading-relaxed text-primary-foreground/70"
+            className="relative mt-5 max-w-xl text-pretty leading-relaxed text-primary-foreground/70"
           >
             {lead}
           </p>
 
-          <div data-cta-reveal className="mt-10 flex flex-col gap-3 sm:flex-row">
+          <div data-cta-reveal className="relative mt-10 flex flex-col gap-3 sm:flex-row">
             {primaryLink.startsWith('http') ? (
               <a
                 href={primaryLink}

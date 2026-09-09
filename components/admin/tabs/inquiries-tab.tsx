@@ -73,7 +73,7 @@ export function InquiriesTab() {
               onClick={() => setFilter(f)}
               className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${
                 filter === f
-                  ? 'bg-primary text-primary-foreground shadow-xs'
+                  ? 'bg-foreground text-background shadow-xs'
                   : 'text-muted-foreground hover:bg-muted hover:text-foreground'
               }`}
             >
@@ -114,7 +114,7 @@ export function InquiriesTab() {
             return (
               <div
                 key={inq.id}
-                className="flex flex-col gap-3 rounded-2xl border border-border bg-card p-5 shadow-2xs md:flex-row md:items-center md:justify-between"
+                className="flex flex-col gap-3 rounded-3xl bg-card p-5 ring-1 ring-border shadow-sm md:flex-row md:items-center md:justify-between"
               >
                 <div className="flex-1 space-y-1">
                   <div className="flex flex-wrap items-center gap-2">

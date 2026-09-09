@@ -83,7 +83,7 @@ export function AdminSidebar() {
 
   return (
     <aside
-      className={`relative flex flex-col border-e border-border/70 bg-card/60 backdrop-blur-xs transition-all duration-300 ${
+      className={`relative flex flex-col border-e border-border bg-card transition-all duration-300 ${
         collapsed ? 'w-16' : 'w-64'
       }`}
     >
@@ -114,16 +114,16 @@ export function AdminSidebar() {
               key={item.id}
               type="button"
               onClick={() => setActiveTab(item.id)}
-              className={`group flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-xs font-semibold transition-all ${
+              className={`group flex w-full items-center gap-3 rounded-full px-4 py-2.5 text-xs font-semibold transition-all ${
                 isActive
-                  ? 'bg-gradient-to-r from-primary to-accent text-primary-foreground shadow-sm shadow-primary/30'
-                  : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                  ? 'bg-foreground text-background shadow-sm'
+                  : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
               } ${collapsed ? 'justify-center px-2' : ''}`}
               title={collapsed ? item.label : undefined}
             >
               <Icon
                 className={`h-4 w-4 shrink-0 transition-transform group-hover:scale-110 ${
-                  isActive ? 'text-primary-foreground' : 'text-primary'
+                  isActive ? 'text-background' : 'text-accent'
                 }`}
               />
 
@@ -134,7 +134,7 @@ export function AdminSidebar() {
                     <span
                       className={`ms-2 rounded-full px-2 py-0.5 text-[10px] font-bold ${
                         isActive
-                          ? 'bg-white/20 text-white'
+                          ? 'bg-background/15 text-background'
                           : item.badgeColor || 'bg-muted text-muted-foreground'
                       }`}
                     >
@@ -150,9 +150,9 @@ export function AdminSidebar() {
 
       {/* Footer Info Box */}
       {!collapsed && (
-        <div className="p-3 m-3 rounded-xl border border-border/80 bg-background/50">
+        <div className="p-3.5 m-3 rounded-2xl bg-secondary">
           <div className="flex items-center gap-2">
-            <div className="h-2 w-2 rounded-full bg-emerald-500 animate-ping" />
+            <div className="h-2 w-2 rounded-full bg-accent animate-pulse" />
             <span className="text-[11px] font-semibold text-foreground">
               ALI FLEET Engine
             </span>

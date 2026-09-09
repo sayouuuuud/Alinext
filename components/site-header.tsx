@@ -18,20 +18,23 @@ export function SiteHeader() {
   const headerRef = useRef<HTMLElement>(null)
   const [open, setOpen] = useState(false)
   const pathname = usePathname()
-  const { t } = useLanguage()
+  const { t, locale } = useLanguage()
   const { count, ready } = useCart()
   const { signedIn } = useAuth()
-  const { content } = useSiteContent()
+  const { content, tStr } = useSiteContent()
 
   const customLogo = content.branding?.logoLightUrl || content.branding?.logoDarkUrl
 
+  // Navigation labels are admin-editable (general.navigation); the locale
+  // dictionary stays as the fallback for anything left blank.
+  const nav = content.general?.navigation
   const navLinks = [
-    { label: t.nav.home, href: '/' },
-    { label: t.nav.products, href: '/products' },
-    { label: t.nav.cars, href: '/cars' },
-    { label: (t.nav as any).trackOrder || 'تتبع طلبك', href: '/track-order' },
-    { label: t.nav.blog, href: '/blog' },
-    { label: t.nav.contact, href: '/contact' },
+    { label: tStr(nav?.home, locale) || t.nav.home, href: '/' },
+    { label: tStr(nav?.products, locale) || t.nav.products, href: '/products' },
+    { label: tStr(nav?.cars, locale) || t.nav.cars, href: '/cars' },
+    { label: tStr(nav?.trackOrder, locale) || (t.nav as any).trackOrder || 'تتبع طلبك', href: '/track-order' },
+    { label: tStr(nav?.blog, locale) || t.nav.blog, href: '/blog' },
+    { label: tStr(nav?.contact, locale) || t.nav.contact, href: '/contact' },
   ]
 
   const isActive = (href: string) =>

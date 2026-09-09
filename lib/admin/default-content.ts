@@ -90,6 +90,27 @@ export const defaultSiteContent: SiteFullContent = {
       youtube: 'https://youtube.com/@alifleet',
     },
     currency: '₪',
+    navigation: {
+      home: { ar: 'الرئيسية', en: 'Home', he: 'דף הבית' },
+      products: { ar: 'قطع الغيار', en: 'Spare Parts', he: 'חלפים' },
+      cars: { ar: 'السيارات', en: 'Cars', he: 'רכבים' },
+      trackOrder: { ar: 'تتبع طلبك', en: 'Track Order', he: 'מעקב הזמנה' },
+      blog: { ar: 'المدونة', en: 'Blog', he: 'בלוג' },
+      contact: { ar: 'تواصل معنا', en: 'Contact', he: 'צור קשר' },
+      cart: { ar: 'السلة', en: 'Cart', he: 'עגלה' },
+    },
+    footer: {
+      rights: {
+        ar: 'جميع الحقوق محفوظة.',
+        en: 'All rights reserved.',
+        he: 'כל הזכויות שמורות.',
+      },
+      slogan: {
+        ar: 'أسطول فاخر. حضور عالمي.',
+        en: 'Luxury Fleet. Global Reach.',
+        he: 'צי יוקרתי. פריסה גלובלית.',
+      },
+    },
   },
   pages: {
     home: {
@@ -327,21 +348,28 @@ export const defaultSiteContent: SiteFullContent = {
       },
       services: [
         {
+          // Scene 01 on the homepage — order matters: services[0] renders the
+          // first sticky scene, services[1] the second, services[2] the third.
           id: 'service-1',
+          kicker: {
+            ar: 'استيراد شخصي',
+            en: 'Personal Import',
+            he: 'ייבוא אישי',
+          },
           title: {
-            ar: 'استيراد الشاحنات والمركبات المخصص',
-            en: 'Bespoke Vehicle & Truck Import',
-            he: 'ייבוא אישי של משאיות ורכבים',
+            ar: 'سيارة أحلامك،',
+            en: 'Your dream vehicle,',
+            he: 'הרכב שחלמתם עליו,',
           },
           subtitle: {
-            ar: 'تأمين طلبك من ألمانيا وأوروبا بأعلى المواصفات والضمانات',
-            en: 'Direct sourcing from Germany & European auctions with inspection',
-            he: 'איתור ישיר מגרמניה ואירופה עם בדיקה קפדנית',
+            ar: 'نجلبها لك بشخصية',
+            en: 'personally sourced',
+            he: 'מאותר אישית עבורכם',
           },
           description: {
-            ar: 'نساعدك على اختيار الشاحنة أو المركبة التجارية أو سيارة الدفع الرباعي المثالية مع فحص شامل لـ 150 نقطة فنية وتخليص جمركي سريع.',
-            en: 'Sourcing the exact commercial truck, executive SUV, or specialized vehicle with 150-point technical audit and streamlined customs.',
-            he: 'איתור המשאית, רכב המנהלים או רכב השטח המדויק עם בדיקת 150 נקודות מקיפה ושחרור מהיר מהמכס.',
+            ar: 'مركبات تجارية فاخرة جديدة ومستعملة — مختارة بعناية وفق مواصفاتك الدقيقة ومستوردة مباشرةً لك.',
+            en: 'Luxurious commercial vehicles, new and used — hand-picked to your exact specification and imported directly for you.',
+            he: 'רכבים מסחריים יוקרתיים חדשים ומשומשים — נבחרים לפי המפרט המדויק שלכם ומיובאים ישירות עבורכם.',
           },
           features: [
             { ar: 'فحص فني ميداني مع تقرير مصور شامل', en: '150-point certified technical inspection', he: 'בדיקה טכנית מקיפה של 150 נקודות' },
@@ -349,49 +377,63 @@ export const defaultSiteContent: SiteFullContent = {
             { ar: 'تخليص جمركي وترخيص جاهز للقيادة', en: 'Complete customs clearance & licensing', he: 'שחרור ממכס ורישוי מלא עד המפתח' },
           ],
           icon: 'Ship',
-          image: '/images/scene-direct-import.png',
+          image: '/images/scene-personal-import.png',
+          video: '/videos/scene-showroom.mp4',
         },
         {
+          // Scene 02 — Direct Import logistics.
           id: 'service-2',
+          kicker: {
+            ar: 'استيراد مباشر',
+            en: 'Direct Import',
+            he: 'ייבוא ישיר',
+          },
           title: {
-            ar: 'تجهيز مقصورات رجال الأعمال VIP',
-            en: 'Luxury VIP Cabin Customization',
-            he: 'התאמת פנים VIP לרכבי מנהלים',
+            ar: 'من المصنع لأسطولك،',
+            en: 'Factory to fleet,',
+            he: 'מהמפעל לצי שלכם,',
           },
           subtitle: {
-            ar: 'تحويل سيارات الفان إلى مكاتب طائرة خاصة فاخرة',
-            en: 'Transforming executive vans into private jet mobile offices',
-            he: 'הסבת ואנים למשרדים ניידים ברמת מטוס פרטי',
+            ar: 'بدون وسيط',
+            en: 'no middlemen',
+            he: 'ללא מתווכים',
           },
           description: {
-            ar: 'تصميم مقصورات خاصة لفانات مرسيدس سبرينتر وفئات V-Class تشمل مقاعد استلقاء مايباخ، شاشات ذكية 43 بوصة، ثلاجات، ونظم تحكم صوتية.',
-            en: 'Customizing Mercedes Sprinter and V-Class vans with Maybach seating, 43-inch screens, private Wi-Fi, and ambient lighting.',
-            he: 'התאמה אישית של מרצדס ספרינטר ו-V-Class עם מושבי מאיבך, מסכי 43 אינץ׳, עמדות עבודה ותאורת אווירה.',
+            ar: 'نستورد الشاحنات والسيارات الفاخرة مباشرة من الأسواق العالمية. توثيق كامل، تخليص جمركي، وتسليم من الألف إلى الياء.',
+            en: 'Importing trucks and luxury vehicles straight from global markets. Full documentation, customs clearance, and delivery — end to end.',
+            he: 'ייבוא משאיות ורכבי יוקרה ישירות משווקים גלובליים. תיעוד מלא, שחרור מכס ומסירה — מהתחלה ועד הסוף.',
           },
           features: [
-            { ar: 'مقاعد جلد نابا الطبيعي مع تدليك وتبريد', en: 'Nappa leather seats with massage & ventilation', he: 'מושבי עור נאפה עם עיסוי ואוורור' },
-            { ar: 'عزل صوتي كامل ونظام صوتي سينمائي', en: 'Full acoustic soundproofing & studio audio', he: 'בידוד אקוסטי מלא ומערכת קולנוע' },
-            { ar: 'مكاتب عمل ذكية وشواحن لاسلكية', en: 'Integrated smart workstations & wireless charging', he: 'עמדות עבודה חכמות ומטענים אלחוטיים' },
+            { ar: 'تتبع مباشر لخط سير الشحنة', en: 'Live shipment route tracking', he: 'מעקב חי אחר המשלוח' },
+            { ar: 'توثيق وتخليص جمركي كامل', en: 'Full documentation & customs clearance', he: 'תיעוד מלא ושחרור מכס' },
+            { ar: 'تسليم من الباب للباب', en: 'Door-to-door delivery', he: 'מסירה מדלת לדלת' },
           ],
-          icon: 'Sparkles',
-          image: '/images/scene-personal-import.png',
+          icon: 'Globe',
+          image: '/images/scene-direct-import.png',
+          video: '/videos/scene-port.mp4',
         },
         {
+          // Scene 03 — Spare Parts.
           id: 'service-3',
+          kicker: {
+            ar: 'قطع الغيار',
+            en: 'Spare Parts',
+            he: 'חלפים',
+          },
           title: {
-            ar: 'قطع الغيار الأصلية للشاحنات والأسطول',
-            en: 'Genuine Truck & Fleet Spare Parts',
-            he: 'חלקי חילוף מקוריים למשאיות ורכבים',
+            ar: 'كل قطعة،',
+            en: 'Every part,',
+            he: 'כל חלף,',
           },
           subtitle: {
-            ar: 'توريد فوري لفحمات الفرامل، الفلاتر، التوربو، وأنظمة التعليق',
-            en: 'Direct supply of OEM brake pads, filters, turbos, and suspension',
-            he: 'אספקה ישירה של בלמי OEM, פילטרים, מגדשי טורבו ומתלים',
+            ar: 'صفر توقف',
+            en: 'zero downtime',
+            he: 'אפס השבתה',
           },
           description: {
-            ar: 'مخزون ضخم من قطع الغيار الأصلية والمصنعية المعتمدة لشاحنات مرسيدس، فولفو، سكانيا، مان، وتويوتا مع توصيل فوري وضمان معتمد.',
-            en: 'Comprehensive inventory of genuine and OEM components for Mercedes, Volvo, Scania, MAN, and Toyota with rapid dispatch.',
-            he: 'מלאי מקיף של חלפים מקוריים ו-OEM למשאיות מרצדס, וולוו, סקאניה, מאן וטויוטה עם אספקה מהירה ואחריות.',
+            ar: 'قطع غيار أصلية للسبرينتر والشاحنات الخفيفة — يتم تجهيزها والتحقق منها وشحنها بالخدمة السريعة للحفاظ على تشغيل أسطولك.',
+            en: 'Genuine spare parts for Sprinters and light trucks — sourced, verified, and dispatched express to keep your fleet moving.',
+            he: 'חלפים מקוריים לסברינטר ולמשאיות קלות — מסופקים, מאומתים ומשוגרים במהירות כדי לשמור על הצי שלכם תנועה.',
           },
           features: [
             { ar: 'قطع أصلية 100% مع شهادة المنشأ', en: '100% OEM certified with origin certificate', he: 'חלפים מקוריים 100% עם תעודת מקור' },
@@ -400,9 +442,15 @@ export const defaultSiteContent: SiteFullContent = {
           ],
           icon: 'Wrench',
           image: '/images/scene-spare-parts.png',
+          video: '/videos/scene-engine.mp4',
         },
       ],
       cta: {
+        eyebrow: {
+          ar: 'تواصل معنا',
+          en: 'Get in touch',
+          he: 'צור קשר',
+        },
         title: {
           ar: 'جاهز تنقل عملك لمستوى أعلى؟',
           en: 'Ready to Take Your Business Further?',
@@ -441,6 +489,28 @@ export const defaultSiteContent: SiteFullContent = {
       lead: { ar: 'كتالوج متكامل لقطع غيار مرسيدس أكتروس، مان، سكانيا، وفولفو مع ضمان أصلي وتوصيل سريع وشحن دولي.', en: 'Complete catalog of genuine OEM replacement parts for Mercedes Actros, MAN, Scania, and Volvo with express dispatch.', he: 'קטלוג מקיף של חלקי חילוף מקוריים למרצדס אקטרוס, סקאניה ווולוו עם משלוח מהיר ואחריות מלאה.' },
       bannerImage: '/images/part-brake-pads.png',
     },
+    blog: {
+      eyebrow: { ar: 'المدونة', en: 'Blog', he: 'בלוג' },
+      title: { ar: 'رؤى من', en: 'Insights from', he: 'תובנות מ' },
+      titleEm: { ar: 'الأسطول', en: 'the fleet', he: 'הצי' },
+      lead: { ar: 'أخبار الصناعة، نصائح الاستيراد، أدلة إدارة الأساطيل وقصص من وراء الكواليس من فريق علي فليت.', en: 'Industry news, import tips, fleet management guides and behind-the-scenes stories from the ALI FLEET team.', he: 'חדשות מהתעשייה, טיפים לייבוא, מדריכי ניהול צי וסיפורים מאחורי הקלעים מצוות ALI FLEET.' },
+    },
+    contact: {
+      eyebrow: { ar: 'تواصل معنا', en: 'Contact', he: 'צור קשר' },
+      title: { ar: 'لنتحدث عن', en: "Let's talk about", he: 'בואו נדבר על' },
+      titleEm: { ar: 'أسطولك', en: 'your fleet', he: 'הצי שלכם' },
+      lead: { ar: 'قطع غيار أو استيراد أو خطة أسطول كاملة — أرسل لنا رسالة وسيرد فريقنا خلال يوم عمل واحد.', en: 'Parts, imports or a full fleet plan — send us a message and our team replies within one business day.', he: 'חלפים, ייבוא או תוכנית צי מלאה — שלחו הודעה והצוות שלנו יחזור תוך יום עסקים אחד.' },
+    },
+    cart: {
+      eyebrow: { ar: 'السلة', en: 'Cart', he: 'עגלה' },
+      title: { ar: 'سلة المشتريات', en: 'Your cart', he: 'העגלה שלך' },
+      lead: { ar: 'راجع القطع المختارة، ثم تابع إلى متجرنا الآمن لإتمام الطلب.', en: 'Review your parts, then continue to our secure store to complete the order.', he: 'בדקו את החלפים ואז המשיכו לחנות המאובטחת שלנו להשלמת ההזמנה.' },
+    },
+    trackOrder: {
+      eyebrow: { ar: 'نظام التتبع المباشر', en: 'Live Order Tracking', he: 'מערכת מעקב בזמן אמת' },
+      title: { ar: 'تتبع شحنتك وطلبك بكل دقة', en: 'Track Your Shipment & Order', he: 'מעקב אחר ההזמנה והמשלוח שלך' },
+      lead: { ar: 'أدخل رقم الطلب أو رقم الهاتف للاطلاع على خط سير الشحنة وتفاصيل التوصيل لحظة بلحظة.', en: 'Enter your order ID or phone number to view real-time delivery status and courier updates.', he: 'הזן את מספר ההזמנה או מספר הטלפון כדי לצפות בסטטוס המשלוח בזמן אמת.' },
+    },
     policies: [
       {
         id: 'privacy',
@@ -451,7 +521,7 @@ export const defaultSiteContent: SiteFullContent = {
         },
         lastUpdated: '2026-03-01',
         content: {
-          ar: 'نحن في شركة علي فليت نلتزم بأعلى معايير الحفاظ على خصوصية بيانات العملاء وسجلات المركبات والمشتريات وتفاصيل التخليص الجمركي.',
+          ar: 'نحن في شركة علي فليت نلتزم بأعلى معايير الحفاظ على خصوصية بيانات العملاء وسجلات المر��بات والمشتريات وتفاصيل التخليص الجمركي.',
           en: 'ALI FLEET is committed to upholding strict international standards for client data privacy, vehicle records, and commercial transactions.',
           he: 'אנו בחברת עלי פליט מחויבים לסטנדרטים הגבוהים ביותר בשמירה على פרטיות לקוחותינו ופרטי העסקאות.',
         },
@@ -618,7 +688,7 @@ export const defaultSiteContent: SiteFullContent = {
         color: 'Sonic Titanium / Flare Red Leather',
       },
       description: {
-        ar: 'نسخة الـ VIP بأربعة مقاعد منفصلة، مقاعد خلفية قابلة للانحناء بـ 48 درجة، نظام الترفيه الخلفي المزدوج، ونظام Mark Levinson 25 مكبر صوت.',
+        ar: 'نسخة الـ VIP بأربعة مقاعد منفصلة، مقاعد خلفية قابلة للانحناء بـ 48 درجة، نظام الترفيه الخلف�� المزدوج، ونظام Mark Levinson 25 مكبر صوت.',
         en: 'Executive 4-seat VIP layout with 48-degree reclining rear ottoman seats, dual rear entertainment, and 25-speaker Mark Levinson sound.',
         he: 'תצורת 4 מושבי VIP אקסקלוסיבית עם מושבי אחוריים נשכבים ב-48 מעלות, מערכת בידור כפולה ומערכת שמע Mark Levinson.',
       },
@@ -914,7 +984,7 @@ export const defaultSiteContent: SiteFullContent = {
       id: 'post-4',
       slug: 'electric-commercial-fleets',
       title: {
-        ar: 'مستقبل الأساطيل التجارية الكهربائية: تكاليف التشغيل والمدى',
+        ar: 'مستقبل الأساطيل التجارية الكهربائية: تكاليف التشغيل وا��مدى',
         en: 'The Future of Electric Commercial Fleets: Range & Operating Costs',
         he: 'עתיד הציים המסחריים החשמליים: טווח ועלויות תפעול',
       },
@@ -1139,7 +1209,7 @@ export const defaultSiteContent: SiteFullContent = {
       joinedDate: '2026-09-08',
       totalSpent: 2950,
       ordersCount: 1,
-      interestedIn: 'قطع غيار شاحنات مرسيدس وسكانيا، فحمات فرامل، شواحن تيربو',
+      interestedIn: 'قطع غيار شاحنا�� مرسيدس وسكانيا، فحمات فرامل، شواحن تيربو',
       notes: 'تم تسجيل الحساب وإتمام عملية شراء ناجحة لقطع غيار أصلية رقم ORD-7830.',
       billingAddress: {
         street: 'طريق القدس الرئيسي 25',

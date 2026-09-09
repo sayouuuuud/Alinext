@@ -57,6 +57,8 @@ export type StatItem = {
 
 export type ServiceItem = {
   id: string
+  // Small uppercase label above the scene title (e.g. "Personal Import").
+  kicker?: MultiLangString
   title: MultiLangString
   subtitle: MultiLangString
   description: MultiLangString

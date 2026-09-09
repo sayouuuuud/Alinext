@@ -5,6 +5,7 @@ import gsap from 'gsap'
 import { useGSAP } from '@gsap/react'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { useLanguage } from '@/lib/i18n/language-context'
+import { useSiteContent } from '@/lib/admin/site-content-context'
 import type { BlogPost } from '@/lib/data/blog'
 import { BlogCard } from '@/components/blog-card'
 
@@ -12,7 +13,15 @@ gsap.registerPlugin(ScrollTrigger)
 
 export function BlogHero({ featured }: { featured: BlogPost | null }) {
   const sectionRef = useRef<HTMLElement>(null)
-  const { t } = useLanguage()
+  const { t, locale } = useLanguage()
+  const { content, tStr } = useSiteContent()
+
+  // The blog page header is admin-editable (pages.blog); dictionary is fallback.
+  const page = content.pages?.blog
+  const eyebrow = tStr(page?.eyebrow, locale) || t.blog.eyebrow
+  const title = tStr(page?.title, locale) || t.blog.title
+  const titleEm = tStr(page?.titleEm, locale) || t.blog.titleEm
+  const lead = tStr(page?.lead, locale) || t.blog.lead
 
   useGSAP(
     () => {
@@ -43,20 +52,20 @@ export function BlogHero({ featured }: { featured: BlogPost | null }) {
             data-blog-heading
             className="mb-4 text-xs font-semibold uppercase tracking-[0.2em] text-accent"
           >
-            {t.blog.eyebrow}
+            {eyebrow}
           </p>
           <h1
             data-blog-heading
             className="text-balance text-4xl font-semibold tracking-tight text-foreground md:text-6xl"
           >
-            {t.blog.title}{' '}
-            <em className="font-serif italic text-accent">{t.blog.titleEm}</em>
+            {title}{' '}
+            <em className="font-serif italic text-accent">{titleEm}</em>
           </h1>
           <p
             data-blog-heading
             className="mt-5 max-w-2xl text-pretty leading-relaxed text-muted-foreground"
           >
-            {t.blog.lead}
+            {lead}
           </p>
         </div>
 

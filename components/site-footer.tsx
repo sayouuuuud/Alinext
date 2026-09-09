@@ -6,6 +6,13 @@ import { Mail, MapPin, Phone } from 'lucide-react'
 import { useLanguage } from '@/lib/i18n/language-context'
 import { useStore } from '@/lib/store-context'
 import { useSiteContent } from '@/lib/admin/site-content-context'
+import {
+  InstagramIcon,
+  FacebookIcon,
+  LinkedinIcon,
+  TiktokIcon,
+  YoutubeIcon,
+} from '@/components/social-icons'
 
 export function SiteFooter() {
   const { t, locale } = useLanguage()
@@ -14,6 +21,19 @@ export function SiteFooter() {
 
   const customLogo = content.branding?.logoDarkUrl || content.branding?.logoLightUrl || '/images/ali-fleet-logo.png'
   const customTagline = tStr(content.branding?.tagline, locale) || t.footer.tagline
+  const rightsText = tStr(content.general?.footer?.rights, locale) || t.footer.rights
+  const sloganText = tStr(content.general?.footer?.slogan, locale) || t.footer.slogan
+
+  // Social profiles are managed from the admin (general.social) — a network
+  // only renders once it actually has a URL configured.
+  const social = content.general?.social
+  const socialLinks = [
+    { label: 'Instagram', href: social?.instagram, icon: InstagramIcon },
+    { label: 'Facebook', href: social?.facebook, icon: FacebookIcon },
+    { label: 'LinkedIn', href: social?.linkedin, icon: LinkedinIcon },
+    { label: 'TikTok', href: social?.tiktok, icon: TiktokIcon },
+    { label: 'YouTube', href: social?.youtube, icon: YoutubeIcon },
+  ].filter((s) => s.href)
 
   const columns = [
     {
@@ -93,6 +113,25 @@ export function SiteFooter() {
                 </li>
               )}
             </ul>
+
+            {socialLinks.length > 0 && (
+              <ul className="mt-6 flex items-center gap-2">
+                {socialLinks.map((s) => (
+                  <li key={s.label}>
+                    <a
+                      href={s.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={s.label}
+                      title={s.label}
+                      className="flex size-9 items-center justify-center rounded-full bg-secondary text-muted-foreground transition-colors hover:bg-foreground hover:text-background"
+                    >
+                      <s.icon className="size-4" aria-hidden="true" />
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
 
           {columns.map((col) => (
@@ -118,7 +157,7 @@ export function SiteFooter() {
 
         <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-border pt-8 text-xs text-muted-foreground md:flex-row">
           <p>
-            © {new Date().getFullYear()} {store.name}. {t.footer.rights}
+            © {new Date().getFullYear()} {store.name}. {rightsText}
           </p>
           <div className="flex flex-wrap items-center justify-center gap-6">
             <LocaleLink
@@ -140,7 +179,7 @@ export function SiteFooter() {
               {locale === 'ar' ? 'سياسة الإرجاع والاستبدال' : locale === 'he' ? 'מדיניות החזרה והחלפה' : 'Refund & Returns'}
             </LocaleLink>
           </div>
-          <p>{t.footer.slogan}</p>
+          <p>{sloganText}</p>
         </div>
       </div>
     </footer>

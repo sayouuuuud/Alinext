@@ -19,33 +19,46 @@ const SiteContentContext = createContext<SiteContentContextValue>({
   tStr: (item, locale = 'he') => item?.[locale] || item?.en || item?.ar || item?.he || '',
 })
 
-export function SiteContentProvider({ children }: { children: React.ReactNode }) {
-  const [content, setContent] = useState<SiteFullContent>(getStoredContent)
+export function SiteContentProvider({
+  children,
+  initialContent,
+}: {
+  children: React.ReactNode
+  initialContent?: SiteFullContent
+}) {
+  // Initialize with the server-rendered content so the client's first render
+  // matches the server HTML exactly — reading localStorage here instead would
+  // produce a hydration mismatch whenever the saved copy differs. localStorage
+  // and the shared file are reconciled after mount below.
+  const [content, setContent] = useState<SiteFullContent>(initialContent ?? defaultSiteContent)
   const pathname = usePathname()
 
   useEffect(() => {
-    // Initial client mount read
-    const stored = getStoredContent()
-    setContent(stored)
+    const isNewer = (a?: string, b?: string) =>
+      new Date(a || 0).getTime() > new Date(b || 0).getTime()
 
-    // Sync with server API
+    let current = initialContent ?? defaultSiteContent
+
+    // Adopt a locally-stored copy only when it is newer than what the server
+    // sent (e.g. the admin edited content on this device).
+    const raw = window.localStorage.getItem(CONTENT_STORAGE_KEY)
+    if (raw) {
+      try {
+        const parsed = JSON.parse(raw) as SiteFullContent
+        if (parsed?.version === 5 && parsed?.pages && isNewer(parsed.lastSaved, current.lastSaved)) {
+          current = parsed
+          setContent(parsed)
+        }
+      } catch {}
+    }
+
+    // Reconcile with the shared server file (the cross-device source of truth).
     fetch('/api/admin/content')
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
-        if (data && data.version === 5 && data.pages) {
-          const raw = window.localStorage.getItem(CONTENT_STORAGE_KEY)
-          if (!raw) {
-            window.localStorage.setItem(CONTENT_STORAGE_KEY, JSON.stringify(data))
-            setContent(data)
-          } else {
-            try {
-              const currentLocal = JSON.parse(raw)
-              if (new Date(data.lastSaved || 0).getTime() > new Date(currentLocal.lastSaved || 0).getTime()) {
-                window.localStorage.setItem(CONTENT_STORAGE_KEY, JSON.stringify(data))
-                setContent(data)
-              }
-            } catch {}
-          }
+        if (data && data.version === 5 && data.pages && isNewer(data.lastSaved, current.lastSaved)) {
+          window.localStorage.setItem(CONTENT_STORAGE_KEY, JSON.stringify(data))
+          setContent(data)
         }
       })
       .catch(() => {})
@@ -74,6 +87,9 @@ export function SiteContentProvider({ children }: { children: React.ReactNode })
       window.removeEventListener(CONTENT_UPDATE_EVENT, handleUpdate)
       window.removeEventListener('storage', handleStorage)
     }
+    // initialContent is provided once by the server layout and stable for the
+    // lifetime of this root provider.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   // Apply dynamic branding (accent color & favicon)
