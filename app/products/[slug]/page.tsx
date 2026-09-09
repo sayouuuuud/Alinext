@@ -4,14 +4,9 @@ import { SiteFooter } from '@/components/site-footer'
 import { ProductDetail } from '@/components/product-detail'
 import { absoluteUrl } from '@/lib/seo'
 import { serializeJsonLd } from '@/lib/json-ld'
-import { getPart, getRelatedParts } from '@/lib/wp/catalog'
+import { getPart, getRelatedParts } from '@/lib/content/catalog'
 
-/**
- * Product pages are rendered on demand rather than pre-generated: the catalog
- * lives in WooCommerce, so a new product must appear without a redeploy. There
- * is no `generateStaticParams` for that reason — the cached catalog fetch is
- * what keeps this cheap.
- */
+/** Product detail pages resolve directly from the local content catalog. */
 
 export async function generateMetadata({
   params,

@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { SiteHeader } from '@/components/site-header'
 import { SiteFooter } from '@/components/site-footer'
 import { PolicyScreen } from '@/components/policy-screen'
-import { getReturnPolicy } from '@/lib/wp/policies'
+import { getReturnPolicy } from '@/lib/content/policies'
 import { isLocale } from '@/lib/i18n/config'
 
 export const revalidate = 600
@@ -26,7 +26,7 @@ export default async function ReturnPolicyPage({ searchParams }: PageProps) {
   const requestedLocale = typeof rawLocale === 'string' ? rawLocale.trim().toLowerCase() : undefined
   const activeLocale = isLocale(requestedLocale) ? requestedLocale : undefined
 
-  const policy = await getReturnPolicy(activeLocale)
+  const policy = await getReturnPolicy()
 
   return (
     <>

@@ -4,7 +4,7 @@ import { useActionState } from 'react'
 import { Loader2, Save } from 'lucide-react'
 import { useLanguage } from '@/lib/i18n/language-context'
 import { updateProfileAction } from '@/lib/auth/actions'
-import { idleActionState, type Customer } from '@/lib/wp/types'
+import { idleActionState, type Customer } from '@/lib/auth/types'
 import { Field, PasswordField } from './form-field'
 import { FormError, FormSuccess } from './alerts'
 

@@ -3,9 +3,8 @@ import type { Locale } from './config'
 /**
  * A single piece of CMS-editable text, held per language.
  *
- * Lives in its own module rather than alongside the WordPress fetchers so that
- * client components can import both the type *and* the resolver without pulling
- * `server-only` code into the browser bundle.
+ * Lives in its own module so client components can share the type and resolver
+ * without pulling server-only repository code into the browser bundle.
  */
 export type CopyBlock = Partial<Record<Locale, string>>
 

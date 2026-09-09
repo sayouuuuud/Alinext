@@ -3,7 +3,7 @@
 import LocaleLink from '@/components/locale-link'
 import { ArrowRight, Package } from 'lucide-react'
 import { useLanguage } from '@/lib/i18n/language-context'
-import type { CustomerOrder } from '@/lib/wp/types'
+import type { CustomerOrder } from '@/lib/auth/types'
 import { OrderCard } from './order-card'
 
 export function OrdersView({ orders }: { orders: CustomerOrder[] }) {

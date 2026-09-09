@@ -1,8 +1,8 @@
 import type { Localized } from '@/lib/i18n/localized'
 
 /**
- * A car already in the yard, listed for direct sale — the `cars` post type in
- * WordPress, edited through the `saleCarFields` ACF group.
+ * A car already in the yard and listed for direct sale in the local content
+ * catalog.
  *
  * It is deliberately close to `ImportCar` so the two sections of /cars can
  * share cards, formatting and the mapper. Three fields differ, and the

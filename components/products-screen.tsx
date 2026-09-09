@@ -4,11 +4,12 @@ import { useMemo } from 'react'
 import { PackageX } from 'lucide-react'
 import LocaleLink from '@/components/locale-link'
 import type { PartCategory, PartSummary } from '@/lib/data/parts'
-import type { CatalogStatus } from '@/lib/wp/catalog'
+import type { CatalogStatus } from '@/lib/content/catalog'
 import { useLanguage } from '@/lib/i18n/language-context'
 import { PageHero } from '@/components/page-hero'
 import { ProductsBrowser } from '@/components/products-browser'
 import { useSiteContent } from '@/lib/admin/site-content-context'
+import { productToSummary } from '@/lib/content/adapters'
 
 export function ProductsScreen({
   parts,
@@ -23,33 +24,12 @@ export function ProductsScreen({
   const { content, tStr } = useSiteContent()
   const productsPage = content?.pages?.products
 
-  // Map admin products to PartSummary shape
-  const adminParts: PartSummary[] = useMemo(() => {
-    if (!content?.products) return []
-    return content.products.map((p, idx) => ({
-      slug: p.id,
-      wooId: 9000 + idx,
-      sku: p.sku || `PRT-${p.id}`,
-      category: (['brakes', 'engine', 'lighting', 'wheels', 'transmission', 'filters', 'suspension', 'electrical'].includes(p.category) ? p.category : 'other') as PartCategory,
-      brand: 'ALI FLEET Genuine',
-      price: p.price,
-      inStock: p.inStock,
-      featured: idx < 3,
-      image: p.image || '/images/part-brake-pads.png',
-      alt: {
-        ar: p.name?.ar || 'قطع غيار شاحنات أصلية',
-        en: p.name?.en || 'Genuine Commercial Spare Part',
-        he: p.name?.he || 'חלק חילוף מקורי למשאית',
-      },
-      name: {
-        ar: p.name?.ar || '',
-        en: p.name?.en || '',
-        he: p.name?.he || '',
-      },
-    }))
-  }, [content?.products])
+  const managedParts = useMemo(
+    () => content.products.map(productToSummary),
+    [content.products]
+  )
 
-  const effectiveParts = adminParts.length > 0 ? adminParts : parts
+  const effectiveParts = managedParts.length > 0 ? managedParts : parts
 
   return (
     <>

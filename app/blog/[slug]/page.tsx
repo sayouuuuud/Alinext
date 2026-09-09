@@ -1,10 +1,8 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import { getPost, getRelatedPosts } from '@/lib/wp/posts'
+import { getPost, getRelatedPosts } from '@/lib/content/posts'
 import { BlogArticle } from '@/components/blog-article'
 
-// Dynamic rendering — slugs come from WordPress at runtime.
-export const dynamic = 'force-dynamic'
 
 export async function generateMetadata({
   params,

@@ -63,6 +63,8 @@ export type ServiceItem = {
   features: MultiLangString[]
   icon: string
   image?: string
+  video?: string
+  mediaAlt?: MultiLangString
 }
 
 export type GlobalReachContent = {
@@ -75,12 +77,15 @@ export type GlobalReachContent = {
 }
 
 export type CtaContent = {
+  eyebrow?: MultiLangString
   title: MultiLangString
   description: MultiLangString
   buttonText: MultiLangString
   buttonLink: string
   secondaryText: MultiLangString
   secondaryLink: string
+  backgroundImage?: string
+  backgroundVideo?: string
 }
 
 export type CarItem = {
@@ -99,6 +104,13 @@ export type CarItem = {
   images?: string[]
   status: 'available' | 'reserved' | 'sold' | 'incoming'
   featured: boolean
+  origin?: 'germany' | 'uae' | 'usa' | 'japan' | 'korea' | 'belgium'
+  condition?: 'new' | 'used' | 'demo'
+  stage?: 1 | 2 | 3 | 4
+  previousOwners?: number
+  eta?: MultiLangString
+  availability?: MultiLangString
+  highlights?: MultiLangString[]
   specs: {
     engine?: string
     horsepower?: string
@@ -106,6 +118,8 @@ export type CarItem = {
     topSpeed?: string
     bodyType?: string
     color?: string
+    drivetrain?: string
+    seats?: number
   }
   description: MultiLangString
 }
@@ -115,10 +129,14 @@ export type ProductItem = {
   name: MultiLangString
   sku: string
   category: string
+  brand?: string
   price: number
   inStock: boolean
+  featured?: boolean
   compatibility: string
   image: string
+  images?: string[]
+  specs?: { label: MultiLangString; value: MultiLangString }[]
   description: MultiLangString
 }
 
@@ -129,6 +147,7 @@ export type BlogPostItem = {
   excerpt: MultiLangString
   content?: MultiLangString
   author: string
+  authorAvatar?: string
   date: string
   readTime: string
   coverImage?: string
@@ -155,6 +174,34 @@ export type SocialLinks = {
   linkedin: string
   tiktok: string
   youtube: string
+}
+
+export type NavigationContent = {
+  home: MultiLangString
+  products: MultiLangString
+  cars: MultiLangString
+  trackOrder: MultiLangString
+  blog: MultiLangString
+  contact: MultiLangString
+  cart: MultiLangString
+}
+
+export type FooterContent = {
+  tagline?: MultiLangString
+  rights?: MultiLangString
+  slogan?: MultiLangString
+}
+
+export type SectionHeaderContent = {
+  eyebrow?: MultiLangString
+  title?: MultiLangString
+  titleEm?: MultiLangString
+  lead?: MultiLangString
+}
+
+export type CarsPageContent = PageHeaderContent & {
+  saleHeader?: SectionHeaderContent
+  importHeader?: SectionHeaderContent
 }
 
 export type PolicyItem = {
@@ -332,6 +379,8 @@ export type SiteFullContent = {
     contact: ContactSettings
     social: SocialLinks
     currency: string
+    navigation?: NavigationContent
+    footer?: FooterContent
   }
   pages: {
     home: {
@@ -343,18 +392,12 @@ export type SiteFullContent = {
       services: ServiceItem[]
       cta: CtaContent
     }
-    cars?: PageHeaderContent
+    cars?: CarsPageContent
     products?: PageHeaderContent
-    contact?: {
-      title?: MultiLangString
-      subtitle?: MultiLangString
-      bannerImage?: string
-    }
-    trackOrder?: {
-      title?: MultiLangString
-      subtitle?: MultiLangString
-      bannerImage?: string
-    }
+    blog?: PageHeaderContent
+    contact?: PageHeaderContent
+    trackOrder?: PageHeaderContent
+    cart?: PageHeaderContent
     policies: PolicyItem[]
   }
   cars: CarItem[]

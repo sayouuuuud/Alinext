@@ -2,7 +2,7 @@
 
 import { useLanguage } from '@/lib/i18n/language-context'
 import { localeMeta } from '@/lib/i18n/config'
-import type { CustomerOrder, OrderStatus } from '@/lib/wp/types'
+import type { CustomerOrder, OrderStatus } from '@/lib/auth/types'
 
 /** Muted, on-brand status tints — no new palette colours introduced. */
 const STATUS_TINT: Record<OrderStatus, string> = {
@@ -39,8 +39,8 @@ function formatDate(value: string | null, locale: string) {
 }
 
 /**
- * WooCommerce returns pre-formatted, currency-aware HTML-ish price strings.
- * Stripping tags is safer than re-deriving the currency on the client.
+ * Price strings may contain lightweight formatting from imported backups.
+ * Stripping tags keeps the account summary plain and safe.
  */
 function cleanPrice(value: string) {
   return value.replace(/<[^>]*>/g, '').trim() || '—'

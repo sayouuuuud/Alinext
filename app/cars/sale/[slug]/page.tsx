@@ -1,13 +1,11 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import { getSaleCar, getSimilarSaleCars } from '@/lib/wp/sale-cars'
+import { getSaleCar, getSimilarSaleCars } from '@/lib/content/sale-cars'
 import { SiteHeader } from '@/components/site-header'
 import { SiteFooter } from '@/components/site-footer'
 import { SaleCarDetail } from '@/components/sale-car-detail'
 import { ImportCustomCta } from '@/components/import-custom-cta'
 
-// Dynamic rendering — slugs come from WordPress at runtime, not build time.
-export const dynamic = 'force-dynamic'
 
 export async function generateMetadata({
   params,

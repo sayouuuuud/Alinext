@@ -6,7 +6,7 @@ import { useSearchParams } from 'next/navigation'
 import { ArrowRight, Loader2 } from 'lucide-react'
 import { useLanguage } from '@/lib/i18n/language-context'
 import { loginAction } from '@/lib/auth/actions'
-import { idleActionState } from '@/lib/wp/types'
+import { idleActionState } from '@/lib/auth/types'
 import { Field, PasswordField } from './form-field'
 import { FormError, FormSuccess } from './alerts'
 
