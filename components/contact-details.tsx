@@ -9,7 +9,7 @@ export function ContactDetails() {
   const { t } = useLanguage()
   const store = useStore()
 
-  // Only rows that WordPress actually has a value for are shown, so an
+  // Only rows that actually carry a value are shown, so an
   // unconfigured field disappears instead of rendering an empty card.
   const rows = [
     {

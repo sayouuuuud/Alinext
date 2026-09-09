@@ -60,7 +60,7 @@ export function SiteFooter() {
             <p className="mt-5 max-w-xs text-sm leading-relaxed text-muted-foreground">
               {customTagline}
             </p>
-            {/* Contact rows come from WordPress, so each one is only rendered
+            {/* Contact rows come from the site content, so each one is only rendered
                 once it actually has a value — an empty tel: link is worse than
                 no link at all. */}
             <ul className="mt-6 flex flex-col gap-3 text-sm text-muted-foreground">

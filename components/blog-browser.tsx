@@ -6,7 +6,6 @@ import { Paginator } from '@/components/paginator'
 import type { BlogPost, BlogCategory } from '@/lib/data/blog'
 import type { PostsStatus } from '@/lib/content/posts'
 import { BlogCard } from '@/components/blog-card'
-import LocaleLink from '@/components/locale-link'
 
 const ALL = 'all' as const
 type Filter = typeof ALL | BlogCategory
@@ -21,23 +20,6 @@ export function BlogBrowser({ posts, status }: Props) {
   const [activeFilter, setActiveFilter] = useState<Filter>(ALL)
   const [page, setPage] = useState(1)
   const PAGE_SIZE = 6 // 2 rows × 3 cols
-
-  if (status === 'not_configured' || status === 'unreachable') {
-    return (
-      <div className="rounded-3xl bg-card p-12 text-center ring-1 ring-border">
-        <p className="font-semibold text-foreground">{t.products.catalogUnavailable}</p>
-        <p className="mt-2 text-sm text-muted-foreground">
-          {t.products.catalogUnavailableLead}
-        </p>
-        <LocaleLink
-          href="/contact"
-          className="mt-6 inline-block rounded-full bg-foreground px-6 py-3 text-sm font-semibold text-background transition-opacity hover:opacity-90"
-        >
-          {t.common.callUs}
-        </LocaleLink>
-      </div>
-    )
-  }
 
   if (status === 'empty' || posts.length === 0) {
     return (

@@ -2,13 +2,10 @@
 
 import Image from 'next/image'
 import LocaleLink from '@/components/locale-link'
-import { useSearchParams, useRouter } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
 
-import { useAuth } from '@/lib/auth/auth-context' 
-import { useFormStatus } from 'react-dom'
 import {
-  AlertCircle,
   ArrowRight,
   Loader2,
   MessageCircle,
@@ -29,7 +26,6 @@ import { useLanguage } from '@/lib/i18n/language-context'
 import { formatPrice } from '@/lib/format'
 import { proxied } from '@/lib/img-proxy'
 import { whatsappLink } from '@/lib/site-config'
-import { prepareCheckoutAction } from '@/lib/checkout/actions'
 import { useStore } from '@/lib/store-context'
 import { getStoredContent, saveContent } from '@/lib/admin/content-store'
 import type { OrderRecord } from '@/lib/admin/types'
@@ -37,52 +33,13 @@ import type { OrderRecord } from '@/lib/admin/types'
 /**
  * The cart itself only ever stores slugs and quantities in localStorage, so the
  * catalog is passed in from the server page to resolve them into live products.
- * That means prices, stock and — critically — WooCommerce product ids are read
- * fresh instead of trusting whatever was cached in the browser.
+ * That means prices and stock are read fresh instead of trusting whatever was
+ * cached in the browser.
  */
-/**
- * Split into its own component because `useFormStatus` only reports the status
- * of the form it is rendered inside. Without a pending state the button stayed
- * clickable and silent while the server action rebuilt the WooCommerce basket,
- * which read as "nothing happened" (QA-06).
- */
-function CheckoutSubmit({ label, pendingLabel }: { label: string; pendingLabel: string }) {
-  const { pending } = useFormStatus()
-
-  return (
-    <button
-      type="submit"
-      disabled={pending}
-      aria-busy={pending}
-      className="mt-6 flex w-full items-center justify-center gap-2.5 rounded-full bg-foreground px-6 py-4 text-base font-semibold text-background transition-opacity hover:opacity-90 disabled:cursor-progress disabled:opacity-70"
-    >
-      {pending ? (
-        <>
-          <Loader2 className="size-4 animate-spin" aria-hidden="true" />
-          {pendingLabel}
-        </>
-      ) : (
-        <>
-          {label}
-          <ArrowRight className="size-4" aria-hidden="true" data-flip-rtl />
-        </>
-      )}
-    </button>
-  )
-}
-
 export function CartView({ catalog }: { catalog: PartSummary[] }) {
   const { t, locale } = useLanguage()
-  const { signedIn } = useAuth()
   const store = useStore()
   const { lines, count, ready, setQuantity, remove, clear } = useCart()
-  const searchParams = useSearchParams()
-  // The server action redirects back here with this flag when WooCommerce could
-  // not be handed the basket, so the failure is visible instead of silent.
-  const checkoutFailed = searchParams.get('checkout') === 'unavailable'
-  // The /checkout route sends the customer back with this flag when the basket
-  // no longer matches the WooCommerce session it handed off (QA-10).
-  const checkoutExpired = searchParams.get('checkout') === 'expired'
   const router = useRouter()
   const [isCheckoutModalOpen, setIsCheckoutModalOpen] = useState(false)
   const [customerName, setCustomerName] = useState('باسم علي')
@@ -243,11 +200,6 @@ export function CartView({ catalog }: { catalog: PartSummary[] }) {
     }
   }
 
-  const checkoutItems = rows
-    .map((row) => `${row.part.wooId}:${row.quantity}`)
-    .join(',')
-  const checkoutReady = Boolean(store.wordpress.baseUrl)
-
   const whatsappHref = whatsappLink(
     [
       t.cart.whatsappIntro,
@@ -275,17 +227,6 @@ export function CartView({ catalog }: { catalog: PartSummary[] }) {
   if (rows.length === 0) {
     return (
       <div className="mx-auto max-w-7xl px-4 pb-24 md:px-8">
-        {/* Emptying the cart is the most common way to invalidate a handoff, so
-            this explanation has to survive the empty state too. */}
-        {checkoutExpired && (
-          <p
-            role="status"
-            className="mb-6 flex items-start gap-2.5 rounded-2xl bg-muted p-4 text-sm leading-relaxed text-muted-foreground"
-          >
-            <AlertCircle className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
-            {t.cart.checkoutExpired}
-          </p>
-        )}
         <div className="flex flex-col items-center rounded-3xl bg-card p-12 text-center ring-1 ring-border md:p-20">
           <span className="flex size-16 items-center justify-center rounded-full bg-secondary">
             <ShoppingCart className="size-7 text-muted-foreground" aria-hidden="true" />
@@ -435,29 +376,6 @@ export function CartView({ catalog }: { catalog: PartSummary[] }) {
               {t.cart.shippingNote}
             </p>
 
-            {/* The server action rebuilds the WooCommerce basket, hands off the
-                authenticated customer session, then redirects to /checkout on
-                this same Next.js origin. */}
-            {checkoutFailed && (
-              <p
-                role="alert"
-                className="mt-6 flex items-start gap-2.5 rounded-2xl bg-destructive/10 p-4 text-sm leading-relaxed text-destructive"
-              >
-                <AlertCircle className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
-                {t.cart.checkoutUnavailable}
-              </p>
-            )}
-
-            {checkoutExpired && (
-              <p
-                role="status"
-                className="mt-6 flex items-start gap-2.5 rounded-2xl bg-muted p-4 text-sm leading-relaxed text-muted-foreground"
-              >
-                <AlertCircle className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
-                {t.cart.checkoutExpired}
-              </p>
-            )}
-
             {/* Direct Instant Checkout Button (Primary) */}
             <button
               type="button"
@@ -468,20 +386,6 @@ export function CartView({ catalog }: { catalog: PartSummary[] }) {
               <span>{locale === 'ar' ? 'إتمام الطلب وتأكيد الشراء' : 'Complete Order & Pay'}</span>
               <ArrowRight className="size-4 rtl:rotate-180" />
             </button>
-
-            {/* Optional WooCommerce Gateway if ready */}
-            {checkoutReady && signedIn && (
-              <form action={prepareCheckoutAction} className="mt-3">
-                <input type="hidden" name="items" value={checkoutItems} />
-                <input type="hidden" name="locale" value={locale} />
-                <button
-                  type="submit"
-                  className="flex w-full items-center justify-center gap-2 rounded-full border border-border bg-secondary py-3 text-xs font-semibold text-muted-foreground transition-colors hover:text-foreground hover:bg-card"
-                >
-                  <span>{locale === 'ar' ? 'الدفع عبر بوابة WooCommerce' : 'Pay via WooCommerce'}</span>
-                </button>
-              </form>
-            )}
 
             {whatsappHref && (
               <a

@@ -6,12 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint .",
-    "security:check": "node scripts/security-check.mjs",
-    "translate": "node --env-file-if-exists=.env.local scripts/translate-catalog.mjs",
-    "translate:dry": "node --env-file-if-exists=.env.local scripts/translate-catalog.mjs --dry-run",
-    "migrate:cars": "node --env-file-if-exists=.env.local scripts/migrate-cars.mjs",
-    "migrate:cars:dry": "node --env-file-if-exists=.env.local scripts/migrate-cars.mjs --dry-run"
+    "lint": "eslint ."
   },
   "dependencies": {
     "@ai-sdk/react": "^4.0.37",

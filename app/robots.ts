@@ -5,10 +5,9 @@ import { siteUrl } from '@/lib/seo'
 /**
  * robots.txt for the storefront.
  *
- * Crawlers are welcome everywhere except the routes that either hold a
- * visitor's own session (cart, checkout, account) or proxy WordPress
- * internals. Those pages carry no ranking value and indexing them would leak
- * per-visitor URLs into search results.
+ * Crawlers are welcome everywhere except the routes that hold a visitor's
+ * own session (cart, account). Those pages carry no ranking value and
+ * indexing them would leak per-visitor URLs into search results.
  */
 export default function robots(): MetadataRoute.Robots {
   return {
@@ -16,7 +15,7 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: '*',
         allow: '/',
-        disallow: ['/api/', '/account/', '/cart', '/checkout', '/cms/', '/wc-ajax/', '/setup'],
+        disallow: ['/api/', '/account/', '/cart'],
       },
     ],
     sitemap: `${siteUrl()}/sitemap.xml`,
