@@ -1,0 +1,1499 @@
+{
+  "version": 5,
+  "lastSaved": "2026-09-08T14:00:32.202Z",
+  "security": {
+    "username": "admin",
+    "email": "admin@alifleet.com",
+    "twoFactorEnabled": false,
+    "sessionTimeoutMinutes": 60,
+    "notifyOnNewLogin": true
+  },
+  "commerce": {
+    "vatPercentage": 17,
+    "currencyPosition": "left",
+    "freeDeliveryThreshold": 500,
+    "enableCod": true,
+    "enableCardPayments": true,
+    "enableBankTransfer": true
+  },
+  "branding": {
+    "logoLightUrl": "/images/ali-fleet-logo.png",
+    "logoDarkUrl": "/images/ali-fleet-logo.png",
+    "faviconUrl": "/icon.svg",
+    "tagline": {
+      "ar": "المصدر الرائد للشاحنات والمركبات التجارية والسيارات الفاخرة وقطع الغيار الأصلية",
+      "en": "The premier destination for commercial trucks, luxury fleet imports, and genuine parts",
+      "he": "היעד המוביל למשאיות, רכבים מסחריים, ייבוא רכבי יוקרה וחלפים מקוריים"
+    },
+    "primaryAccentColor": "#0ea5e9"
+  },
+  "notifications": {
+    "alertEmail": "operations@alifleet.com",
+    "alertWhatsapp": "+972 52-600-7000",
+    "soundAlertEnabled": true,
+    "autoReplyCustomer": true
+  },
+  "seo": {
+    "gaMeasurementId": "G-ALIFLEET2026",
+    "metaPixelId": "128947291823901",
+    "googleSearchConsoleTag": "alifleet-site-verification-google-token",
+    "defaultMetaTitle": {
+      "ar": "ALI FLEET — أسطول الشاحنات والمركبات الفاخرة واستيراد السيارات وقطع الغيار",
+      "en": "ALI FLEET — Commercial Trucks, Luxury Fleet, Vehicle Import & Genuine Parts",
+      "he": "ALI FLEET — צי משאיות, רכבי יוקרה, ייבוא אישי וחלקי חילוף מקוריים"
+    },
+    "defaultMetaDescription": {
+      "ar": "شركة علي فليت الرائدة في توفير الشاحنات التجارية والمركبات الفاخرة وقطع الغيار الأصلية وخدمات الاستيراد المخصص من ألمانيا وأوروبا.",
+      "en": "ALI FLEET is the premier supplier of heavy commercial trucks, luxury executive vehicles, genuine OEM spare parts, and custom European imports.",
+      "he": "חברת עלי פליט המובילה באספקת משאיות כבדות, רכבי מנהלים, חלקי חילוף מקוריים ושירותי ייבוא אישי מגרמניה ואירופה."
+    }
+  },
+  "maintenance": {
+    "enabled": false,
+    "message": {
+      "ar": "الموقع يخضع حالياً لترقية دورية في النظم، سنعود للعمل بكامل طاقتنا خلال لحظات.",
+      "en": "Our platform is currently undergoing scheduled enhancements. We will be back online shortly.",
+      "he": "האתר עובר שדרוג מערכות תקופתי, נשוב לפעילות מלאה בתוך זמן קצר."
+    },
+    "notice": {
+      "ar": "الموقع يخضع حالياً لترقية دورية في النظم، سنعود للعمل بكامل طاقتنا خلال لحظات.",
+      "en": "Our platform is currently undergoing scheduled enhancements. We will be back online shortly.",
+      "he": "האתר עובר שדרוג מערכות תקופתי, נשוב לפעילות מלאה בתוך זמן קצר."
+    },
+    "allowedIps": ""
+  },
+  "general": {
+    "contact": {
+      "companyName": "ALI FLEET Motors & Parts",
+      "phone": "+972 4-800-1122",
+      "whatsapp": "+972 52-600-7000",
+      "email": "info@alifleet.com",
+      "address": {
+        "ar": "شارع حيفا الرئيسي، المنطقة الصناعية والتجارية، إسرائيل",
+        "en": "Haifa Main Highway, Commercial Logistics Hub, Israel",
+        "he": "דרך חיפה הראשית, אזור התעשייה והלוגיסטיקה, ישראל"
+      },
+      "hours": {
+        "ar": "الأحد - الخميس: 08:30 ص - 07:00 م | الجمعة: 08:30 ص - 01:30 م",
+        "en": "Sun - Thu: 08:30 AM - 07:00 PM | Fri: 08:30 AM - 01:30 PM",
+        "he": "א׳ - ה׳: 08:30 - 19:00 | יום ו׳: 08:30 - 13:30"
+      },
+      "googleMapsUrl": "https://maps.google.com/?q=Haifa+Commercial+Zone"
+    },
+    "social": {
+      "instagram": "https://instagram.com/alifleet",
+      "facebook": "https://facebook.com/alifleet",
+      "linkedin": "https://linkedin.com/company/alifleet",
+      "tiktok": "https://tiktok.com/@alifleet",
+      "youtube": "https://youtube.com/@alifleet"
+    },
+    "currency": "₪"
+  },
+  "pages": {
+    "home": {
+      "hero": {
+        "line1": {
+          "ar": "نعيد تعريف",
+          "en": "Redefining",
+          "he": "מגדירים מחדש את"
+        },
+        "line2": {
+          "ar": "فنّ القيادة",
+          "en": "The Art of Driving",
+          "he": "אמנות הנהיגה"
+        },
+        "line3": {
+          "ar": "بفخامة",
+          "en": "With Supreme Luxury",
+          "he": "ביוקרה עילאית"
+        },
+        "line4": {
+          "ar": "وأداء استثنائي",
+          "en": "& Exceptional Performance",
+          "he": "וביצועים יוצאי דופן"
+        },
+        "subtitle": {
+          "ar": "المصدر الرائد للشاحنات التجارية الثقيلة، أساطيل الفخامة، قطع الغيار الأصلية، والاستيراد المباشر من ألمانيا وأوروبا.",
+          "en": "The premier destination for heavy commercial trucks, luxury executive fleets, genuine OEM parts, and bespoke European imports.",
+          "he": "היעד המוביל למשאיות כבדות, ציי רכב יוקרתיים, חלקי חילוף מקוריים וייבוא ישיר מגרמניה ואירופה."
+        },
+        "ctaSale": {
+          "ar": "الأسطول المتاح للبيع",
+          "en": "Vehicles For Sale",
+          "he": "רכבים למכירה מיידית"
+        },
+        "ctaImport": {
+          "ar": "طلب استيراد مخصص",
+          "en": "Custom Import Order",
+          "he": "הזמנת ייבוא אישי"
+        },
+        "ctaShowroom": {
+          "ar": "زيارة المعرض",
+          "en": "Visit Showroom",
+          "he": "ביקור באולם התצוגה"
+        },
+        "badge": {
+          "ar": "أسطول علي فليت 2026",
+          "en": "ALI FLEET 2026",
+          "he": "צי עלי פליט 2026"
+        },
+        "slideFlagship": {
+          "ar": "شاحنة مرسيدس أكتروس الرئيسية",
+          "en": "Flagship Mercedes Actros",
+          "he": "משאית הדגל מרצדס אקטרוס"
+        },
+        "slideCustom": {
+          "ar": "تعديل وتجهيز مقصورات VIP",
+          "en": "Bespoke VIP Conversions",
+          "he": "התאמת VIP בעיצוב אישי"
+        },
+        "slideArmored": {
+          "ar": "شاحنات ومقطورات الخدمة الشاقة",
+          "en": "Heavy Duty Fleet & Haulers",
+          "he": "משאיות כבדות לוגיסטיות"
+        },
+        "heroImage": "/images/hero-showroom.png",
+        "avatarImage": "/images/hero-avatars.png",
+        "slideImages": [
+          "/images/hero-showroom.png",
+          "/images/fleet-truck.png",
+          "/images/hero-truck.png",
+          "/images/import-landcruiser.png",
+          "/images/fleet-suv.png",
+          "/images/fleet-van.png"
+        ],
+        "slideLabels": [
+          {
+            "ar": "الشاحنة الرئيسية",
+            "en": "Flagship Mercedes",
+            "he": "משאית הדגל"
+          },
+          {
+            "ar": "الشاحنات الثقيلة",
+            "en": "Heavy Duty Trucks",
+            "he": "משאיות כבדות"
+          },
+          {
+            "ar": "الفانات الفاخرة VIP",
+            "en": "Luxury VIP Vans",
+            "he": "ואנים יוקרתיים"
+          },
+          {
+            "ar": "سيارات الدفع الرباعي",
+            "en": "Executive 4x4 SUVs",
+            "he": "רכבי שטח 4x4"
+          },
+          {
+            "ar": "النقل واللوجستيات",
+            "en": "Highway Haulers",
+            "he": "תובלה מהירה"
+          },
+          {
+            "ar": "الاستيراد الخاص المباشر",
+            "en": "Direct Custom Imports",
+            "he": "ייבוא אישי ישיר"
+          }
+        ]
+      },
+      "fleet": {
+        "eyebrow": {
+          "ar": "الأسطول",
+          "en": "The Fleet",
+          "he": "הצי שלנו"
+        },
+        "titleStart": {
+          "ar": "مركبات تجارية فاخرة",
+          "en": "Luxury Commercial Fleet",
+          "he": "רכבים מסחריים יוקרתיים"
+        },
+        "titleEm": {
+          "ar": "مختارة",
+          "en": "Curated",
+          "he": "נבחרים"
+        },
+        "titleEnd": {
+          "ar": "خصيصًا لك",
+          "en": "Bespoke for You",
+          "he": "במיוחד עבורך"
+        },
+        "lead": {
+          "ar": "من الشاحنات الثقيلة إلى الفخامة التنفيذية، كل مركبة مختارة بعناية من حيث الأداء والراحة والمكانة.",
+          "en": "From heavy-duty haulers to executive luxury, every vehicle is hand-selected for performance, comfort, and prestige.",
+          "he": "החל ממשאיות כבדות ועד ליוקרה ניהולית, כל רכב נבחר בקפידה לפי ביצועים, נוחות ויוקרה."
+        },
+        "vehicles": [
+          {
+            "id": "fleet-1",
+            "title": {
+              "ar": "شاحنات ثقيلة",
+              "en": "Commercial Trucks",
+              "he": "משאיות כבדות"
+            },
+            "tag": {
+              "ar": "جديد ومستعمل",
+              "en": "New & Pre-Owned",
+              "he": "חדש ויד שנייה"
+            },
+            "description": {
+              "ar": "رؤوس قاطرة وشاحنات صلبة من كبرى الشركات المصنعة عالميًا — مفحوصة ومعتمدة وجاهزة للطريق.",
+              "en": "Tractor units and rigid trucks from global leading manufacturers — inspected, certified, and road-ready.",
+              "he": "ראשי גורר ומשאיות מהיצרנים המובילים בעולם — בדוקים, מאושרים ומוכנים לכביש."
+            },
+            "image": "/images/fleet-truck.png"
+          },
+          {
+            "id": "fleet-2",
+            "title": {
+              "ar": "فانات تنفيذية",
+              "en": "Luxury Commercial Vans",
+              "he": "ואנים יוקרתיים"
+            },
+            "tag": {
+              "ar": "الفئة الفاخرة",
+              "en": "Luxury Spec",
+              "he": "מחלקת יוקרה"
+            },
+            "description": {
+              "ar": "فانات تجارية من الدرجة الأولى بتجهيزات داخلية راقية — مصممة لنقل الشخصيات المهمة والخدمات التنفيذية واللوجستيات الفاخرة.",
+              "en": "First-rate commercial vans with bespoke interiors — built for executive transport, VIP service, and luxury transit.",
+              "he": "ואנים מסחריים מדרגה ראשונה בעיצוב פנים יוקרתי — מיועדים להסעות VIP, שירותי מנהלים ולוגיסטיקה יוקרתית."
+            },
+            "image": "/images/fleet-van.png"
+          },
+          {
+            "id": "fleet-3",
+            "title": {
+              "ar": "سيارات فاخرة",
+              "en": "Executive & Armored SUVs",
+              "he": "רכבי שטח יוקרתיים"
+            },
+            "tag": {
+              "ar": "مستوردة",
+              "en": "Imported Fleet",
+              "he": "ייבוא"
+            },
+            "description": {
+              "ar": "سيارات ودفع رباعي فاخرة مختارة يدويًا من الأسواق العالمية، مستوردة بكامل الأوراق الرسمية.",
+              "en": "Hand-picked luxury sedans and 4x4 SUVs from global markets, imported with comprehensive certified documentation.",
+              "he": "רכבי שטח ומנהלים יוקרתיים שנבחרו אישית משווקים בינלאומיים, מיובאים עם תיעוד מלא ומאושר."
+            },
+            "image": "/images/fleet-suv.png"
+          }
+        ]
+      },
+      "stats": [
+        {
+          "id": "stat-1",
+          "value": "850+",
+          "label": {
+            "ar": "مركبة تم تسليمها",
+            "en": "Vehicles Delivered",
+            "he": "רכבים שנמסרו"
+          }
+        },
+        {
+          "id": "stat-2",
+          "value": "40+",
+          "label": {
+            "ar": "دولة نخدمها",
+            "en": "Countries Served",
+            "he": "מדינות שאנו משרתים"
+          }
+        },
+        {
+          "id": "stat-3",
+          "value": "15",
+          "label": {
+            "ar": "سنة من الخبرة",
+            "en": "Years of Experience",
+            "he": "שנות ניסיון"
+          }
+        },
+        {
+          "id": "stat-4",
+          "value": "9",
+          "label": {
+            "ar": "رضا العملاء",
+            "en": "Customer Satisfaction",
+            "he": "שביעות רצון לקוחות"
+          }
+        }
+      ],
+      "marquee": [
+        {
+          "ar": "شاحنات ثقيلة",
+          "en": "Heavy Commercial Trucks",
+          "he": "משאיות כבדות"
+        },
+        {
+          "ar": "استيراد شخصي",
+          "en": "Bespoke Import",
+          "he": "ייבוא אישי"
+        },
+        {
+          "ar": "قطع غيار أصلية 100%",
+          "en": "100% Genuine Spare Parts",
+          "he": "חלקי חילוף מקוריים 100%"
+        },
+        {
+          "ar": "سيارات فاخرة",
+          "en": "Luxury Executive Fleet",
+          "he": "רכבי יוקרה"
+        },
+        {
+          "ar": "فانات تنفيذية",
+          "en": "VIP Commercial Vans",
+          "he": "ואנים יוקרתיים"
+        },
+        {
+          "ar": "قطع غيار",
+          "en": "Genuine Parts",
+          "he": "חלקי חילוף"
+        }
+      ],
+      "globalReach": {
+        "title": {
+          "ar": "استيراد عالمي،",
+          "en": "Global Import,",
+          "he": "ייבוא גלובלי,"
+        },
+        "subtitle": {
+          "ar": "بدون عناء",
+          "en": "Effortless",
+          "he": "ללא מאמץ"
+        },
+        "description": {
+          "ar": "مركبات تجارية وقطع غيار مستوردة وموثوقة من الموانئ العالمية إلى بابك مباشرة.",
+          "en": "Trusted commercial vehicles and genuine spare parts imported from global hubs directly to your door.",
+          "he": "רכבים מסחריים וחלקי חילוף מקוריים המיובאים מנמלים בינלאומיים ישירות עד לביתך."
+        },
+        "countriesCount": "40+",
+        "vehiclesDelivered": "850+",
+        "vipSatisfaction": "98%"
+      },
+      "services": [
+        {
+          "id": "service-1",
+          "title": {
+            "ar": "استيراد الشاحنات والمركبات المخصص",
+            "en": "Bespoke Vehicle & Truck Import",
+            "he": "ייבוא אישי של משאיות ורכבים"
+          },
+          "subtitle": {
+            "ar": "تأمين طلبك من ألمانيا وأوروبا بأعلى المواصفات والضمانات",
+            "en": "Direct sourcing from Germany & European auctions with inspection",
+            "he": "איתור ישיר מגרמניה ואירופה עם בדיקה קפדנית"
+          },
+          "description": {
+            "ar": "نساعدك على اختيار الشاحنة أو المركبة التجارية أو سيارة الدفع الرباعي المثالية مع فحص شامل لـ 150 نقطة فنية وتخليص جمركي سريع.",
+            "en": "Sourcing the exact commercial truck, executive SUV, or specialized vehicle with 150-point technical audit and streamlined customs.",
+            "he": "איתור המשאית, רכב המנהלים או רכב השטח המדויק עם בדיקת 150 נקודות מקיפה ושחרור מהיר מהמכס."
+          },
+          "features": [
+            {
+              "ar": "فحص فني ميداني مع تقرير مصور شامل",
+              "en": "150-point certified technical inspection",
+              "he": "בדיקה טכנית מקיפה של 150 נקודות"
+            },
+            {
+              "ar": "شحن بحري وجوي مؤمن بنسبة 100%",
+              "en": "100% insured freight & port handling",
+              "he": "שילוח ימי מבוטח במלואו"
+            },
+            {
+              "ar": "تخليص جمركي وترخيص جاهز للقيادة",
+              "en": "Complete customs clearance & licensing",
+              "he": "שחרור ממכס ורישוי מלא עד המפתח"
+            }
+          ],
+          "icon": "Ship",
+          "image": "/images/scene-direct-import.png"
+        },
+        {
+          "id": "service-2",
+          "title": {
+            "ar": "تجهيز مقصورات رجال الأعمال VIP",
+            "en": "Luxury VIP Cabin Customization",
+            "he": "התאמת פנים VIP לרכבי מנהלים"
+          },
+          "subtitle": {
+            "ar": "تحويل سيارات الفان إلى مكاتب طائرة خاصة فاخرة",
+            "en": "Transforming executive vans into private jet mobile offices",
+            "he": "הסבת ואנים למשרדים ניידים ברמת מטוס פרטי"
+          },
+          "description": {
+            "ar": "تصميم مقصورات خاصة لفانات مرسيدس سبرينتر وفئات V-Class تشمل مقاعد استلقاء مايباخ، شاشات ذكية 43 بوصة، ثلاجات، ونظم تحكم صوتية.",
+            "en": "Customizing Mercedes Sprinter and V-Class vans with Maybach seating, 43-inch screens, private Wi-Fi, and ambient lighting.",
+            "he": "התאמה אישית של מרצדס ספרינטר ו-V-Class עם מושבי מאיבך, מסכי 43 אינץ׳, עמדות עבודה ותאורת אווירה."
+          },
+          "features": [
+            {
+              "ar": "مقاعد جلد نابا الطبيعي مع تدليك وتبريد",
+              "en": "Nappa leather seats with massage & ventilation",
+              "he": "מושבי עור נאפה עם עיסוי ואוורור"
+            },
+            {
+              "ar": "عزل صوتي كامل ونظام صوتي سينمائي",
+              "en": "Full acoustic soundproofing & studio audio",
+              "he": "בידוד אקוסטי מלא ומערכת קולנוע"
+            },
+            {
+              "ar": "مكاتب عمل ذكية وشواحن لاسلكية",
+              "en": "Integrated smart workstations & wireless charging",
+              "he": "עמדות עבודה חכמות ומטענים אלחוטיים"
+            }
+          ],
+          "icon": "Sparkles",
+          "image": "/images/scene-personal-import.png"
+        },
+        {
+          "id": "service-3",
+          "title": {
+            "ar": "قطع الغيار الأصلية للشاحنات والأسطول",
+            "en": "Genuine Truck & Fleet Spare Parts",
+            "he": "חלקי חילוף מקוריים למשאיות ורכבים"
+          },
+          "subtitle": {
+            "ar": "توريد فوري لفحمات الفرامل، الفلاتر، التوربو، وأنظمة التعليق",
+            "en": "Direct supply of OEM brake pads, filters, turbos, and suspension",
+            "he": "אספקה ישירה של בלמי OEM, פילטרים, מגדשי טורבו ומתלים"
+          },
+          "description": {
+            "ar": "مخزون ضخم من قطع الغيار الأصلية والمصنعية المعتمدة لشاحنات مرسيدس، فولفو، سكانيا، مان، وتويوتا مع توصيل فوري وضمان معتمد.",
+            "en": "Comprehensive inventory of genuine and OEM components for Mercedes, Volvo, Scania, MAN, and Toyota with rapid dispatch.",
+            "he": "מלאי מקיף של חלפים מקוריים ו-OEM למשאיות מרצדס, וולוו, סקאניה, מאן וטויוטה עם אספקה מהירה ואחריות."
+          },
+          "features": [
+            {
+              "ar": "قطع أصلية 100% مع شهادة المنشأ",
+              "en": "100% OEM certified with origin certificate",
+              "he": "חלפים מקוריים 100% עם תעודת מקור"
+            },
+            {
+              "ar": "شحن سريع لكافة المدن والمناطق الصناعية",
+              "en": "Rapid dispatch to all commercial zones",
+              "he": "משלוח מהיר לכל אזורי התעשייה"
+            },
+            {
+              "ar": "ضمان الجودة والتوافق الهندسي الدقيق",
+              "en": "Guaranteed fitment and warranty",
+              "he": "התאמה מושלמת ואחריות יצרן"
+            }
+          ],
+          "icon": "Wrench",
+          "image": "/images/scene-spare-parts.png"
+        }
+      ],
+      "cta": {
+        "title": {
+          "ar": "جاهز تنقل عملك لمستوى أعلى؟",
+          "en": "Ready to Take Your Business Further?",
+          "he": "מוכן לקחת את העסק שלך לשלב הבא?"
+        },
+        "description": {
+          "ar": "قل لنا ما تحتاجه — مركبة أو عملية استيراد أو قطعة غيار. فريقنا يرد خلال يوم عمل واحد.",
+          "en": "Tell us what you need — a commercial vehicle, bespoke import, or spare part. Our team responds within 24 hours.",
+          "he": "ספר לנו מה אתה צריך — רכב, ייבוא אישי או חלק חילוף. הצוות שלנו עונה תוך יום עסקים אחד."
+        },
+        "buttonText": {
+          "ar": "تحدّث مع فريقنا",
+          "en": "Talk to Our Team",
+          "he": "שוחח עם הצוות שלנו"
+        },
+        "buttonLink": "https://wa.me/972526007000",
+        "secondaryText": {
+          "ar": "استعرض قطع الغيار",
+          "en": "Browse Spare Parts",
+          "he": "עיון בחלקי חילוף"
+        },
+        "secondaryLink": "/products"
+      }
+    },
+    "cars": {
+      "eyebrow": {
+        "ar": "معرض الأسطول والمخزون",
+        "en": "Fleet Inventory & Showroom",
+        "he": "מלאי הצי ואולם התצוגה"
+      },
+      "title": {
+        "ar": "السيارات المتاحة",
+        "en": "Available Vehicles &",
+        "he": "רכבים זמינים ו"
+      },
+      "titleEm": {
+        "ar": "والاستيراد المباشر",
+        "en": "Direct Custom Imports",
+        "he": "ייבוא אישי ישיר"
+      },
+      "lead": {
+        "ar": "شاحنات تجارية جاهزة للتسليم الفوري من ساحتنا، بالإضافة إلى خدمة استيراد مخصصة من أوروبا والإمارات واليابان.",
+        "en": "Commercial vehicles in stock ready for instant delivery, plus bespoke importing tailored to your fleet requirements.",
+        "he": "משאיות מסחריות זמינות למסירה מיידית מהמגרש שלנו, לצד שירות ייבוא אישי בהתאמה מלאה."
+      },
+      "bannerImage": "/images/hero-showroom.png"
+    },
+    "products": {
+      "eyebrow": {
+        "ar": "قطع غيار شاحنات أصلية",
+        "en": "Genuine Commercial Spare Parts",
+        "he": "חלקי חילוף מקוריים למשאיات"
+      },
+      "title": {
+        "ar": "قطع الغيار الأصلية المعتمدة",
+        "en": "Certified Genuine OEM Parts &",
+        "he": "חלפים מקוריים מוסמכים ו"
+      },
+      "titleEm": {
+        "ar": "لجميع الشاحنات الأوروبية",
+        "en": "Heavy Duty Components",
+        "he": "רכיבים לכל המשאיות"
+      },
+      "lead": {
+        "ar": "كتالوج متكامل لقطع غيار مرسيدس أكتروس، مان، سكانيا، وفولفو مع ضمان أصلي وتوصيل سريع وشحن دولي.",
+        "en": "Complete catalog of genuine OEM replacement parts for Mercedes Actros, MAN, Scania, and Volvo with express dispatch.",
+        "he": "קטלוג מקיף של חלקי חילוף מקוריים למרצדס אקטרוס, סקאניה ווולוו עם משלוח מהיר ואחריות מלאה."
+      },
+      "bannerImage": "/images/part-brake-pads.png"
+    },
+    "policies": [
+      {
+        "id": "privacy",
+        "title": {
+          "ar": "سياسة الخصوصية وأمن البيانات",
+          "en": "Privacy & Data Security Policy",
+          "he": "מדיניות פרטיות ואבטחת מידע"
+        },
+        "lastUpdated": "2026-03-01",
+        "content": {
+          "ar": "نحن في شركة علي فليت نلتزم بأعلى معايير الحفاظ على خصوصية بيانات العملاء وسجلات المركبات والمشتريات وتفاصيل التخليص الجمركي.",
+          "en": "ALI FLEET is committed to upholding strict international standards for client data privacy, vehicle records, and commercial transactions.",
+          "he": "אנו בחברת עלי פליט מחויבים לסטנדרטים הגבוהים ביותר בשמירה على פרטיות לקוחותינו ופרטי העסקאות."
+        }
+      },
+      {
+        "id": "terms",
+        "title": {
+          "ar": "الشروط والأحكام والضمان التجاري",
+          "en": "Terms & Conditions of Service",
+          "he": "תנאי שימוש ואחריות מסחרית"
+        },
+        "lastUpdated": "2026-03-01",
+        "content": {
+          "ar": "تخضع جميع عمليات بيع وتوريد المركبات وقطع الغيار لعقود موثقة تتضمن شروط الفحص، مواعيد التسليم، والضمانات المعتمدة.",
+          "en": "All vehicle transactions and parts dispatches are governed by verified commercial agreements stipulating technical inspection criteria.",
+          "he": "כל עסקאות הרכב והחלפים כפופות להסכמים מוסדרים הכוללים בדיקה טכנית מוסמכת ותנאי אחריות."
+        }
+      },
+      {
+        "id": "refund",
+        "title": {
+          "ar": "سياسة الاسترجاع والإلغاء",
+          "en": "Refund & Returns Policy",
+          "he": "מדיניות ביטולים והחזרות"
+        },
+        "lastUpdated": "2026-03-01",
+        "content": {
+          "ar": "يحق للعميل استرجاع قطع الغيار غير المستخدمة خلال 14 يوماً من الاستلام في عبوتها الأصلية وفقاً للضوابط التجارية.",
+          "en": "Unused parts in original packaging may be returned within 14 days of receipt in accordance with commercial standards.",
+          "he": "ניתן להחזיר חלפים שלא נעשה בהם שימוש באריזתם המקורית תוך 14 יום מיום קבלתם."
+        }
+      }
+    ]
+  },
+  "cars": [
+    {
+      "id": "car-actros-1848",
+      "type": "sale",
+      "title": {
+        "ar": "مرسيدس-بنز أكتروس 1848 GigaSpace",
+        "en": "Mercedes-Benz Actros 1848 GigaSpace",
+        "he": "מרצדס-בנץ אקטרוס 1848 גיגה-ספייס"
+      },
+      "make": "Mercedes-Benz",
+      "model": "Actros 1848 GigaSpace",
+      "year": 2026,
+      "price": 495000,
+      "currency": "₪",
+      "mileage": "12,500 km",
+      "fuel": "Diesel Euro 6e",
+      "transmission": "PowerShift 3 Automatic 12-Speed",
+      "image": "/images/fleet-truck.png",
+      "images": [
+        "/images/fleet-truck.png",
+        "/images/hero-truck.png",
+        "/images/truck-light.png"
+      ],
+      "status": "available",
+      "featured": true,
+      "specs": {
+        "engine": "12.8L OM 471 Inline-6 Turbo",
+        "horsepower": "476 HP (2,300 Nm Torque)",
+        "acceleration": "Heavy Duty Commercial",
+        "topSpeed": "90 km/h (governed)",
+        "bodyType": "Tractor Unit / Heavy Commercial",
+        "color": "Diamond White / Anthracite"
+      },
+      "description": {
+        "ar": "شاحنة نقل ثقيل رئيسية، مقصورة GigaSpace الأعلى فئة مع نظام كاميرات MirrorCam 2، ومساعد القيادة النشط Active Drive Assist 2.",
+        "en": "Premier heavy tractor unit with flagship GigaSpace cabin, MirrorCam 2 digital cameras, and Active Drive Assist 2 for long-haul efficiency.",
+        "he": "משאית כבדה ראשית עם תא נהג GigaSpace המרווח ביותר, מצלמות דיגיטליות MirrorCam 2 ומערכות בטיחות אקטיביות מתקדמות."
+      }
+    },
+    {
+      "id": "car-landcruiser-300",
+      "type": "sale",
+      "title": {
+        "ar": "تويوتا لاند كروزر 300 VXR VIP",
+        "en": "Toyota Land Cruiser 300 VXR VIP",
+        "he": "טויוטה לנד קרוזר 300 VXR VIP"
+      },
+      "make": "Toyota",
+      "model": "Land Cruiser 300 VXR",
+      "year": 2025,
+      "price": 680000,
+      "currency": "₪",
+      "mileage": "4,200 km",
+      "fuel": "Petrol 3.5L Twin-Turbo V6",
+      "transmission": "Automatic 10-Speed",
+      "image": "/images/import-landcruiser.png",
+      "images": [
+        "/images/import-landcruiser.png",
+        "/images/fleet-suv.png"
+      ],
+      "status": "available",
+      "featured": true,
+      "specs": {
+        "engine": "3.5L V35A-FTS Twin-Turbo V6",
+        "horsepower": "409 HP",
+        "acceleration": "0-100 km/h: 6.7s",
+        "topSpeed": "210 km/h",
+        "bodyType": "Full-Size Luxury SUV 4WD",
+        "color": "Attitude Black Mica"
+      },
+      "description": {
+        "ar": "قمة الاعتمادية والفخامة، أعلى فئة VXR بنظام تعليق تكيفي AVS، مقاعد جلد فاخرة مع تبريد وتدفئة، ونظام صوتي JBL Synthesis مع 14 سماعة.",
+        "en": "The definitive luxury all-terrain flagship. VXR top-spec featuring Adaptive Variable Suspension, heated & ventilated seats, and JBL audio.",
+        "he": "פסגת השטח והיוקרה בדגם ה-VXR הבכיר עם מתלים אדפטיביים, מושבי עור מאווררים ומערכת שמע פרימיום מבית JBL."
+      }
+    },
+    {
+      "id": "car-sprinter-vip",
+      "type": "sale",
+      "title": {
+        "ar": "مرسيدس سبرينتر 319 CDI صالون VIP فخم",
+        "en": "Mercedes-Benz Sprinter 319 CDI VIP Lounge",
+        "he": "מרצדס ספרינטר 319 CDI לאונג׳ VIP"
+      },
+      "make": "Mercedes-Benz",
+      "model": "Sprinter 319 CDI VIP",
+      "year": 2025,
+      "price": 590000,
+      "currency": "₪",
+      "mileage": "1,800 km",
+      "fuel": "Diesel 2.0L OM 654 Turbo",
+      "transmission": "Automatic 9G-TRONIC",
+      "image": "/images/import-sprinter.png",
+      "images": [
+        "/images/import-sprinter.png",
+        "/images/fleet-van.png"
+      ],
+      "status": "available",
+      "featured": true,
+      "specs": {
+        "engine": "2.0L Twin-Stage Turbo Diesel",
+        "horsepower": "190 HP",
+        "acceleration": "Commercial Van",
+        "topSpeed": "160 km/h",
+        "bodyType": "Luxury Executive Van",
+        "color": "Obsidian Black Metallic"
+      },
+      "description": {
+        "ar": "صالون رجال أعمال متنقل، مجهز بمقاعد مايباخ الفاخرة مع تدليك، شاشة تلفزيون ذكية 43 بوصة، ثلاجة مدمجة، وعزل صوتي كامل.",
+        "en": "Executive VIP mobile office van: customized with Maybach lie-flat captain seats, 43-inch Samsung smart TV, integrated fridge, and ambient lighting.",
+        "he": "טרקלין מנהלים נייד ברמת פאר גבוהה: מושבי מאיבך מתכווננים עם עיסוי, מסך חכם 43 אינץ׳, מקרר מובנה ובידוד אקוסטי כפול."
+      }
+    },
+    {
+      "id": "car-lexus-lx600",
+      "type": "import",
+      "title": {
+        "ar": "لكزس LX 600 VIP إصدار رجال الأعمال",
+        "en": "Lexus LX 600 VIP Executive Edition",
+        "he": "לקסוס LX 600 VIP מהדורת מנהלים"
+      },
+      "make": "Lexus",
+      "model": "LX 600 VIP 4-Seater",
+      "year": 2025,
+      "price": 890000,
+      "currency": "₪",
+      "mileage": "0 km (جاهزة للاستيراد)",
+      "fuel": "Petrol 3.5L Twin-Turbo V6",
+      "transmission": "Direct-Shift 10-Speed Automatic",
+      "image": "/images/import-luxury-suv.png",
+      "images": [
+        "/images/import-luxury-suv.png",
+        "/images/suv-light.png"
+      ],
+      "status": "incoming",
+      "featured": true,
+      "specs": {
+        "engine": "3.5L Twin-Turbo V6",
+        "horsepower": "409 HP",
+        "acceleration": "0-100 km/h: 6.9s",
+        "topSpeed": "210 km/h",
+        "bodyType": "Ultra-Luxury Executive SUV",
+        "color": "Sonic Titanium / Flare Red Leather"
+      },
+      "description": {
+        "ar": "نسخة الـ VIP بأربعة مقاعد منفصلة، مقاعد خلفية قابلة للانحناء بـ 48 درجة، نظام الترفيه الخلفي المزدوج، ونظام Mark Levinson 25 مكبر صوت.",
+        "en": "Executive 4-seat VIP layout with 48-degree reclining rear ottoman seats, dual rear entertainment, and 25-speaker Mark Levinson sound.",
+        "he": "תצורת 4 מושבי VIP אקסקלוסיבית עם מושבי אחוריים נשכבים ב-48 מעלות, מערכת בידור כפולה ומערכת שמע Mark Levinson."
+      }
+    },
+    {
+      "id": "car-scania-770s",
+      "type": "import",
+      "title": {
+        "ar": "سكانيا 770S V8 ملكة الطريق للنقل الثقيل",
+        "en": "Scania 770S V8 Heavy Hauler",
+        "he": "סקאניה 770S V8 תובלה כבדה"
+      },
+      "make": "Scania",
+      "model": "770S V8 Highline",
+      "year": 2026,
+      "price": 540000,
+      "currency": "₪",
+      "mileage": "5,000 km",
+      "fuel": "Diesel Euro 6 V8",
+      "transmission": "Scania Opticruise 12+2",
+      "image": "/images/import-heavy-truck.png",
+      "images": [
+        "/images/import-heavy-truck.png"
+      ],
+      "status": "available",
+      "featured": false,
+      "specs": {
+        "engine": "16.4L DC16 V8 Turbo Diesel",
+        "horsepower": "770 HP (3,700 Nm Torque)",
+        "acceleration": "King of Heavy Transport",
+        "topSpeed": "90 km/h",
+        "bodyType": "Heavy Tractor / Mega-Hauler",
+        "color": "Ruby Red Metallic"
+      },
+      "description": {
+        "ar": "أقوى شاحنة إنتاج تجاري في العالم، محرك V8 الأسطوري بقوة 770 حصاناً وعزم 3,700 نيوتن متر، مقصورة Highline الفاخرة المريحة للسفر الطويل.",
+        "en": "The most powerful production truck in the world: legendary 770 HP V8 engine with 3,700 Nm torque and premium Highline sleeper cab.",
+        "he": "המשאית הסדרתית החזקה בעולם: מנוע V8 אגדי בעל 770 כ״ס ומומנט של 3,700 ניוטון מטר ותא נהג Highline מפואר."
+      }
+    },
+    {
+      "id": "car-vclass-maybach",
+      "type": "import",
+      "title": {
+        "ar": "مرسيدس V-Class V 300 d إصدار مايباخ",
+        "en": "Mercedes-Benz V-Class V 300 d Maybach Edition",
+        "he": "מרצדס V-Class V 300 d מהדורת מאיבך"
+      },
+      "make": "Mercedes-Benz",
+      "model": "V 300 d Exclusive LWB",
+      "year": 2025,
+      "price": 640000,
+      "currency": "₪",
+      "mileage": "2,100 km",
+      "fuel": "Diesel 2.0L Turbo",
+      "transmission": "9G-TRONIC",
+      "image": "/images/import-vip-mpv.png",
+      "images": [
+        "/images/import-vip-mpv.png",
+        "/images/import-people-van.png"
+      ],
+      "status": "available",
+      "featured": false,
+      "specs": {
+        "engine": "2.0L Turbo Diesel OM 654",
+        "horsepower": "237 HP",
+        "acceleration": "0-100 km/h: 7.9s",
+        "topSpeed": "220 km/h",
+        "bodyType": "VIP Executive MPV",
+        "color": "Obsidian Black / Two-Tone Silver"
+      },
+      "description": {
+        "ar": "فان مايباخ الفاخر، شبك أمامي مستوحى من مايباخ وجنوط كروم 19 بوصة، مقصورة رجال أعمال بـ 4 مقاعد كابتن مع مساند أقدام كهربائية.",
+        "en": "Bespoke Maybach-inspired MPV: signature chrome grille, 19-inch forged wheels, and 4 individual captain seats with power footrests.",
+        "he": "ואן יוקרתי בעיצוב מאיבך: גריל כרום מרהיב, חישוקי 19 אינץ׳ ו-4 מושבי קפטן מפוארים עם הדום חשמלי."
+      }
+    }
+  ],
+  "products": [
+    {
+      "id": "prod-brake-pads",
+      "name": {
+        "ar": "طقم فحمات فرامل للشاحنات والأسطول التجاري",
+        "en": "Heavy-Duty Commercial Truck Brake Pads Kit",
+        "he": "ערכת רפידות בלם למשאיות ולצי מסחרי"
+      },
+      "sku": "BRK-ACT-2026",
+      "category": "brakes",
+      "price": 680,
+      "inStock": true,
+      "compatibility": "Mercedes Actros, Antos, Arocs, Volvo FH, Scania R/S",
+      "image": "/images/part-brake-pads.png",
+      "description": {
+        "ar": "فحمات فرامل معتمدة OEM للشاحنات الثقيلة، معالجة حرارياً لتحمل أقسى درجات الاحتكاك والحرارة وأداء فرملة متفوق.",
+        "en": "OEM certified heavy-duty commercial truck brake pad set engineered for high thermal stability and maximum stopping power.",
+        "he": "ערכת רפידות בלם OEM למשאיות כבדות, עמידות בטמפרטורות גבוהות ובלאי נמוך לביצועי בלימה מקסימליים."
+      }
+    },
+    {
+      "id": "prod-air-filter",
+      "name": {
+        "ar": "فلتر هواء عالي التدفق لمحركات الديزل الثقيلة",
+        "en": "High-Flow Commercial Engine Air Filter Element",
+        "he": "פילטר אוויר מוגבר למנועי דיזל כבדים"
+      },
+      "sku": "FLT-AIR-990",
+      "category": "filters",
+      "price": 290,
+      "inStock": true,
+      "compatibility": "Mercedes-Benz OM 471, Scania DC13/DC16, Volvo D13",
+      "image": "/images/part-air-filter.png",
+      "description": {
+        "ar": "فلتر هواء أصلي متعدد الطبقات لحجز أدق ذرات الغبار والأتربة وحماية التوربو وغرف الاحتراق مع ضمان أعلى تدفق للهواء.",
+        "en": "Multi-stage genuine air filter element capturing fine dust and particulates while ensuring optimal airflow to twin-turbos.",
+        "he": "אלמנט מסנן אוויר רב-שכבתי מקורי ללכידת אבק דק ושמירה על ביצועי מגדש הטורבו וזרימת אוויר מקסימלית."
+      }
+    },
+    {
+      "id": "prod-oil-filter",
+      "name": {
+        "ar": "فلتر زيت محرك ديزل هيدروليكي للمهام الشاقة",
+        "en": "Heavy-Duty Synthetic Engine Oil Filter",
+        "he": "מסנן שמן מנוע סינתטי לרכב כבד"
+      },
+      "sku": "FLT-OIL-550",
+      "category": "filters",
+      "price": 180,
+      "inStock": true,
+      "compatibility": "Mercedes Actros, DAF XF, MAN TGX, Iveco Stralis",
+      "image": "/images/part-oil-filter.png",
+      "description": {
+        "ar": "فلتر زيت صناعي ألماني متطور يضمن تدفق الزيت النقي وتصفية الشوائب الكربونية بدقة تزيد عمر المحرك حتى 100,000 كم.",
+        "en": "Advanced synthetic commercial oil filter element extending oil longevity and protecting bearings under high engine load.",
+        "he": "מסנן שמן מתקדם המבטיח סינון מושלם של חלקיקים מאריכי חיי מנוע ומגן על המכלולים תחת עומס כבד."
+      }
+    },
+    {
+      "id": "prod-headlight",
+      "name": {
+        "ar": "مصباح أمامي Matrix LED ذكي للشاحنات",
+        "en": "Smart Matrix LED Commercial Headlight Assembly",
+        "he": "פנס חזית חכם Matrix LED למשאיות"
+      },
+      "sku": "LGT-MAT-701",
+      "category": "lighting",
+      "price": 2450,
+      "inStock": true,
+      "compatibility": "Mercedes Actros MP5 / GigaSpace, Arocs (Right & Left)",
+      "image": "/images/part-headlight.png",
+      "description": {
+        "ar": "مصباح أمامي مصفوفة LED أصلية مع إضاءة نهارية مميزة، توزيع ذكي للحزمة الضوئية لتحسين الرؤية الليلية لسائقي المسافات الطويلة.",
+        "en": "Genuine matrix LED headlight unit featuring signature daytime running lights and adaptive beam distribution for long-haul safety.",
+        "he": "פנס חזית LED מקורי עם תאורת יום ייחודית ואלומת אור אדפטיבית לשיפור הראות בלילה בנסיעות ארוכות."
+      }
+    },
+    {
+      "id": "prod-turbo",
+      "name": {
+        "ar": "شاحن توربيني مزدوج أصلي للشاحنات والمركبات الثقيلة",
+        "en": "Genuine Heavy-Duty Commercial Twin-Turbocharger",
+        "he": "מגדש טורבו כפול מקורי למשאיות ורכבים כבדים"
+      },
+      "sku": "TRB-PWR-880",
+      "category": "engine",
+      "price": 6800,
+      "inStock": true,
+      "compatibility": "Mercedes OM471 / OM473, Scania 13L, Volvo FH13",
+      "image": "/images/part-turbo.png",
+      "description": {
+        "ar": "شاحن توربو ألماني عالي التحمل بهندسة متغيرة VGT لتعزيز عزم الدوران عند الدورات المنخفضة وتوفير استهلاك الوقود.",
+        "en": "German VGT variable geometry turbocharger engineered for maximum low-end torque delivery and fuel consumption optimization.",
+        "he": "מגדש טורבו בעל גיאומטריה משתנה VGT למומנט מירבי בסל״ד נמוך וחיסכון משמעותי בצריכת הדלק."
+      }
+    },
+    {
+      "id": "prod-shock-absorber",
+      "name": {
+        "ar": "مساعد وممتص صدمات تعليق هوائي مقوى",
+        "en": "Reinforced Air Suspension Shock Absorber Unit",
+        "he": "בולם זעזועים למתלי אוויר מחוזק"
+      },
+      "sku": "SUS-AIR-420",
+      "category": "suspension",
+      "price": 1950,
+      "inStock": true,
+      "compatibility": "Mercedes-Benz Actros, Scania R-Series, Volvo FM/FH",
+      "image": "/images/part-shock-absorber.png",
+      "description": {
+        "ar": "وحدة ممتص صدمات هوائية مع كيس هواء مقوى بأسلاك فولاذية لامتصاص اهتزازات الطرق الوعرة وثبات استثنائي للحمولة.",
+        "en": "Heavy-duty air strut assembly with steel-reinforced bellow designed for harsh terrain vibration damping and cargo stability.",
+        "he": "יחידת בולם זעזועים אוויר מחוזקת ליציבות מקסימלית של המטען ונסיעה חלקה גם בכבישים משובשים."
+      }
+    },
+    {
+      "id": "prod-alternator",
+      "name": {
+        "ar": "دينامو مولد كهربائي عالي الطاقة 150 أمبير",
+        "en": "Heavy-Duty 28V 150A Commercial Alternator",
+        "he": "אלטרנטור 28V 150A למשאיות כבדות"
+      },
+      "sku": "ELC-ALT-150",
+      "category": "electrical",
+      "price": 2100,
+      "inStock": true,
+      "compatibility": "Mercedes, MAN, Volvo, Scania 24V Systems",
+      "image": "/images/part-alternator.png",
+      "description": {
+        "ar": "مولد كهربائي صناعي أصلي بنظام 24V-28V يوفر تياراً مستقراً لتشغيل التكييف الخلفي، الثلاجات، وأنظمة الملاحة المستمرة.",
+        "en": "Commercial 24-28V 150A heavy-duty alternator ensuring continuous stable power for onboard refrigeration, electronics, and AC.",
+        "he": "אלטרנטור תעשייתי מקורי 24-28V להזנת חשמל יציבה למערכות הקירור, המחשוב ותאי המגורים של הנהג."
+      }
+    },
+    {
+      "id": "prod-clutch",
+      "name": {
+        "ar": "طقم كلتش ودبرياج مقوى مزدوج الأقراص",
+        "en": "Heavy-Duty Dual-Plate Clutch Kit 430mm",
+        "he": "ערכת מצמד (קלאץ׳) כפול מחוזק 430 מ״מ"
+      },
+      "sku": "TRN-CLT-600",
+      "category": "transmission",
+      "price": 4300,
+      "inStock": true,
+      "compatibility": "Mercedes PowerShift, Volvo I-Shift, Scania Opticruise",
+      "image": "/images/part-clutch.png",
+      "description": {
+        "ar": "طقم دبرياج كامل بقرصين مقوى بالسيراميك لتحمل عزم دوران يصل إلى 3,500 نيوتن متر دون انزلاق مع عمر تشغيلي طويل.",
+        "en": "Complete 430mm dual-plate clutch kit with ceramic-metallic friction linings handling up to 3,500 Nm torque without slippage.",
+        "he": "ערכת מצמד כפולה 430 מ״מ עם רפידות קרמיות לעמידות במומנט של עד 3,500 ניוטון מטר ללא החלקה."
+      }
+    }
+  ],
+  "blog": [
+    {
+      "id": "post-1",
+      "slug": "top-heavy-trucks-2026",
+      "title": {
+        "ar": "أبرز الشاحنات الثقيلة لعام 2026: مقارنة الأداء والتقنيات",
+        "en": "Top Heavy-Duty Commercial Trucks to Watch in 2026",
+        "he": "המשאיות הכבדות המובילות לצפייה ב-2026: השוואת ביצועים"
+      },
+      "excerpt": {
+        "ar": "من مرسيدس-بنز أكتروس الجيل الجديد إلى فولفو FH الكهربائي بالكامل، نستعرض الشاحنات التجارية التي تُعيد تشكيل اللوجستيات العالمية هذا العام.",
+        "en": "From next-generation Mercedes-Benz Actros to the all-electric Volvo FH, we break down the commercial trucks reshaping global logistics this year.",
+        "he": "ממרצדס-בנץ אקטרוס הדור הבא ועד לוולוו FH החשמלי, אנו סוקרים את המשאיות המסחריות שמעצבות מחדש את הלוגיסטיקה העולמית השנה."
+      },
+      "author": "فريق علي فليت التقني",
+      "date": "2026-07-15",
+      "readTime": "6 دقائق",
+      "category": "fleet",
+      "image": "/images/fleet-truck.png",
+      "published": true,
+      "featured": true
+    },
+    {
+      "id": "post-2",
+      "slug": "importing-from-germany-guide",
+      "title": {
+        "ar": "الدليل الشامل: استيراد المركبات والشاحنات من ألمانيا خطوة بخطوة",
+        "en": "Complete Guide: Importing Commercial Vehicles & Fleet from Germany",
+        "he": "מדריך מלא: ייבוא רכבים מסחריים ומשאיות מגרמניה צעד אחר צעד"
+      },
+      "excerpt": {
+        "ar": "كل ما تحتاج معرفته حول البحث، فحص الـ 150 نقطة، والتخليص الجمركي لمركبة ألمانية — من لوحات التصدير إلى التسليم النهائي.",
+        "en": "Everything you need to know about sourcing, inspecting, and clearing a German vehicle — from export plates to destination port paperwork.",
+        "he": "כל מה שצריך לדעת על איתור, בדיקה ושחרור רכב גרמני — מלוחיות יצוא ועד תיעוד נמל היעד ומסירה."
+      },
+      "author": "إدارة الاستيراد الدولي",
+      "date": "2026-07-02",
+      "readTime": "9 دقائق",
+      "category": "import",
+      "image": "/images/import-luxury-suv.png",
+      "published": true,
+      "featured": false
+    },
+    {
+      "id": "post-3",
+      "slug": "genuine-vs-oem-spare-parts",
+      "title": {
+        "ar": "قطع الغيار الأصلية مقابل OEM: كيف تختار الأنسب لأسطولك؟",
+        "en": "Genuine vs OEM Spare Parts: What Fleet Operators Need to Know",
+        "he": "חלפים מקוריים לעומת OEM: מה שחשוב למפעילי ציי רכב לדעת"
+      },
+      "excerpt": {
+        "ar": "فهم الفرق الحقيقي بين قطع الغيار الأصلية من الشركة المصنعة وقطع OEM يساعدك على اتخاذ قرارات شراء ذكية وتوفير تكاليف الصيانة.",
+        "en": "Understanding the real difference between manufacturer-original and OEM-grade parts helps you make smarter purchasing decisions for your fleet.",
+        "he": "הבנת ההבדל האמיתי בין חלפים מקוריים של היצרן לבין חלקי OEM מסייעת לקבל החלטות רכש חכמות ולחסוך בעלויות."
+      },
+      "author": "قسم الهندسة والصيانة",
+      "date": "2026-06-20",
+      "readTime": "5 دقائق",
+      "category": "parts",
+      "image": "/images/scene-spare-parts.png",
+      "published": true,
+      "featured": false
+    },
+    {
+      "id": "post-4",
+      "slug": "electric-commercial-fleets",
+      "title": {
+        "ar": "مستقبل الأساطيل التجارية الكهربائية: تكاليف التشغيل والمدى",
+        "en": "The Future of Electric Commercial Fleets: Range & Operating Costs",
+        "he": "עתיד הציים המסחריים החשמליים: טווח ועלויות תפעול"
+      },
+      "excerpt": {
+        "ar": "تحليل اقتصادي وتقني شامل حول متى يكون التحول إلى الشاحنات وفانات التوزيع الكهربائية مجدياً استثمارياً للشركات والناقلين.",
+        "en": "A comprehensive financial and technical breakdown on when transitioning to electric haulage and delivery vans pays off.",
+        "he": "ניתוח כלכלי וטכנולוגי מקיף מתי המעבר למשאיות וואנים חשמליים משתלם כלכלית לחברות ולמובילים."
+      },
+      "author": "مستشار الحلول الخضراء",
+      "date": "2026-05-18",
+      "readTime": "7 دقائق",
+      "category": "fleet",
+      "image": "/images/fleet-van.png",
+      "published": true,
+      "featured": false
+    }
+  ],
+  "orders": [
+    {
+      "id": "ORD-7830",
+      "customerId": "cust-basem-ali",
+      "customerName": "باسم علي (Basem Ali)",
+      "customerEmail": "basem.ali@gmail.com",
+      "customerPhone": "+972 50-891-2345",
+      "date": "2026-09-08T12:00:00Z",
+      "status": "processing",
+      "total": 2950,
+      "currency": "₪",
+      "paymentMethod": "card",
+      "paymentStatus": "paid",
+      "trackingNumber": "ARX-78309124IL",
+      "carrier": "Aramex Freight Express",
+      "estimatedDelivery": "2026-09-12",
+      "notes": "عملية شراء مكتملة لقطع غيار شاحنات أصلية للعميل باسم علي - تم تأكيد الدفع بنجاح بالبطاقة الائتمانية وجاري تجهيز الشحنة من المستودع المركزي.",
+      "shippingAddress": {
+        "street": "طريق القدس الرئيسي 25",
+        "city": "الناصرة",
+        "country": "إسرائيل",
+        "postalCode": "16000"
+      },
+      "items": [
+        {
+          "id": "item-part-1",
+          "title": "طقم فحمات فرامل للشاحنات والأسطول التجاري (OEM Brake Kit)",
+          "sku": "BRK-ACT-2026",
+          "quantity": 2,
+          "price": 680,
+          "image": "/images/part-brake-pads.png"
+        },
+        {
+          "id": "item-part-2",
+          "title": "شاحن توربيني مزدوج أصلي للشاحنات والمركبات الثقيلة (Twin Turbo)",
+          "sku": "TRB-PWR-880",
+          "quantity": 1,
+          "price": 1590,
+          "image": "/images/part-turbo.png"
+        }
+      ]
+    },
+    {
+      "id": "ORD-7821",
+      "customerId": "cust-1",
+      "customerName": "محمد العمري (Al-Omari Trading)",
+      "customerEmail": "omari.logistics@gmail.com",
+      "customerPhone": "+972 52-889-1234",
+      "date": "2026-09-07T11:30:00Z",
+      "status": "shipping",
+      "total": 3300,
+      "currency": "₪",
+      "paymentMethod": "card",
+      "paymentStatus": "paid",
+      "trackingNumber": "ARX-98214732",
+      "carrier": "Aramex Freight Express",
+      "estimatedDelivery": "2026-09-09",
+      "notes": "تسليم في المستودع الرئيسي، يرجى التنسيق المسبق مع مسؤول المستودع.",
+      "shippingAddress": {
+        "street": "شارع النزهة، المنطقة الصناعية 14",
+        "city": "القدس",
+        "country": "إسرائيل",
+        "postalCode": "91200"
+      },
+      "items": [
+        {
+          "id": "item-1",
+          "title": "فلتر هواء عالي التدفق لمحركات الديزل الثقيلة",
+          "sku": "FLT-AIR-990",
+          "quantity": 2,
+          "price": 290,
+          "image": "/images/part-air-filter.png"
+        },
+        {
+          "id": "item-2",
+          "title": "طقم فحمات فرامل للشاحنات والأسطول التجاري",
+          "sku": "BRK-ACT-2026",
+          "quantity": 4,
+          "price": 680,
+          "image": "/images/part-brake-pads.png"
+        }
+      ]
+    },
+    {
+      "id": "ORD-7822",
+      "customerId": "cust-2",
+      "customerName": "شركة الأفق للنقل اللوجستي (Horizon Logistics)",
+      "customerEmail": "fleet@horizon-logistics.com",
+      "customerPhone": "+972 50-456-7890",
+      "date": "2026-09-06T14:15:00Z",
+      "status": "processing",
+      "total": 11000,
+      "currency": "₪",
+      "paymentMethod": "bank_transfer",
+      "paymentStatus": "paid",
+      "trackingNumber": "DHL-44019283",
+      "carrier": "DHL Heavy Cargo",
+      "estimatedDelivery": "2026-09-11",
+      "notes": "قطع غيار لأسطول شاحنات فولفو وسكانيا.",
+      "shippingAddress": {
+        "street": "طريق الميناء 42، مبنى اللوجستيات",
+        "city": "حيفا",
+        "country": "إسرائيل",
+        "postalCode": "31040"
+      },
+      "items": [
+        {
+          "id": "item-3",
+          "title": "شاحن توربيني مزدوج أصلي للشاحنات والمركبات الثقيلة",
+          "sku": "TRB-PWR-880",
+          "quantity": 1,
+          "price": 6800,
+          "image": "/images/part-turbo.png"
+        },
+        {
+          "id": "item-4",
+          "title": "دينامو مولد كهربائي عالي الطاقة 150 أمبير",
+          "sku": "ELC-ALT-150",
+          "quantity": 2,
+          "price": 2100,
+          "image": "/images/part-alternator.png"
+        }
+      ]
+    },
+    {
+      "id": "ORD-7820",
+      "customerId": "cust-3",
+      "customerName": "د. طارق خوري (Dr. Tarek Khoury)",
+      "customerEmail": "tarek.khoury@vipmed.org",
+      "customerPhone": "+972 54-332-9011",
+      "date": "2026-09-02T09:40:00Z",
+      "status": "delivered",
+      "total": 8200,
+      "currency": "₪",
+      "paymentMethod": "card",
+      "paymentStatus": "paid",
+      "trackingNumber": "FDX-7712904",
+      "carrier": "FedEx Priority",
+      "estimatedDelivery": "2026-09-05",
+      "notes": "تم التسليم بنجاح وتوقيع استلام الشحنة.",
+      "shippingAddress": {
+        "street": "شارع الملك فيصل 8",
+        "city": "رام الله",
+        "country": "فلسطين",
+        "postalCode": "90600"
+      },
+      "items": [
+        {
+          "id": "item-5",
+          "title": "طقم كلتش ودبرياج مقوى مزدوج الأقراص",
+          "sku": "TRN-CLT-600",
+          "quantity": 1,
+          "price": 4300,
+          "image": "/images/part-clutch.png"
+        },
+        {
+          "id": "item-6",
+          "title": "مساعد وممتص صدمات تعليق هوائي مقوى",
+          "sku": "SUS-AIR-420",
+          "quantity": 2,
+          "price": 1950,
+          "image": "/images/part-shock-absorber.png"
+        }
+      ]
+    },
+    {
+      "id": "ORD-7825",
+      "customerId": "cust-4",
+      "customerName": "أسامة النابلسي (Nabulsi Transport)",
+      "customerEmail": "osama.nabulsi@nabulsi-trans.com",
+      "customerPhone": "+972 59-771-4521",
+      "date": "2026-09-08T08:20:00Z",
+      "status": "pending",
+      "total": 4900,
+      "currency": "₪",
+      "paymentMethod": "cod",
+      "paymentStatus": "unpaid",
+      "notes": "طلب جديد ينتظر تأكيد قسم المبيعات والاتصال بالعميل.",
+      "shippingAddress": {
+        "street": "شارع رفيديا الرئيسي 19",
+        "city": "نابلس",
+        "country": "فلسطين",
+        "postalCode": "90100"
+      },
+      "items": [
+        {
+          "id": "item-7",
+          "title": "مصباح أمامي Matrix LED ذكي للشاحنات",
+          "sku": "LGT-MAT-701",
+          "quantity": 2,
+          "price": 2450,
+          "image": "/images/part-headlight.png"
+        }
+      ]
+    }
+  ],
+  "customers": [
+    {
+      "id": "cust-basem-ali",
+      "name": "باسم علي (Basem Ali)",
+      "email": "basem.ali@gmail.com",
+      "phone": "+972 50-891-2345",
+      "tier": "Gold",
+      "status": "active",
+      "joinedDate": "2026-09-08",
+      "totalSpent": 2950,
+      "ordersCount": 1,
+      "interestedIn": "قطع غيار شاحنات مرسيدس وسكانيا، فحمات فرامل، شواحن تيربو",
+      "notes": "تم تسجيل الحساب وإتمام عملية شراء ناجحة لقطع غيار أصلية رقم ORD-7830.",
+      "billingAddress": {
+        "street": "طريق القدس الرئيسي 25",
+        "city": "الناصرة",
+        "country": "إسرائيل",
+        "postalCode": "16000"
+      },
+      "shippingAddress": {
+        "street": "طريق القدس الرئيسي 25",
+        "city": "الناصرة",
+        "country": "إسرائيل"
+      },
+      "orders": [
+        {
+          "id": "ORD-7830",
+          "orderNumber": "#ORD-7830",
+          "date": "2026-09-08",
+          "total": 2950,
+          "status": "processing",
+          "items": [
+            {
+              "name": "طقم فحمات فرامل للشاحنات والأسطول التجاري",
+              "quantity": 2,
+              "price": 680
+            },
+            {
+              "name": "شاحن توربيني مزدوج أصلي للشاحنات والمركبات الثقيلة",
+              "quantity": 1,
+              "price": 1590
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cust-1",
+      "name": "محمد العمري",
+      "email": "omari.logistics@gmail.com",
+      "phone": "+972 52-889-1234",
+      "tier": "VIP",
+      "status": "active",
+      "joinedDate": "2025-11-10",
+      "totalSpent": 528300,
+      "ordersCount": 4,
+      "interestedIn": "شاحنات مرسيدس أكتروس، فحمات فرامل، استيراد سيارات دفع رباعي",
+      "notes": "عميل استراتيجي - يمتلك أسطول نقل ثقيل مكون من 18 شاحنة، يفضل فواتير موحدة نهاية كل شهر.",
+      "billingAddress": {
+        "street": "شارع النزهة 14",
+        "city": "القدس",
+        "country": "إسرائيل",
+        "postalCode": "91200"
+      },
+      "shippingAddress": {
+        "street": "المنطقة الصناعية - مستودع رقم 5",
+        "city": "القدس",
+        "country": "إسرائيل"
+      },
+      "orders": [
+        {
+          "id": "ORD-7821",
+          "orderNumber": "#ORD-7821",
+          "date": "2026-09-07",
+          "total": 3300,
+          "status": "shipping",
+          "items": [
+            {
+              "name": "فلتر هواء عالي التدفق لمحركات الديزل",
+              "quantity": 2,
+              "price": 290
+            },
+            {
+              "name": "طقم فحمات فرامل للشاحنات",
+              "quantity": 4,
+              "price": 680
+            }
+          ]
+        },
+        {
+          "id": "ORD-7410",
+          "orderNumber": "#ORD-7410",
+          "date": "2026-04-12",
+          "total": 495000,
+          "status": "completed",
+          "items": [
+            {
+              "name": "مرسيدس-بنز أكتروس 1848 GigaSpace",
+              "quantity": 1,
+              "price": 495000
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cust-2",
+      "name": "شركة الأفق للنقل اللوجستي",
+      "email": "fleet@horizon-logistics.com",
+      "phone": "+972 50-456-7890",
+      "tier": "Platinum",
+      "status": "active",
+      "joinedDate": "2025-08-15",
+      "totalSpent": 840000,
+      "ordersCount": 6,
+      "interestedIn": "شواحن توربو، محركات، شاحنات سكانيا وفولفو",
+      "notes": "شركة نقل وشحن دولي، تطلب باستمرار شواحن توربينات وقطع تعليق أصلية.",
+      "billingAddress": {
+        "street": "طريق الميناء 42",
+        "city": "حيفا",
+        "country": "إسرائيل",
+        "postalCode": "31040"
+      },
+      "shippingAddress": {
+        "street": "مجمع اللوجستيات المينائي 42",
+        "city": "حيفا",
+        "country": "إسرائيل"
+      },
+      "orders": [
+        {
+          "id": "ORD-7822",
+          "orderNumber": "#ORD-7822",
+          "date": "2026-09-06",
+          "total": 11000,
+          "status": "processing",
+          "items": [
+            {
+              "name": "شاحن توربيني مزدوج أصلي للشاحنات",
+              "quantity": 1,
+              "price": 6800
+            },
+            {
+              "name": "دينامو مولد كهربائي 150 أمبير",
+              "quantity": 2,
+              "price": 2100
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cust-3",
+      "name": "د. طارق خوري",
+      "email": "tarek.khoury@vipmed.org",
+      "phone": "+972 54-332-9011",
+      "tier": "VIP",
+      "status": "active",
+      "joinedDate": "2026-01-20",
+      "totalSpent": 648200,
+      "ordersCount": 2,
+      "interestedIn": "مرسيدس سبرينتر VIP، فانات طبية مجهزة",
+      "notes": "طبيب ورجل أعمال، تم تسليم فان سبرينتر مجهز بمقصورة VIP خاصة به.",
+      "billingAddress": {
+        "street": "شارع الملك فيصل 8",
+        "city": "رام الله",
+        "country": "فلسطين",
+        "postalCode": "90600"
+      },
+      "shippingAddress": {
+        "street": "شارع الملك فيصل 8",
+        "city": "رام الله",
+        "country": "فلسطين"
+      },
+      "orders": [
+        {
+          "id": "ORD-7820",
+          "orderNumber": "#ORD-7820",
+          "date": "2026-09-02",
+          "total": 8200,
+          "status": "completed",
+          "items": [
+            {
+              "name": "طقم كلتش ودبرياج مقوى مزدوج",
+              "quantity": 1,
+              "price": 4300
+            },
+            {
+              "name": "مساعدات وممتصات صدمات هوائية",
+              "quantity": 2,
+              "price": 1950
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cust-4",
+      "name": "أسامة النابلسي",
+      "email": "osama.nabulsi@nabulsi-trans.com",
+      "phone": "+972 59-771-4521",
+      "tier": "Gold",
+      "status": "active",
+      "joinedDate": "2026-04-05",
+      "totalSpent": 125400,
+      "ordersCount": 3,
+      "interestedIn": "إضاءة Matrix LED، فحمات فرامل، إطارات ألمنيوم",
+      "notes": "موزع قطع شاحنات، يفضل الدفع نقداً عند التسليم.",
+      "billingAddress": {
+        "street": "شارع رفيديا الرئيسي 19",
+        "city": "نابلس",
+        "country": "فلسطين",
+        "postalCode": "90100"
+      },
+      "shippingAddress": {
+        "street": "شارع رفيديا الرئيسي 19",
+        "city": "نابلس",
+        "country": "فلسطين"
+      },
+      "orders": [
+        {
+          "id": "ORD-7825",
+          "orderNumber": "#ORD-7825",
+          "date": "2026-09-08",
+          "total": 4900,
+          "status": "pending",
+          "items": [
+            {
+              "name": "مصباح أمامي Matrix LED ذكي",
+              "quantity": 2,
+              "price": 2450
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,83 @@
+'use client'
+
+import Image from 'next/image'
+import LocaleLink from '@/components/locale-link'
+import { ArrowUpRight } from 'lucide-react'
+import type { PartSummary } from '@/lib/data/parts'
+import { useLanguage } from '@/lib/i18n/language-context'
+import { formatPrice } from '@/lib/format'
+import { useStore } from '@/lib/store-context'
+import { AddToCartButton } from '@/components/add-to-cart-button'
+import { proxied } from '@/lib/img-proxy'
+
+export function ProductCard({ part }: { part: PartSummary }) {
+  const { t, locale } = useLanguage()
+  const store = useStore()
+
+  // Products that have not been translated yet still show their original
+  // Hebrew title, so it is tagged as Hebrew for screen readers and for correct
+  // bidi handling rather than being passed off as Arabic or English.
+  const nameLang = part.untranslated ? 'he' : undefined
+
+  return (
+    <article className="group flex flex-col overflow-hidden rounded-3xl bg-card ring-1 ring-border transition-shadow hover:shadow-xl hover:shadow-foreground/5">
+      <LocaleLink
+        href={`/products/${part.slug}`}
+        className="relative block aspect-4/3 overflow-hidden bg-secondary"
+      >
+        <Image
+          src={proxied(part.image)}
+          alt={part.alt[locale]}
+          fill
+          sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 25vw"
+          className="object-cover transition-transform duration-500 group-hover:scale-105"
+        />
+        <span
+          className={
+            part.inStock
+              ? 'absolute start-3 top-3 rounded-full bg-accent px-3 py-1 text-[11px] font-semibold text-accent-foreground'
+              : 'absolute start-3 top-3 rounded-full bg-foreground/80 px-3 py-1 text-[11px] font-semibold text-background'
+          }
+        >
+          {part.inStock ? t.common.inStock : t.common.outOfStock}
+        </span>
+      </LocaleLink>
+
+      <div className="flex flex-1 flex-col p-5">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+          {part.brand ? `${part.brand} · ` : ''}
+          {t.products.categories[part.category]}
+        </p>
+        <h3
+          className="mt-2 text-pretty text-base font-semibold leading-snug text-foreground"
+          lang={nameLang}
+        >
+          <LocaleLink href={`/products/${part.slug}`} className="hover:text-accent">
+            {part.name[locale]}
+          </LocaleLink>
+        </h3>
+        {part.sku && (
+          <p className="mt-1.5 font-mono text-xs text-muted-foreground" dir="ltr">
+            {part.sku}
+          </p>
+        )}
+
+        <div className="mt-auto flex items-end justify-between gap-3 pt-5">
+          <p className="font-serif text-2xl text-foreground" dir="ltr">
+            {part.price > 0 ? formatPrice(part.price, store.currency) : t.common.onRequest}
+          </p>
+          <div className="flex items-center gap-2">
+            <LocaleLink
+              href={`/products/${part.slug}`}
+              aria-label={`${t.common.viewDetails}: ${part.name[locale]}`}
+              className="flex size-9 items-center justify-center rounded-full ring-1 ring-border text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+            >
+              <ArrowUpRight className="size-4" aria-hidden="true" data-flip-rtl />
+            </LocaleLink>
+            <AddToCartButton slug={part.slug} size="sm" disabled={!part.inStock} />
+          </div>
+        </div>
+      </div>
+    </article>
+  )
+}

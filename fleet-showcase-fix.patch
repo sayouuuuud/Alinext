@@ -1,0 +1,46 @@
+From ec78f8ad5133a0941db4678bcc290fad8ace376a Mon Sep 17 00:00:00 2001
+From: aliahmd88-wq <aliahmd88@icloud.com>
+Date: Sat, 29 Aug 2026 17:50:47 +0300
+Subject: [PATCH] Fix fleet showcase image labels not matching vehicle type
+
+truckTitle was falling back to fleet-van.png, vanTitle to fleet-suv.png,
+and luxuryTitle to fleet-truck.png - the three fallback images were
+shifted by one slot. Swapped them to the correct file per label.
+
+Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>
+---
+ components/fleet-showcase.tsx | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/components/fleet-showcase.tsx b/components/fleet-showcase.tsx
+index 9ffacc0..75dd6ca 100644
+--- a/components/fleet-showcase.tsx
++++ b/components/fleet-showcase.tsx
+@@ -20,21 +20,21 @@ export function FleetShowcase({ wpImages }: { wpImages?: PageImages }) {
+       title: t.home.fleet.truckTitle,
+       tag: t.home.fleet.truckTag,
+       description: t.home.fleet.truckDesc,
+-      image: wpImages?.fleetVehicle1 || '/images/fleet-van.png',
++      image: wpImages?.fleetVehicle1 || '/images/fleet-truck.png',
+       alt: t.home.fleet.truckTitle,
+     },
+     {
+       title: t.home.fleet.vanTitle,
+       tag: t.home.fleet.vanTag,
+       description: t.home.fleet.vanDesc,
+-      image: wpImages?.fleetVehicle2 || '/images/fleet-suv.png',
++      image: wpImages?.fleetVehicle2 || '/images/fleet-van.png',
+       alt: t.home.fleet.vanTitle,
+     },
+     {
+       title: t.home.fleet.luxuryTitle,
+       tag: t.home.fleet.luxuryTag,
+       description: t.home.fleet.luxuryDesc,
+-      image: wpImages?.fleetVehicle3 || '/images/fleet-truck.png',
++      image: wpImages?.fleetVehicle3 || '/images/fleet-suv.png',
+       alt: t.home.fleet.luxuryTitle,
+     },
+   ]
+-- 
+2.50.1 (Apple Git-155)
+

@@ -1,0 +1,25 @@
+import type { MetadataRoute } from 'next'
+
+import { siteUrl } from '@/lib/seo'
+
+/**
+ * robots.txt for the storefront.
+ *
+ * Crawlers are welcome everywhere except the routes that either hold a
+ * visitor's own session (cart, checkout, account) or proxy WordPress
+ * internals. Those pages carry no ranking value and indexing them would leak
+ * per-visitor URLs into search results.
+ */
+export default function robots(): MetadataRoute.Robots {
+  return {
+    rules: [
+      {
+        userAgent: '*',
+        allow: '/',
+        disallow: ['/api/', '/account/', '/cart', '/checkout', '/cms/', '/wc-ajax/', '/setup'],
+      },
+    ],
+    sitemap: `${siteUrl()}/sitemap.xml`,
+    host: siteUrl(),
+  }
+}

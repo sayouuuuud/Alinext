@@ -1,0 +1,401 @@
+'use client'
+
+import React, { useState } from 'react'
+import {
+  Package,
+  Plus,
+  Search,
+  Edit2,
+  Trash2,
+  CheckCircle2,
+  XCircle,
+  X,
+} from 'lucide-react'
+import { useAdmin } from '@/lib/admin/admin-context'
+import { MultiLangInput } from '../multilang-input'
+import { ImageUpload } from '@/components/admin/image-upload'
+import type { ProductItem } from '@/lib/admin/types'
+
+export function ProductsManagerTab() {
+  const { t, content, updateContent, locale, showToast } = useAdmin()
+
+  const [search, setSearch] = useState('')
+  const [stockFilter, setStockFilter] = useState<'all' | 'inStock' | 'outOfStock'>('all')
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [editingProduct, setEditingProduct] = useState<ProductItem | null>(null)
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
+
+  const emptyProduct: ProductItem = {
+    id: '',
+    name: { ar: '', en: '', he: '' },
+    sku: '',
+    category: 'brakes',
+    price: 650,
+    inStock: true,
+    compatibility: 'Mercedes-Benz Commercial Fleet',
+    image: '/images/part-brake-pads.png',
+    description: { ar: '', en: '', he: '' },
+  }
+
+  const [formData, setFormData] = useState<ProductItem>(emptyProduct)
+
+  const products = content.products || []
+
+  const filteredProducts = products.filter((p) => {
+    const nameMatch =
+      p.name?.[locale]?.toLowerCase().includes(search.toLowerCase()) ||
+      p.name?.ar?.toLowerCase().includes(search.toLowerCase()) ||
+      p.name?.en?.toLowerCase().includes(search.toLowerCase()) ||
+      p.sku.toLowerCase().includes(search.toLowerCase()) ||
+      p.category.toLowerCase().includes(search.toLowerCase())
+
+    const stockMatch =
+      stockFilter === 'all' ||
+      (stockFilter === 'inStock' ? p.inStock : !p.inStock)
+
+    return nameMatch && stockMatch
+  })
+
+  const openAddModal = () => {
+    setEditingProduct(null)
+    setFormData({
+      ...emptyProduct,
+      id: `prod-${Date.now()}`,
+    })
+    setIsModalOpen(true)
+  }
+
+  const openEditModal = (p: ProductItem) => {
+    setEditingProduct(p)
+    setFormData({ ...p })
+    setIsModalOpen(true)
+  }
+
+  const handleSave = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!formData.name?.ar && !formData.name?.en) {
+      showToast('يرجى إدخال اسم القطعة بالعربية أو الإنجليزية', 'error')
+      return
+    }
+
+    if (editingProduct) {
+      updateContent((prev) => ({
+        ...prev,
+        products: prev.products.map((item) =>
+          item.id === formData.id ? formData : item
+        ),
+      }))
+      showToast('تم تحديث بيانات القطعة بنجاح')
+    } else {
+      updateContent((prev) => ({
+        ...prev,
+        products: [formData, ...prev.products],
+      }))
+      showToast('تمت إضافة القطعة إلى الكتالوج')
+    }
+
+    setIsModalOpen(false)
+  }
+
+  const handleDelete = (id: string) => {
+    updateContent((prev) => ({
+      ...prev,
+      products: prev.products.filter((p) => p.id !== id),
+    }))
+    setDeleteConfirmId(null)
+    showToast('تم حذف القطعة من المتجر')
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-border/70 pb-4">
+        <div>
+          <h1 className="text-xl font-bold tracking-tight text-foreground sm:text-2xl">
+            {t.productsManager.title}
+          </h1>
+          <p className="text-xs text-muted-foreground">
+            {t.productsManager.subtitle}
+          </p>
+        </div>
+
+        <button
+          type="button"
+          onClick={openAddModal}
+          className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-xs font-semibold text-primary-foreground shadow-sm shadow-primary/30 hover:opacity-95"
+        >
+          <Plus className="h-4 w-4" />
+          <span>{t.productsManager.addNewProduct}</span>
+        </button>
+      </div>
+
+      {/* Filters */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="relative flex-1 max-w-md">
+          <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder={t.productsManager.searchPlaceholder}
+            className="w-full rounded-xl border border-border bg-card ps-9 pe-4 py-2 text-xs text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-hidden"
+          />
+        </div>
+
+        <div className="flex items-center gap-2">
+          <select
+            value={stockFilter}
+            onChange={(e) => setStockFilter(e.target.value as any)}
+            className="rounded-xl border border-border bg-card px-3 py-2 text-xs font-medium text-foreground focus:border-primary focus:outline-hidden"
+          >
+            <option value="all">كافة الحالات</option>
+            <option value="inStock">متوفر بالمخزون</option>
+            <option value="outOfStock">غير متوفر</option>
+          </select>
+        </div>
+      </div>
+
+      {/* Products Table */}
+      <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-2xs">
+        <div className="overflow-x-auto">
+          <table className="w-full text-start text-xs">
+            <thead className="border-b border-border/80 bg-muted/40 font-semibold text-muted-foreground">
+              <tr>
+                <th className="px-4 py-3 text-start">المنتج / الصورة</th>
+                <th className="px-4 py-3 text-start">رقم القطعة (SKU)</th>
+                <th className="px-4 py-3 text-start">التصنيف</th>
+                <th className="px-4 py-3 text-start">السعر</th>
+                <th className="px-4 py-3 text-start">حالة المخزون</th>
+                <th className="px-4 py-3 text-end">إجراءات</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border/60 text-foreground">
+              {filteredProducts.map((p) => {
+                const prodName = p.name?.[locale] || p.name?.ar || p.sku
+
+                return (
+                  <tr key={p.id} className="hover:bg-muted/20 transition-colors">
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-3">
+                        <img
+                          src={p.image}
+                          alt={prodName}
+                          className="h-10 w-12 rounded-lg object-cover border border-border"
+                        />
+                        <div>
+                          <p className="font-bold text-foreground">{prodName}</p>
+                          <p className="text-[10px] text-muted-foreground">
+                            {p.compatibility}
+                          </p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 font-mono text-[11px] text-muted-foreground">
+                      {p.sku}
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className="rounded-md bg-muted px-2 py-0.5 text-[10px] font-semibold text-muted-foreground">
+                        {p.category}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 font-bold text-primary">
+                      {p.price.toLocaleString()} ₪
+                    </td>
+                    <td className="px-4 py-3">
+                      {p.inStock ? (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold text-emerald-600 dark:text-emerald-400">
+                          <CheckCircle2 className="h-3 w-3" />
+                          متوفر
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-red-500/10 px-2 py-0.5 text-[10px] font-semibold text-red-600 dark:text-red-400">
+                          <XCircle className="h-3 w-3" />
+                          غير متوفر
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 text-end">
+                      <div className="flex items-center justify-end gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => openEditModal(p)}
+                          className="rounded-lg border border-border p-1.5 text-muted-foreground hover:bg-muted hover:text-primary"
+                        >
+                          <Edit2 className="h-3.5 w-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setDeleteConfirmId(p.id)}
+                          className="rounded-lg border border-border p-1.5 text-muted-foreground hover:border-destructive/30 hover:bg-destructive/10 hover:text-destructive"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Modal */}
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-xs">
+          <div className="relative w-full max-w-xl rounded-2xl border border-border bg-card p-6 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-border pb-3">
+              <h3 className="text-base font-bold text-foreground">
+                {editingProduct ? t.productsManager.editProduct : t.productsManager.addNewProduct}
+              </h3>
+              <button
+                type="button"
+                onClick={() => setIsModalOpen(false)}
+                className="rounded-lg p-1 text-muted-foreground hover:bg-muted"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSave} className="mt-4 space-y-4 max-h-[70vh] overflow-y-auto pe-1">
+              <MultiLangInput
+                label="اسم قطعة الغيار (Part Name)"
+                value={formData.name}
+                onChange={(v) => setFormData({ ...formData, name: v })}
+                required
+              />
+
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                <div>
+                  <label className="text-xs font-semibold text-foreground">
+                    {t.productsManager.skuLabel}
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.sku}
+                    onChange={(e) => setFormData({ ...formData, sku: e.target.value })}
+                    placeholder="BRM-001"
+                    className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-xs font-mono text-foreground focus:border-primary focus:outline-hidden"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-semibold text-foreground">
+                    {t.productsManager.categoryLabel}
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.category}
+                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                    placeholder="Brakes, Wheels, Aero"
+                    className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-xs text-foreground focus:border-primary focus:outline-hidden"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-semibold text-foreground">
+                    {t.productsManager.priceLabel} (₪)
+                  </label>
+                  <input
+                    type="number"
+                    value={formData.price}
+                    onChange={(e) => setFormData({ ...formData, price: Number(e.target.value) })}
+                    className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-xs font-bold text-foreground focus:border-primary focus:outline-hidden"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-xs font-semibold text-foreground">
+                  {t.productsManager.compatibilityLabel}
+                </label>
+                <input
+                  type="text"
+                  value={formData.compatibility}
+                  onChange={(e) => setFormData({ ...formData, compatibility: e.target.value })}
+                  placeholder="Mercedes S-Class, Maybach, Escalade"
+                  className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-xs text-foreground focus:border-primary focus:outline-hidden"
+                />
+              </div>
+
+              {/* Image Upload with file picker from device or URL */}
+              <ImageUpload
+                value={formData.image}
+                onChange={(url) => setFormData({ ...formData, image: url })}
+                label={t.productsManager.imageLabel}
+                aspectHint="1:1 أو 4:3 موصى به للقطع والمنتجات"
+              />
+
+              <MultiLangInput
+                label="شرح ومواصفات القطعة (Description)"
+                value={formData.description}
+                onChange={(v) => setFormData({ ...formData, description: v })}
+                textarea
+                rows={3}
+              />
+
+              <div className="flex items-center gap-2 pt-2">
+                <input
+                  type="checkbox"
+                  id="stock-toggle"
+                  checked={formData.inStock}
+                  onChange={(e) => setFormData({ ...formData, inStock: e.target.checked })}
+                  className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
+                />
+                <label htmlFor="stock-toggle" className="text-xs font-semibold text-foreground cursor-pointer">
+                  {t.productsManager.inStockLabel}
+                </label>
+              </div>
+
+              <div className="flex items-center justify-end gap-2 border-t border-border pt-4">
+                <button
+                  type="button"
+                  onClick={() => setIsModalOpen(false)}
+                  className="rounded-lg border border-border px-4 py-2 text-xs font-medium text-foreground hover:bg-muted"
+                >
+                  إلغاء
+                </button>
+                <button
+                  type="submit"
+                  className="rounded-lg bg-primary px-5 py-2 text-xs font-semibold text-primary-foreground hover:opacity-95"
+                >
+                  {t.productsManager.saveProduct}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Delete confirmation */}
+      {deleteConfirmId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs">
+          <div className="w-full max-w-sm rounded-2xl border border-border bg-card p-5 shadow-xl">
+            <h4 className="text-sm font-bold text-foreground">
+              {t.productsManager.deleteProduct}
+            </h4>
+            <p className="mt-2 text-xs text-muted-foreground">
+              {t.productsManager.deleteConfirm}
+            </p>
+            <div className="mt-4 flex items-center justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setDeleteConfirmId(null)}
+                className="rounded-lg border border-border px-3 py-1.5 text-xs text-foreground hover:bg-muted"
+              >
+                إلغاء
+              </button>
+              <button
+                type="button"
+                onClick={() => handleDelete(deleteConfirmId)}
+                className="rounded-lg bg-destructive px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-destructive/90"
+              >
+                حذف نهائي
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
