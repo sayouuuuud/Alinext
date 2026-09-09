@@ -7,6 +7,7 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { Check } from 'lucide-react'
 import { useLanguage } from '@/lib/i18n/language-context'
 import { useSiteContent } from '@/lib/admin/site-content-context'
+import type { PageImages } from '@/lib/content/page-content'
 
 gsap.registerPlugin(ScrollTrigger)
 
@@ -420,7 +421,7 @@ function PartsScene({ bgImage }: { bgImage?: string }) {
    Section
    ============================================================ */
 
-export function Services({ wpImages }: { wpImages?: import('@/lib/wp/page-images').PageImages }) {
+export function Services({ initialImages }: { initialImages?: PageImages }) {
   const sectionRef = useRef<HTMLElement>(null)
   const { content } = useSiteContent()
 
@@ -709,11 +710,11 @@ export function Services({ wpImages }: { wpImages?: import('@/lib/wp/page-images
       {/* Each scene is `sticky top-0` and is followed by a viewport-height
           spacer, so it stays put for one extra screen of scrolling before the
           next scene slides over it. This replaces GSAP pinning. */}
-      <ShowroomScene bgImage={content?.pages?.home?.services?.[0]?.image || wpImages?.serviceScene1} />
+      <ShowroomScene bgImage={content?.pages?.home?.services?.[0]?.image || initialImages?.serviceScene1} />
       <div aria-hidden="true" className="h-svh" />
-      <PortScene bgImage={content?.pages?.home?.services?.[1]?.image || wpImages?.serviceScene2} />
+      <PortScene bgImage={content?.pages?.home?.services?.[1]?.image || initialImages?.serviceScene2} />
       <div aria-hidden="true" className="h-svh" />
-      <PartsScene bgImage={content?.pages?.home?.services?.[2]?.image || wpImages?.serviceScene3} />
+      <PartsScene bgImage={content?.pages?.home?.services?.[2]?.image || initialImages?.serviceScene3} />
       <div aria-hidden="true" className="h-svh" />
     </section>
   )

@@ -9,12 +9,8 @@ const PRIVATE_ROUTE_ROOTS = new Set([
   'admin',
   'api',
   'cart',
-  'checkout',
-  'cms',
   'my-account',
-  'setup',
   'track-order',
-  'wc-ajax',
 ])
 
 const LEGACY_ROUTE_ALIASES: Record<string, string> = {

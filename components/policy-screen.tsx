@@ -301,7 +301,7 @@ export function PolicyScreen({
                 [&_li]:leading-relaxed [&_li_strong]:text-foreground
                 [&_strong]:text-foreground [&_strong]:font-semibold
                 [&_a]:text-accent [&_a]:underline [&_a]:hover:text-accent/80"
-              // WordPress content is sanitized at the server-side data boundary.
+              // Policy content is sanitized at the server-side data boundary.
               dangerouslySetInnerHTML={{ __html: activeDoc.content }}
             />
           ) : (

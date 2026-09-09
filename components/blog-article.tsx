@@ -97,14 +97,14 @@ export function BlogArticle({ post, related }: { post: BlogPost; related: BlogPo
 
         <div className="mx-auto flex max-w-3xl flex-col gap-8 px-6 py-14 text-start md:px-8 md:py-20">
           {post.content ? (
-            // Live content from WordPress — rendered as HTML
+            // Live article content �� rendered as HTML
             <div
               className="prose prose-neutral dark:prose-invert max-w-none text-base leading-8 text-foreground/85 [&_h2]:mt-10 [&_h2]:text-2xl [&_h2]:font-semibold [&_h2]:tracking-tight [&_h3]:mt-8 [&_h3]:text-xl [&_h3]:font-semibold [&_p]:text-muted-foreground [&_li]:text-muted-foreground"
-              // WordPress content is sanitized at the server-side data boundary.
+              // Article content is sanitized at the server-side data boundary.
               dangerouslySetInnerHTML={{ __html: post.content }}
             />
           ) : (
-            // Fallback static copy shown while WordPress content is not yet available
+            // Fallback static copy shown while article content is not yet available
             <>
               <p className="text-pretty text-lg leading-8 text-foreground/85">{copy.intro}</p>
               {[1, 2, 3].map((number) => (

@@ -56,43 +56,7 @@ export function ImportBrowser({ cars, status, copy }: Props) {
       ? 'rounded-full bg-foreground px-4 py-2 text-sm font-semibold text-background'
       : 'rounded-full bg-card px-4 py-2 text-sm font-medium text-muted-foreground ring-1 ring-border transition-colors hover:bg-secondary hover:text-foreground'
 
-  /* ---------- empty / error states served from server data ---------- */
-  if (effectiveStatus === 'not_configured' || effectiveStatus === 'unreachable') {
-    return (
-      <section className="mx-auto max-w-7xl px-4 py-16 md:px-8 md:py-24">
-        <div className="rounded-3xl bg-card p-12 text-center ring-1 ring-border">
-          <p className="font-semibold text-foreground">
-            {t.import.inventoryUnavailable}
-          </p>
-          <p className="mt-2 text-sm text-muted-foreground">
-            {t.import.inventoryUnavailableLead}
-          </p>
-          <LocaleLink
-            href="/contact"
-            className="mt-6 inline-block rounded-full bg-foreground px-6 py-3 text-sm font-semibold text-background transition-opacity hover:opacity-90"
-          >
-            {t.common.callUs}
-          </LocaleLink>
-        </div>
-      </section>
-    )
-  }
-
-  if (status === 'acf_missing') {
-    return (
-      <section className="mx-auto max-w-7xl px-4 py-16 md:px-8 md:py-24">
-        <div className="rounded-3xl border border-destructive/30 bg-destructive/5 p-12 text-center">
-          <p className="font-semibold text-foreground">
-            {t.import.inventoryAcfMissing}
-          </p>
-          <p className="mt-2 text-sm text-muted-foreground">
-            {t.import.inventoryAcfMissingLead}
-          </p>
-        </div>
-      </section>
-    )
-  }
-
+  /* ---------- empty state served from server data ---------- */
   if (status === 'empty') {
     return (
       <section className="mx-auto max-w-7xl px-4 py-16 md:px-8 md:py-24">

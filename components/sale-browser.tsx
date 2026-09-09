@@ -76,38 +76,6 @@ export function SaleBrowser({ cars, status, copy }: Props) {
     </section>
   )
 
-  if (effectiveStatus === 'not_configured' || effectiveStatus === 'unreachable') {
-    return (
-      <Shell>
-        <div className="mt-10 rounded-3xl bg-card p-12 text-center ring-1 ring-border">
-          <p className="font-semibold text-foreground">{t.cars.saleUnavailable}</p>
-          <p className="mt-2 text-sm text-muted-foreground">
-            {t.cars.saleUnavailableLead}
-          </p>
-          <LocaleLink
-            href="/contact"
-            className="mt-6 inline-block rounded-full bg-foreground px-6 py-3 text-sm font-semibold text-background transition-opacity hover:opacity-90"
-          >
-            {t.common.callUs}
-          </LocaleLink>
-        </div>
-      </Shell>
-    )
-  }
-
-  if (effectiveStatus === 'acf_missing') {
-    return (
-      <Shell>
-        <div className="mt-10 rounded-3xl border border-destructive/30 bg-destructive/5 p-12 text-center">
-          <p className="font-semibold text-foreground">{t.cars.saleAcfMissing}</p>
-          <p className="mt-2 text-sm text-muted-foreground">
-            {t.cars.saleAcfMissingLead}
-          </p>
-        </div>
-      </Shell>
-    )
-  }
-
   if (effectiveStatus === 'empty') {
     return (
       <Shell>

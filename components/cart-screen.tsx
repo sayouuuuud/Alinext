@@ -7,8 +7,8 @@ import { CartView } from '@/components/cart-view'
 
 /**
  * Client shell for the cart page. The catalog arrives from the server so the
- * hero copy can stay localized here while prices and WooCommerce product ids
- * come from a fresh read rather than whatever the browser cached.
+ * hero copy can stay localized here while prices come from a fresh read
+ * rather than whatever the browser cached.
  */
 export function CartScreen({ catalog }: { catalog: PartSummary[] }) {
   const { t } = useLanguage()

@@ -246,7 +246,7 @@ export const en = {
       'We could not reach the store right now. Please try again shortly, or contact us and we will check availability for you.',
     saleAcfMissing: 'For-sale data is not yet accessible',
     saleAcfMissingLead:
-      'The WPGraphQL for ACF plugin needs to be activated on the WordPress server. Contact the site administrator.',
+      'This data is being prepared. Please check back soon or contact us directly.',
   },
   saleDetail: {
     gallery: 'Gallery',
@@ -319,7 +319,7 @@ export const en = {
       'New inventory arrives regularly. Contact us and we will let you know when something matching your needs comes in.',
     inventoryAcfMissing: 'Vehicle data is not yet accessible',
     inventoryAcfMissingLead:
-      'The WPGraphQL for ACF plugin needs to be activated on the WordPress server. Contact the site administrator.',
+      'This data is being prepared. Please check back soon or contact us directly.',
   },
   importDetail: {
     gallery: 'Gallery',
@@ -552,12 +552,12 @@ export const en = {
       cancel: 'Stay signed in',
     },
     backend: {
-      title: 'Accounts are not connected yet',
-      lead: 'This account area is built and ready, but it needs the WordPress store to be online before it can sign anyone in.',
-      checklist: 'To switch it on:',
-      step1: 'Publish the WordPress + WooCommerce store.',
-      step2: 'Install the WPGraphQL, WPGraphQL JWT Authentication and WooGraphQL plugins.',
-      step3: 'Set the WORDPRESS_GRAPHQL_ENDPOINT environment variable to the store GraphQL URL.',
+      title: 'Accounts are not available yet',
+      lead: 'The account area is built and ready, and it will open as soon as the store backend is connected.',
+      checklist: 'In the meantime:',
+      step1: 'Browse products and cars as usual.',
+      step2: 'Place your order directly from the cart.',
+      step3: 'Track your order from the tracking page anytime.',
       contactLead: 'Need parts in the meantime? Our team can take your order directly.',
     },
     guard: {
@@ -580,8 +580,6 @@ export const en = {
         'Public sign-up is currently switched off on the store. Please contact us and we will create your account.',
       session_expired: 'Your session has expired. Please sign in again.',
       not_logged_in: 'Please sign in to continue.',
-      woo_missing:
-        'Order history is unavailable because the store is missing the WooCommerce GraphQL plugin.',
       reset_unavailable:
         'Password reset is not available on the store yet. Please contact us for help.',
       unknown: 'Something went wrong. Please try again.',

@@ -17,7 +17,7 @@ export type PartCategory =
   | 'filters'
   | 'suspension'
   | 'electrical'
-  /** Anything WooCommerce has not been filed under one of the eight above. */
+  /** Anything not filed under one of the eight above. */
   | 'other'
 
 /**
