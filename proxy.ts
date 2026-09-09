@@ -8,6 +8,7 @@ import {
 } from '@/lib/i18n/config'
 import {
   localePrefixedPrivatePathname,
+  normalizePathname,
   resolvePublicPathname,
 } from '@/lib/i18n/routing'
 
@@ -58,7 +59,9 @@ export function proxy(request: NextRequest) {
 
   if (publicRoute) {
     const mustRedirect =
-      pathname !== publicRoute.canonicalPathname || isLocale(requestedLocale)
+      normalizePathname(pathname) !==
+        normalizePathname(publicRoute.canonicalPathname) ||
+      isLocale(requestedLocale)
 
     if (mustRedirect) {
       return localeRedirect(
