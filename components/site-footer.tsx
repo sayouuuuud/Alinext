@@ -2,10 +2,17 @@
 
 import Image from 'next/image'
 import LocaleLink from '@/components/locale-link'
-import { Mail, MapPin, Phone, Instagram, Facebook, Linkedin, Youtube } from 'lucide-react'
+import { Mail, MapPin, Phone } from 'lucide-react'
 import { useLanguage } from '@/lib/i18n/language-context'
 import { useStore } from '@/lib/store-context'
 import { useSiteContent } from '@/lib/admin/site-content-context'
+import {
+  InstagramIcon,
+  FacebookIcon,
+  LinkedinIcon,
+  TiktokIcon,
+  YoutubeIcon,
+} from '@/components/social-icons'
 
 export function SiteFooter() {
   const { t, locale } = useLanguage()
@@ -21,11 +28,11 @@ export function SiteFooter() {
   // only renders once it actually has a URL configured.
   const social = content.general?.social
   const socialLinks = [
-    { label: 'Instagram', href: social?.instagram, icon: Instagram },
-    { label: 'Facebook', href: social?.facebook, icon: Facebook },
-    { label: 'LinkedIn', href: social?.linkedin, icon: Linkedin },
-    { label: 'TikTok', href: social?.tiktok, icon: null },
-    { label: 'YouTube', href: social?.youtube, icon: Youtube },
+    { label: 'Instagram', href: social?.instagram, icon: InstagramIcon },
+    { label: 'Facebook', href: social?.facebook, icon: FacebookIcon },
+    { label: 'LinkedIn', href: social?.linkedin, icon: LinkedinIcon },
+    { label: 'TikTok', href: social?.tiktok, icon: TiktokIcon },
+    { label: 'YouTube', href: social?.youtube, icon: YoutubeIcon },
   ].filter((s) => s.href)
 
   const columns = [
@@ -119,13 +126,7 @@ export function SiteFooter() {
                       title={s.label}
                       className="flex size-9 items-center justify-center rounded-full bg-secondary text-muted-foreground transition-colors hover:bg-foreground hover:text-background"
                     >
-                      {s.icon ? (
-                        <s.icon className="size-4" aria-hidden="true" />
-                      ) : (
-                        <svg viewBox="0 0 24 24" fill="currentColor" className="size-4" aria-hidden="true">
-                          <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z" />
-                        </svg>
-                      )}
+                      <s.icon className="size-4" aria-hidden="true" />
                     </a>
                   </li>
                 ))}

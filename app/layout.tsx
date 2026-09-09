@@ -18,6 +18,7 @@ import { StoreProvider } from '@/lib/store-context'
 import { siteUrl } from '@/lib/seo'
 import { serializeJsonLd } from '@/lib/json-ld'
 import { getStoreSettings } from '@/lib/content/settings'
+import { getSiteContent } from '@/lib/content/repository'
 import { localeMeta } from '@/lib/i18n/config'
 import { getRequestLocale } from '@/lib/i18n/request-locale'
 import { SiteContentProvider } from '@/lib/admin/site-content-context'
@@ -119,6 +120,10 @@ export default async function RootLayout({
   const meta = localeMeta[locale]
 
   const storeSettings = await getStoreSettings(locale)
+  // Read the shared content file on the server and hand it to the client
+  // provider so the first client render matches the server HTML (no hydration
+  // mismatch) and real content paints immediately instead of defaults.
+  const initialSiteContent = getSiteContent()
 
   return (
     <html
@@ -160,7 +165,7 @@ export default async function RootLayout({
         <SiteLoader />
         <MetaPixel />
         <LanguageProvider initialLocale={locale}>
-          <SiteContentProvider>
+          <SiteContentProvider initialContent={initialSiteContent}>
             <StoreProvider>
               <AuthProvider viewer={null} backendReady={false}>
                 <CartProvider>{children}</CartProvider>
