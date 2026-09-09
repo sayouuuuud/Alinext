@@ -3,7 +3,7 @@ import { SiteHeader } from '@/components/site-header'
 import { SiteFooter } from '@/components/site-footer'
 import { BlogHero } from '@/components/blog-hero'
 import { BlogBrowser } from '@/components/blog-browser'
-import { getPosts } from '@/lib/wp/posts'
+import { getPosts } from '@/lib/content/posts'
 
 export const metadata: Metadata = {
   title: 'Blog — ALI FLEET',

@@ -8,11 +8,11 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { ArrowUpRight } from 'lucide-react'
 import { useLanguage } from '@/lib/i18n/language-context'
 import { useSiteContent } from '@/lib/admin/site-content-context'
-import type { PageImages } from '@/lib/wp/page-images'
+import type { PageImages } from '@/lib/content/types'
 
 gsap.registerPlugin(ScrollTrigger)
 
-export function FleetShowcase({ wpImages }: { wpImages?: PageImages }) {
+export function FleetShowcase({ initialImages }: { initialImages?: PageImages }) {
   const sectionRef = useRef<HTMLElement>(null)
   const { t, locale } = useLanguage()
   const { content, tStr } = useSiteContent()
@@ -23,21 +23,21 @@ export function FleetShowcase({ wpImages }: { wpImages?: PageImages }) {
       title: t.home.fleet.truckTitle,
       tag: t.home.fleet.truckTag,
       description: t.home.fleet.truckDesc,
-      image: wpImages?.fleetVehicle1 || '/images/fleet-truck.png',
+      image: initialImages?.fleetVehicle1 || '/images/fleet-truck.png',
       alt: t.home.fleet.truckTitle,
     },
     {
       title: t.home.fleet.vanTitle,
       tag: t.home.fleet.vanTag,
       description: t.home.fleet.vanDesc,
-      image: wpImages?.fleetVehicle2 || '/images/fleet-van.png',
+      image: initialImages?.fleetVehicle2 || '/images/fleet-van.png',
       alt: t.home.fleet.vanTitle,
     },
     {
       title: t.home.fleet.luxuryTitle,
       tag: t.home.fleet.luxuryTag,
       description: t.home.fleet.luxuryDesc,
-      image: wpImages?.fleetVehicle3 || '/images/fleet-suv.png',
+      image: initialImages?.fleetVehicle3 || '/images/fleet-suv.png',
       alt: t.home.fleet.luxuryTitle,
     },
   ]

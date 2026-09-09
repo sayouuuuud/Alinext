@@ -6,9 +6,9 @@ import { SaleBrowser } from '@/components/sale-browser'
 import { ImportSteps } from '@/components/import-steps'
 import { ImportBrowser } from '@/components/import-browser'
 import { ImportCustomCta } from '@/components/import-custom-cta'
-import { getVehicles } from '@/lib/wp/vehicles'
-import { getSaleCars } from '@/lib/wp/sale-cars'
-import { getCarsPageCopy } from '@/lib/wp/cars-page'
+import { getVehicles } from '@/lib/content/vehicles'
+import { getSaleCars } from '@/lib/content/sale-cars'
+import { getCarsPageCopy } from '@/lib/content/page-content'
 
 export const metadata: Metadata = {
   title: 'Cars | ALI FLEET',

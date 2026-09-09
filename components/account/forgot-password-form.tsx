@@ -5,7 +5,7 @@ import LocaleLink from '@/components/locale-link'
 import { ArrowLeft, Loader2, Send } from 'lucide-react'
 import { useLanguage } from '@/lib/i18n/language-context'
 import { forgotPasswordAction } from '@/lib/auth/actions'
-import { idleActionState } from '@/lib/wp/types'
+import { idleActionState } from '@/lib/auth/types'
 import { Field } from './form-field'
 import { FormError, FormSuccess } from './alerts'
 

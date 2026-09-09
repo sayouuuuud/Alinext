@@ -4,7 +4,7 @@ import { useActionState, useRef } from 'react'
 import { ClipboardCopy, Loader2, Save } from 'lucide-react'
 import { useLanguage } from '@/lib/i18n/language-context'
 import { updateAddressesAction } from '@/lib/auth/actions'
-import { idleActionState, type WpAddress } from '@/lib/wp/types'
+import { idleActionState, type CustomerAddress } from '@/lib/auth/types'
 import { Field } from './form-field'
 import { FormError, FormSuccess } from './alerts'
 
@@ -32,7 +32,7 @@ function AddressFieldset({
   prefix: 'billing' | 'shipping'
   title: string
   lead: string
-  address: WpAddress
+  address: CustomerAddress
   disabled: boolean
   withEmail?: boolean
 }) {
@@ -152,8 +152,8 @@ export function AddressesView({
   billing,
   shipping,
 }: {
-  billing: WpAddress
-  shipping: WpAddress
+  billing: CustomerAddress
+  shipping: CustomerAddress
 }) {
   const { t } = useLanguage()
   const formRef = useRef<HTMLFormElement>(null)

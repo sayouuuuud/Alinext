@@ -4,15 +4,14 @@ import { fallbackSettings } from './site-config'
  * Prices are always shown with Latin digits so part numbers and totals stay
  * scannable across all three locales.
  *
- * The currency symbol comes from WooCommerce at runtime, so it is passed in
- * rather than imported — components read it from `useStore()`. It falls back to
- * the shekel when the backend has not answered yet.
+ * The currency symbol comes from the local site settings, so it is passed in
+ * rather than imported. Components read it from `useStore()`.
  */
 export function formatPrice(
   value: number,
   currency: string = fallbackSettings.currency
 ) {
-  // WooCommerce prices carry agorot/cents, so a part at 640.50 must not render
+  // Decimal prices carry agorot/cents, so a part at 640.50 must not render
   // as "640.5". Whole amounts stay clean (3,180 rather than 3,180.00) because
   // most of the catalog is priced in round shekels.
   const hasFraction = Math.round(value * 100) % 100 !== 0

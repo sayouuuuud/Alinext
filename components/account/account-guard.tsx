@@ -3,7 +3,7 @@
 import LocaleLink from '@/components/locale-link'
 import { ArrowRight } from 'lucide-react'
 import { useLanguage } from '@/lib/i18n/language-context'
-import type { AuthErrorCode } from '@/lib/wp/errors'
+import type { AuthErrorCode } from '@/lib/auth/types'
 import { BackendNotice, FormError } from './alerts'
 
 /**

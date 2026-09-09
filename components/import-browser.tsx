@@ -4,13 +4,14 @@ import { useMemo, useState } from 'react'
 import { carOrigins, carStatuses } from '@/lib/data/import-cars'
 import { Paginator } from '@/components/paginator'
 import type { CarOrigin, CarStatus, ImportCar } from '@/lib/data/import-cars'
-import type { VehiclesStatus } from '@/lib/wp/vehicles'
+import type { VehiclesStatus } from '@/lib/content/vehicles'
 import { useLanguage } from '@/lib/i18n/language-context'
 import { resolveCopy } from '@/lib/i18n/copy-block'
-import type { CarsPageCopy } from '@/lib/wp/cars-page'
+import type { CarsPageCopy } from '@/lib/content/types'
 import { ImportCarCard } from '@/components/import-car-card'
 import LocaleLink from '@/components/locale-link'
 import { useSiteContent } from '@/lib/admin/site-content-context'
+import { carToImport } from '@/lib/content/adapters'
 
 type Props = {
   cars: ImportCar[]
@@ -27,72 +28,12 @@ export function ImportBrowser({ cars, status, copy }: Props) {
   const [page, setPage] = useState(1)
   const PAGE_SIZE = 6 // 2 rows × 3 cols
 
-  // Map admin import cars to ImportCar shape
-  const adminImportCars: ImportCar[] = useMemo(() => {
-    if (!content?.cars) return []
-    return content.cars
-      .filter((c) => c.type === 'import')
-      .map((c) => ({
-        slug: c.id,
-        model: `${c.make} ${c.model}`,
-        subtitle: {
-          ar: c.title?.ar || c.make,
-          en: c.title?.en || c.make,
-          he: c.title?.he || c.make,
-        },
-        bodyType: {
-          ar: c.specs?.bodyType || 'مركبة استيراد',
-          en: c.specs?.bodyType || 'Import Vehicle',
-          he: c.specs?.bodyType || 'רכב ייבוא',
-        },
-        origin: 'germany' as CarOrigin,
-        status: (c.status === 'incoming' ? 'inTransit' : c.status === 'sold' ? 'sold' : c.status === 'reserved' ? 'reserved' : 'available') as CarStatus,
-        stage: 2 as const,
-        year: c.year,
-        mileage: parseInt(String(c.mileage || '0').replace(/[^0-9]/g, '')) || 0,
-        price: c.price,
-        featured: c.featured,
-        image: c.image || '/images/import-heavy-truck.png',
-        alt: { ar: c.title?.ar || '', en: c.title?.en || '', he: c.title?.he || '' },
-        gallery: (c.images && c.images.length > 0 ? c.images : [c.image]).filter(Boolean).map((img) => ({
-          src: img,
-          alt: { ar: c.title?.ar || '', en: c.title?.en || '', he: c.title?.he || '' },
-        })),
-        description: {
-          ar: c.description?.ar || '',
-          en: c.description?.en || '',
-          he: c.description?.he || '',
-        },
-        highlights: [],
-        specs: {
-          engine: c.specs?.engine || 'Euro 6 Engine',
-          transmission: {
-            ar: c.transmission || 'أوتوماتيك',
-            en: c.transmission || 'Automatic',
-            he: c.transmission || 'אוטומטי',
-          },
-          fuel: {
-            ar: c.fuel || 'ديزل',
-            en: c.fuel || 'Diesel',
-            he: c.fuel || 'דיזל',
-          },
-          drivetrain: 'Heavy-Duty AWD',
-          color: {
-            ar: c.specs?.color || 'أبيض',
-            en: c.specs?.color || 'White',
-            he: c.specs?.color || 'לבן',
-          },
-          seats: 4,
-        },
-        eta: {
-          ar: 'خلال 14-21 يوم عمل',
-          en: '14-21 business days',
-          he: '14-21 ימי עסקים',
-        },
-      }))
-  }, [content?.cars])
+  const managedCars = useMemo(
+    () => content.cars.filter((car) => car.type === 'import').map(carToImport),
+    [content.cars]
+  )
 
-  const effectiveCars = adminImportCars.length > 0 ? adminImportCars : cars
+  const effectiveCars = managedCars.length > 0 ? managedCars : cars
   const effectiveStatus = effectiveCars.length > 0 ? 'ok' : status
 
   const filtered = useMemo(

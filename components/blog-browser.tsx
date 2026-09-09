@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useLanguage } from '@/lib/i18n/language-context'
 import { Paginator } from '@/components/paginator'
 import type { BlogPost, BlogCategory } from '@/lib/data/blog'
-import type { PostsStatus } from '@/lib/wp/posts'
+import type { PostsStatus } from '@/lib/content/posts'
 import { BlogCard } from '@/components/blog-card'
 import LocaleLink from '@/components/locale-link'
 

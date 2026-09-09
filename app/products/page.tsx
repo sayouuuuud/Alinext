@@ -3,7 +3,7 @@ import type { Metadata } from 'next'
 import { SiteHeader } from '@/components/site-header'
 import { SiteFooter } from '@/components/site-footer'
 import { ProductsScreen } from '@/components/products-screen'
-import { getCatalogSummaries } from '@/lib/wp/catalog'
+import { getCatalogSummaries } from '@/lib/content/catalog'
 
 export const metadata: Metadata = {
   title: 'Spare Parts — Genuine Truck & Commercial Vehicle Parts',
@@ -19,11 +19,7 @@ export const metadata: Metadata = {
   },
 }
 
-/**
- * The catalog is read on the server so the products are in the initial HTML —
- * good for SEO and it keeps the WooCommerce endpoint out of the browser. The
- * fetch is cached, so 165 products do not mean 165 round trips per visitor.
- */
+/** The local catalog renders on the server for complete initial HTML and SEO. */
 export default async function ProductsPage() {
   const { parts, status, hasUntranslated } = await getCatalogSummaries()
 

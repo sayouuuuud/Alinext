@@ -4,13 +4,14 @@ import { useMemo, useState } from 'react'
 import LocaleLink from '@/components/locale-link'
 import { saleCarConditions, saleCarStatuses } from '@/lib/data/sale-cars'
 import type { SaleCar, SaleCarCondition, SaleCarStatus } from '@/lib/data/sale-cars'
-import type { SaleCarsStatus } from '@/lib/wp/sale-cars'
+import type { SaleCarsStatus } from '@/lib/content/sale-cars'
 import { Paginator } from '@/components/paginator'
 import { useLanguage } from '@/lib/i18n/language-context'
 import { resolveCopy } from '@/lib/i18n/copy-block'
-import type { CarsPageCopy } from '@/lib/wp/cars-page'
+import type { CarsPageCopy } from '@/lib/content/types'
 import { SaleCarCard } from '@/components/sale-car-card'
 import { useSiteContent } from '@/lib/admin/site-content-context'
+import { carToSale } from '@/lib/content/adapters'
 
 type Props = {
   cars: SaleCar[]
@@ -27,72 +28,12 @@ export function SaleBrowser({ cars, status, copy }: Props) {
   const [page, setPage] = useState(1)
   const PAGE_SIZE = 6 // 2 rows × 3 cols
 
-  // Map admin cars to SaleCar shape
-  const adminSaleCars: SaleCar[] = useMemo(() => {
-    if (!content?.cars) return []
-    return content.cars
-      .filter((c) => c.type === 'sale')
-      .map((c) => ({
-        slug: c.id,
-        model: `${c.make} ${c.model}`,
-        subtitle: {
-          ar: c.title?.ar || c.make,
-          en: c.title?.en || c.make,
-          he: c.title?.he || c.make,
-        },
-        bodyType: {
-          ar: c.specs?.bodyType || 'شاحنة / مركبة تجارية',
-          en: c.specs?.bodyType || 'Commercial Vehicle',
-          he: c.specs?.bodyType || 'רכב מסחרי',
-        },
-        condition: 'used' as const,
-        status: (c.status === 'sold' ? 'sold' : c.status === 'reserved' ? 'reserved' : 'available') as SaleCarStatus,
-        year: c.year,
-        mileage: parseInt(String(c.mileage || '0').replace(/[^0-9]/g, '')) || 0,
-        price: c.price,
-        previousOwners: 1,
-        featured: c.featured,
-        image: c.image || '/images/fleet-truck.png',
-        alt: { ar: c.title?.ar || '', en: c.title?.en || '', he: c.title?.he || '' },
-        gallery: (c.images && c.images.length > 0 ? c.images : [c.image]).filter(Boolean).map((img) => ({
-          src: img,
-          alt: { ar: c.title?.ar || '', en: c.title?.en || '', he: c.title?.he || '' },
-        })),
-        description: {
-          ar: c.description?.ar || '',
-          en: c.description?.en || '',
-          he: c.description?.he || '',
-        },
-        highlights: [],
-        specs: {
-          engine: c.specs?.engine || 'Commercial Engine',
-          transmission: {
-            ar: c.transmission || 'أوتوماتيك',
-            en: c.transmission || 'Automatic',
-            he: c.transmission || 'אוטומטי',
-          },
-          fuel: {
-            ar: c.fuel || 'ديزل',
-            en: c.fuel || 'Diesel',
-            he: c.fuel || 'דיזל',
-          },
-          drivetrain: 'Heavy-Duty 4x2 / 6x4',
-          color: {
-            ar: c.specs?.color || 'أبيض',
-            en: c.specs?.color || 'White',
-            he: c.specs?.color || 'לבן',
-          },
-          seats: 3,
-        },
-        availability: {
-          ar: 'متوفرة للتسليم الفوري من ساحة المعرض',
-          en: 'Available for immediate yard delivery',
-          he: 'זמין למסירה מיידית מהמגרש',
-        },
-      }))
-  }, [content?.cars])
+  const managedCars = useMemo(
+    () => content.cars.filter((car) => car.type === 'sale').map(carToSale),
+    [content.cars]
+  )
 
-  const effectiveCars = adminSaleCars.length > 0 ? adminSaleCars : cars
+  const effectiveCars = managedCars.length > 0 ? managedCars : cars
   const effectiveStatus = effectiveCars.length > 0 ? 'ok' : status
 
   const filtered = useMemo(

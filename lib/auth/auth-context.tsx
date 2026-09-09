@@ -1,7 +1,7 @@
 'use client'
 
 import { createContext, useContext, useMemo } from 'react'
-import type { Viewer } from '@/lib/wp/types'
+import type { Viewer } from '@/lib/auth/types'
 
 /**
  * Read-only view of the session for client components (the header, mainly).
@@ -13,7 +13,7 @@ import type { Viewer } from '@/lib/wp/types'
 type AuthContextValue = {
   viewer: Viewer | null
   signedIn: boolean
-  /** Whether a WordPress backend is configured at all. */
+  /** Whether a production account backend is connected. */
   backendReady: boolean
   /** Best available label for the signed-in user. */
   displayName: string

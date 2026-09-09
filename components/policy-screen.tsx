@@ -5,7 +5,7 @@ import LocaleLink from '@/components/locale-link'
 import { ShieldCheck, FileText, RefreshCcw, ArrowLeft, ArrowRight, Calendar, Printer } from 'lucide-react'
 import { useLanguage } from '@/lib/i18n/language-context'
 import { isLocale, localeMeta, type Locale } from '@/lib/i18n/config'
-import type { MultilingualPolicy, PolicyPageData } from '@/lib/wp/policies'
+import type { MultilingualPolicy, PolicyPageData } from '@/lib/content/types'
 
 type PolicyType = 'privacy' | 'terms' | 'return'
 

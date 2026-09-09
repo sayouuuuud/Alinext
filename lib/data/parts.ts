@@ -3,11 +3,9 @@ import type { Localized, LocalizedOrPlain } from '@/lib/i18n/localized'
 /**
  * Shapes for the spare-parts catalog.
  *
- * There is deliberately no hard-coded product array here any more: every part
- * shown on the site is read live from WooCommerce through
- * `lib/wp/catalog.ts`. Hard-coded products meant hard-coded `wooId`s, and a
- * guessed product id silently hands the customer the wrong item — or an empty
- * cart — at checkout.
+ * Products are managed by the local ALI FLEET content system. The same stable
+ * product id is used by listing pages, detail pages, the cart, and the admin
+ * panel so every surface stays in sync.
  */
 
 export type PartCategory =
@@ -29,8 +27,8 @@ export type PartCategory =
  */
 export type PartSummary = {
   slug: string
-  /** Real WooCommerce `databaseId` — the cart is handed over with this. */
-  wooId: number
+  /** Stable id from the local content catalog. */
+  productId: string
   sku: string
   category: PartCategory
   brand: string
@@ -78,7 +76,7 @@ export function isPartCategory(value: unknown): value is PartCategory {
 export function toSummary(part: Part): PartSummary {
   return {
     slug: part.slug,
-    wooId: part.wooId,
+    productId: part.productId,
     sku: part.sku,
     category: part.category,
     brand: part.brand,

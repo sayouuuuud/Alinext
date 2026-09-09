@@ -13,11 +13,11 @@ import {
 } from 'lucide-react'
 import { useLanguage } from '@/lib/i18n/language-context'
 import { useSiteContent } from '@/lib/admin/site-content-context'
-import type { PageImages } from '@/lib/wp/page-images'
+import type { PageImages } from '@/lib/content/types'
 
 gsap.registerPlugin(ScrollTrigger)
 
-// Fallback sources used when WP has not provided a value
+// Bundled image fallbacks
 const FALLBACK_SLIDE_SRCS = [
   '/images/hero-showroom.png',
   '/images/truck-light.png',
@@ -27,7 +27,7 @@ const FALLBACK_SLIDE_SRCS = [
   '/images/import-global.png',
 ]
 
-export function Hero({ wpImages }: { wpImages?: PageImages }) {
+export function Hero({ initialImages }: { initialImages?: PageImages }) {
   const sectionRef = useRef<HTMLElement>(null)
   const [active, setActive] = useState(0)
   const { t, locale } = useLanguage()
@@ -37,14 +37,14 @@ export function Hero({ wpImages }: { wpImages?: PageImages }) {
   const adminHeroImage = heroContent?.heroImage
   const adminSlideImages = heroContent?.slideImages || []
 
-  // Merge Admin images, WP images, and local fallbacks slot-by-slot
-  const baseSlideSrcs = wpImages
+  // Merge live admin values with the server snapshot and bundled fallbacks.
+  const baseSlideSrcs = initialImages
     ? [
-        wpImages.heroSlide1 || FALLBACK_SLIDE_SRCS[0],
-        wpImages.heroSlide2 || FALLBACK_SLIDE_SRCS[1],
-        wpImages.heroSlide3 || FALLBACK_SLIDE_SRCS[2],
-        wpImages.heroSlide4 || FALLBACK_SLIDE_SRCS[3],
-        wpImages.heroSlide5 || FALLBACK_SLIDE_SRCS[4],
+        initialImages.heroSlide1 || FALLBACK_SLIDE_SRCS[0],
+        initialImages.heroSlide2 || FALLBACK_SLIDE_SRCS[1],
+        initialImages.heroSlide3 || FALLBACK_SLIDE_SRCS[2],
+        initialImages.heroSlide4 || FALLBACK_SLIDE_SRCS[3],
+        initialImages.heroSlide5 || FALLBACK_SLIDE_SRCS[4],
         FALLBACK_SLIDE_SRCS[5],
       ]
     : FALLBACK_SLIDE_SRCS
@@ -58,7 +58,7 @@ export function Hero({ wpImages }: { wpImages?: PageImages }) {
     adminSlideImages[5] || baseSlideSrcs[5],
   ]
 
-  const avatarSrc = heroContent?.avatarImage || wpImages?.heroAvatarImage || '/images/hero-avatars.png'
+  const avatarSrc = heroContent?.avatarImage || initialImages?.heroAvatarImage || '/images/hero-avatars.png'
   const customLabels = heroContent?.slideLabels || []
 
   const slides = [

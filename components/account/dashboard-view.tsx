@@ -4,7 +4,7 @@ import LocaleLink from '@/components/locale-link'
 import { ArrowRight, MapPin, Package, UserRound } from 'lucide-react'
 import { useLanguage } from '@/lib/i18n/language-context'
 import { localeMeta } from '@/lib/i18n/config'
-import type { Customer, Viewer } from '@/lib/wp/types'
+import type { Customer, Viewer } from '@/lib/auth/types'
 import { OrderCard } from './order-card'
 
 const OPEN_STATUSES = ['pending', 'processing', 'onhold']

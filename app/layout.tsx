@@ -15,11 +15,9 @@ import { LanguageProvider } from '@/lib/i18n/language-context'
 import { CartProvider } from '@/lib/cart-context'
 import { AuthProvider } from '@/lib/auth/auth-context'
 import { StoreProvider } from '@/lib/store-context'
-import { loadViewer } from '@/lib/auth/queries'
 import { siteUrl } from '@/lib/seo'
 import { serializeJsonLd } from '@/lib/json-ld'
-import { getStoreSettings } from '@/lib/wp/settings'
-import { isWpConfigured } from '@/lib/wp/config'
+import { getStoreSettings } from '@/lib/content/settings'
 import { localeMeta } from '@/lib/i18n/config'
 import { getRequestLocale } from '@/lib/i18n/request-locale'
 import { SiteContentProvider } from '@/lib/admin/site-content-context'
@@ -120,13 +118,7 @@ export default async function RootLayout({
   const locale = await getRequestLocale()
   const meta = localeMeta[locale]
 
-  // Resolve the session and the store settings once per request so the header
-  // and footer render correctly on the first paint instead of flickering after
-  // hydration. Settings are cached, the session never is.
-  const [viewer, storeSettings] = await Promise.all([
-    loadViewer(),
-    getStoreSettings(),
-  ])
+  const storeSettings = await getStoreSettings(locale)
 
   return (
     <html
@@ -135,11 +127,7 @@ export default async function RootLayout({
       className={`bg-background ${geistSans.variable} ${geistMono.variable} ${fraunces.variable} ${cairo.variable} ${notoHebrew.variable}`}
     >
       <body className="antialiased">
-        {/*
-          Organization data for search engines. The contact fields are read from
-          WordPress, so updating the phone number in the CMS also updates what
-          Google shows — no redeploy needed.
-        */}
+        {/* Organization data comes from the same local content source as the site. */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -172,13 +160,13 @@ export default async function RootLayout({
         <SiteLoader />
         <MetaPixel />
         <LanguageProvider initialLocale={locale}>
-          <StoreProvider settings={storeSettings}>
-            <AuthProvider viewer={viewer} backendReady={isWpConfigured()}>
-              <CartProvider>
-                <SiteContentProvider>{children}</SiteContentProvider>
-              </CartProvider>
-            </AuthProvider>
-          </StoreProvider>
+          <SiteContentProvider>
+            <StoreProvider>
+              <AuthProvider viewer={null} backendReady={false}>
+                <CartProvider>{children}</CartProvider>
+              </AuthProvider>
+            </StoreProvider>
+          </SiteContentProvider>
         </LanguageProvider>
         <BackToTop />
         {process.env.NODE_ENV === 'production' && <Analytics />}

@@ -11,7 +11,7 @@ type AuthKey = 'login' | 'register' | 'forgot'
 
 /**
  * Wraps the three public auth screens: renders the localized hero and either the
- * form or, when the WordPress backend is not wired up, a clear setup notice plus
+ * form or, when an account backend is not wired up, a clear notice plus
  * direct contact options so the page is never a dead end.
  */
 export function AuthShell({

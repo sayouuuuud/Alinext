@@ -5,11 +5,11 @@ import { ArrowUpRight, Ship, Store } from 'lucide-react'
 import { useLanguage } from '@/lib/i18n/language-context'
 import { useSiteContent } from '@/lib/admin/site-content-context'
 import { resolveCopy } from '@/lib/i18n/copy-block'
-import type { CarsPageCopy } from '@/lib/wp/cars-page'
+import type { CarsPageCopy } from '@/lib/content/types'
 import { PageHero } from '@/components/page-hero'
 
 type Props = {
-  /** CMS overrides; omitted entirely when WordPress has nothing to say. */
+  /** Server snapshot; live admin edits override it through the content context. */
   copy?: CarsPageCopy['hero']
 }
 

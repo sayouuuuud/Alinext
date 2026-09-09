@@ -30,10 +30,7 @@ export function FormSuccess({ children }: { children: React.ReactNode }) {
   )
 }
 
-/**
- * Shown when WORDPRESS_GRAPHQL_ENDPOINT is absent. Explains the exact steps
- * needed to switch accounts on, instead of failing with an opaque error.
- */
+/** Explains that production accounts need a dedicated backend integration. */
 export function BackendNotice({
   title,
   lead,
