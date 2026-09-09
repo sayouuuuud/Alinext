@@ -165,7 +165,7 @@ export function SettingsTab() {
         <button
           type="button"
           onClick={saveAll}
-          className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground shadow-sm shadow-primary/30 hover:opacity-95"
+          className="inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2 text-xs font-semibold text-primary-foreground shadow-sm hover:opacity-90"
         >
           <Save className="h-4 w-4" />
           <span>{t.header.saveAll}</span>
@@ -184,7 +184,7 @@ export function SettingsTab() {
               onClick={() => setActiveSubTab(sub.id as SettingsSubTab)}
               className={`inline-flex items-center gap-2 rounded-xl px-3.5 py-2 text-xs font-semibold transition-all ${
                 isSelected
-                  ? 'bg-primary text-primary-foreground shadow-xs'
+                  ? 'bg-foreground text-background shadow-xs'
                   : 'text-muted-foreground hover:bg-muted hover:text-foreground'
               }`}
             >
@@ -199,7 +199,7 @@ export function SettingsTab() {
       {activeSubTab === 'security' && (
         <div className="space-y-6">
           {/* Password Change Box */}
-          <div className="rounded-2xl border border-border bg-card p-6 shadow-2xs space-y-4">
+          <div className="rounded-3xl bg-card p-6 ring-1 ring-border shadow-sm space-y-4">
             <div className="flex items-center gap-2 border-b border-border/70 pb-3">
               <KeyRound className="h-5 w-5 text-primary" />
               <div>
@@ -270,7 +270,7 @@ export function SettingsTab() {
 
               <button
                 type="submit"
-                className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-xs font-semibold text-primary-foreground shadow-xs hover:opacity-95"
+                className="inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2.5 text-xs font-semibold text-primary-foreground shadow-xs hover:opacity-90"
               >
                 <CheckCircle2 className="h-4 w-4" />
                 <span>{t.settings.security.changePasswordBtn}</span>
@@ -279,7 +279,7 @@ export function SettingsTab() {
           </div>
 
           {/* Admin Account Settings */}
-          <div className="rounded-2xl border border-border bg-card p-6 shadow-2xs space-y-4">
+          <div className="rounded-3xl bg-card p-6 ring-1 ring-border shadow-sm space-y-4">
             <h3 className="text-sm font-bold text-foreground border-b border-border/70 pb-3">
               بيانات حساب الإدارة والتحقق
             </h3>
@@ -384,7 +384,7 @@ export function SettingsTab() {
 
       {/* 2. COMMERCE & PAYMENTS */}
       {activeSubTab === 'commerce' && (
-        <div className="space-y-6 rounded-2xl border border-border bg-card p-6 shadow-2xs">
+        <div className="space-y-6 rounded-3xl bg-card p-6 ring-1 ring-border shadow-sm">
           <div className="border-b border-border/70 pb-3">
             <h2 className="text-sm font-bold text-foreground">
               {t.settings.commerce.title}
@@ -519,7 +519,7 @@ export function SettingsTab() {
 
       {/* 3. BRANDING & ASSETS */}
       {activeSubTab === 'branding' && (
-        <div className="space-y-6 rounded-2xl border border-border bg-card p-6 shadow-2xs">
+        <div className="space-y-6 rounded-3xl bg-card p-6 ring-1 ring-border shadow-sm">
           <div className="border-b border-border/70 pb-3">
             <h2 className="text-sm font-bold text-foreground">
               {t.settings.branding.title}
@@ -582,7 +582,7 @@ export function SettingsTab() {
 
       {/* 4. NOTIFICATIONS */}
       {activeSubTab === 'notifications' && (
-        <div className="space-y-6 rounded-2xl border border-border bg-card p-6 shadow-2xs">
+        <div className="space-y-6 rounded-3xl bg-card p-6 ring-1 ring-border shadow-sm">
           <div className="border-b border-border/70 pb-3">
             <h2 className="text-sm font-bold text-foreground">
               {t.settings.notifications.title}
@@ -680,7 +680,7 @@ export function SettingsTab() {
 
       {/* 5. SEO & ANALYTICS */}
       {activeSubTab === 'seo' && (
-        <div className="space-y-6 rounded-2xl border border-border bg-card p-6 shadow-2xs">
+        <div className="space-y-6 rounded-3xl bg-card p-6 ring-1 ring-border shadow-sm">
           <div className="border-b border-border/70 pb-3">
             <h2 className="text-sm font-bold text-foreground">
               {t.settings.seo.title}
@@ -774,7 +774,7 @@ export function SettingsTab() {
 
       {/* 6. MAINTENANCE MODE */}
       {activeSubTab === 'maintenance' && (
-        <div className="space-y-6 rounded-2xl border border-border bg-card p-6 shadow-2xs">
+        <div className="space-y-6 rounded-3xl bg-card p-6 ring-1 ring-border shadow-sm">
           <div className="border-b border-border/70 pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
               <h2 className="text-sm font-bold text-foreground">
@@ -916,7 +916,7 @@ export function SettingsTab() {
 
       {/* 7. BACKUP & RECOVERY */}
       {activeSubTab === 'backup' && (
-        <div className="space-y-6 rounded-2xl border border-border bg-card p-6 shadow-2xs">
+        <div className="space-y-6 rounded-3xl bg-card p-6 ring-1 ring-border shadow-sm">
           <div className="border-b border-border/70 pb-3">
             <h2 className="text-sm font-bold text-foreground">
               {t.settings.backup.title}

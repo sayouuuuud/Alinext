@@ -63,11 +63,11 @@ export function AdminAuthGuard({ children }: { children: React.ReactNode }) {
   if (!isAuthenticated) {
     const isRtl = locale === 'ar' || locale === 'he'
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-background via-muted/30 to-background p-4 text-foreground">
-        <div className="w-full max-w-md rounded-3xl border border-border bg-card p-8 shadow-2xl space-y-6">
+      <div className="flex min-h-screen items-center justify-center bg-background p-4 text-foreground">
+        <div className="w-full max-w-md rounded-3xl bg-card p-8 ring-1 ring-border shadow-xl space-y-6">
           {/* Brand & Shield Emblem */}
           <div className="text-center space-y-2">
-            <div className="mx-auto flex size-16 items-center justify-center rounded-2xl bg-primary/10 text-primary border border-primary/20 shadow-inner">
+            <div className="mx-auto flex size-16 items-center justify-center rounded-3xl bg-secondary text-accent">
               <ShieldCheck className="size-8" />
             </div>
             <h1 className="text-2xl font-black tracking-tight text-foreground">
@@ -102,7 +102,7 @@ export function AdminAuthGuard({ children }: { children: React.ReactNode }) {
                     if (error) setError('')
                   }}
                   placeholder="••••••••••••"
-                  className="w-full rounded-2xl border border-border bg-background ps-10 pe-11 py-3 text-sm text-foreground focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-hidden transition-all"
+                  className="w-full rounded-full border border-border bg-background ps-10 pe-11 py-3 text-sm text-foreground focus:border-accent focus:ring-2 focus:ring-accent/20 focus:outline-hidden transition-all"
                 />
                 <button
                   type="button"
@@ -124,7 +124,7 @@ export function AdminAuthGuard({ children }: { children: React.ReactNode }) {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full inline-flex items-center justify-center gap-2 rounded-2xl bg-primary py-3 px-4 text-sm font-bold text-primary-foreground shadow-lg shadow-primary/25 hover:opacity-90 transition-all disabled:opacity-50"
+              className="w-full inline-flex items-center justify-center gap-2 rounded-full bg-foreground py-3 px-4 text-sm font-bold text-background shadow-lg shadow-foreground/10 hover:opacity-90 transition-all disabled:opacity-50"
             >
               <Lock className="size-4" />
               <span>{isSubmitting ? (locale === 'ar' ? 'جاري التحقق...' : 'Verifying...') : (locale === 'ar' ? 'تسجيل الدخول للوحة' : 'Unlock Dashboard')}</span>

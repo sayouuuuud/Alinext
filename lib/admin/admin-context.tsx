@@ -57,7 +57,9 @@ const AdminContext = createContext<AdminContextType | null>(null)
 
 export function AdminProvider({ children }: { children: React.ReactNode }) {
   const [locale, setLocaleState] = useState<AdminLocale>('ar')
-  const [theme, setThemeState] = useState<AdminTheme>('dark')
+  // The admin follows the storefront's light-first design system; the dark
+  // toggle stays available as a preference, not the default.
+  const [theme, setThemeState] = useState<AdminTheme>('light')
   const [activeTab, setActiveTab] = useState<AdminTab>('dashboard')
   const [content, setContent] = useState<SiteFullContent>(getStoredContent)
   const [isSaving, setIsSaving] = useState(false)
@@ -79,15 +81,10 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
     }
   }, [])
 
-  // Apply theme class to document element
-  useEffect(() => {
-    const root = document.documentElement
-    if (theme === 'dark') {
-      root.classList.add('dark')
-    } else {
-      root.classList.remove('dark')
-    }
-  }, [theme])
+  // The theme is scoped to the admin wrapper div below (the `.dark`
+  // custom variant targets `.dark *`). We deliberately do NOT touch
+  // document.documentElement — a class there leaks into the public
+  // storefront when the admin navigates back without a full reload.
 
   // Sync content updates
   useEffect(() => {

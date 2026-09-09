@@ -2,6 +2,7 @@
 
 import type { PartSummary } from '@/lib/data/parts'
 import { useLanguage } from '@/lib/i18n/language-context'
+import { useSiteContent } from '@/lib/admin/site-content-context'
 import { PageHero } from '@/components/page-hero'
 import { CartView } from '@/components/cart-view'
 
@@ -11,11 +12,18 @@ import { CartView } from '@/components/cart-view'
  * rather than whatever the browser cached.
  */
 export function CartScreen({ catalog }: { catalog: PartSummary[] }) {
-  const { t } = useLanguage()
+  const { t, locale } = useLanguage()
+  const { content, tStr } = useSiteContent()
+
+  // The cart page header is admin-editable (pages.cart); dictionary is fallback.
+  const page = content.pages?.cart
+  const eyebrow = tStr(page?.eyebrow, locale) || t.nav.cart
+  const title = tStr(page?.title, locale) || t.cart.title
+  const lead = tStr(page?.lead, locale) || t.cart.lead
 
   return (
     <>
-      <PageHero eyebrow={t.nav.cart} title={t.cart.title} lead={t.cart.lead} />
+      <PageHero eyebrow={eyebrow} title={title} lead={lead} bannerImage={page?.bannerImage} />
       <CartView catalog={catalog} />
     </>
   )

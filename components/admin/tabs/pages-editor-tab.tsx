@@ -19,14 +19,29 @@ import {
   Truck,
   Image as ImageIcon,
   Layout,
+  FileText,
+  ShoppingCart,
+  Navigation,
+  Film,
 } from 'lucide-react'
 import { useAdmin } from '@/lib/admin/admin-context'
 import { MultiLangInput } from '../multilang-input'
 import { ImageUpload } from '@/components/admin/image-upload'
-import type { MultiLangString } from '@/lib/admin/types'
+import type { MultiLangString, PageHeaderContent } from '@/lib/admin/types'
 
-type PageSubTab = 'home' | 'cars' | 'products' | 'contact' | 'policies'
+type PageSubTab =
+  | 'home'
+  | 'cars'
+  | 'products'
+  | 'blog'
+  | 'contact'
+  | 'cart'
+  | 'trackOrder'
+  | 'chrome'
+  | 'policies'
 type HomeSection = 'hero' | 'fleet' | 'stats' | 'marquee' | 'global' | 'services' | 'cta'
+
+const EMPTY_ML: MultiLangString = { ar: '', en: '', he: '' }
 
 export function PagesEditorTab() {
   const { t, content, updateContent, saveAll, showToast } = useAdmin()
@@ -374,6 +389,64 @@ export function PagesEditorTab() {
     }))
   }
 
+  // Generic handler for simple page headers (blog / cart / trackOrder / contact page hero)
+  const handlePageHeader = (
+    page: 'blog' | 'cart' | 'trackOrder' | 'contact',
+    field: keyof PageHeaderContent,
+    val: any
+  ) => {
+    updateContent((prev) => ({
+      ...prev,
+      pages: {
+        ...prev.pages,
+        [page]: {
+          ...prev.pages[page],
+          [field]: val,
+        },
+      },
+    }))
+  }
+
+  // Handlers for site chrome: navigation labels, footer copy, social links
+  const handleNavigationChange = (field: string, val: MultiLangString) => {
+    updateContent((prev) => ({
+      ...prev,
+      general: {
+        ...prev.general,
+        navigation: {
+          ...prev.general.navigation,
+          [field]: val,
+        } as typeof prev.general.navigation,
+      },
+    }))
+  }
+
+  const handleFooterChange = (field: 'rights' | 'slogan', val: MultiLangString) => {
+    updateContent((prev) => ({
+      ...prev,
+      general: {
+        ...prev.general,
+        footer: {
+          ...prev.general.footer,
+          [field]: val,
+        },
+      },
+    }))
+  }
+
+  const handleSocialChange = (field: string, val: string) => {
+    updateContent((prev) => ({
+      ...prev,
+      general: {
+        ...prev.general,
+        social: {
+          ...prev.general.social,
+          [field]: val,
+        },
+      },
+    }))
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -390,70 +463,46 @@ export function PagesEditorTab() {
         <button
           type="button"
           onClick={saveAll}
-          className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground shadow-sm shadow-primary/30 hover:opacity-95"
+          className="inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2 text-xs font-semibold text-primary-foreground shadow-sm hover:opacity-90"
         >
           <Save className="h-4 w-4" />
           <span>{t.header.saveAll}</span>
         </button>
       </div>
 
-      {/* Main Page Selector Tabs */}
-      <div className="flex flex-wrap border-b border-border bg-card rounded-xl p-1 gap-1">
-        <button
-          type="button"
-          onClick={() => setActivePage('home')}
-          className={`flex-1 min-w-[120px] rounded-lg py-2 text-xs font-semibold transition-all ${
-            activePage === 'home'
-              ? 'bg-primary text-primary-foreground shadow-xs'
-              : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-          }`}
-        >
-          {t.pagesEditor.homeTab}
-        </button>
-        <button
-          type="button"
-          onClick={() => setActivePage('cars')}
-          className={`flex-1 min-w-[120px] rounded-lg py-2 text-xs font-semibold transition-all ${
-            activePage === 'cars'
-              ? 'bg-primary text-primary-foreground shadow-xs'
-              : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-          }`}
-        >
-          صفحة أسطول السيارات (/cars)
-        </button>
-        <button
-          type="button"
-          onClick={() => setActivePage('products')}
-          className={`flex-1 min-w-[120px] rounded-lg py-2 text-xs font-semibold transition-all ${
-            activePage === 'products'
-              ? 'bg-primary text-primary-foreground shadow-xs'
-              : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-          }`}
-        >
-          صفحة قطع الغيار (/products)
-        </button>
-        <button
-          type="button"
-          onClick={() => setActivePage('contact')}
-          className={`flex-1 min-w-[120px] rounded-lg py-2 text-xs font-semibold transition-all ${
-            activePage === 'contact'
-              ? 'bg-primary text-primary-foreground shadow-xs'
-              : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-          }`}
-        >
-          {t.pagesEditor.contactTab}
-        </button>
-        <button
-          type="button"
-          onClick={() => setActivePage('policies')}
-          className={`flex-1 min-w-[120px] rounded-lg py-2 text-xs font-semibold transition-all ${
-            activePage === 'policies'
-              ? 'bg-primary text-primary-foreground shadow-xs'
-              : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-          }`}
-        >
-          {t.pagesEditor.policiesTab}
-        </button>
+      {/* Main Page Selector Tabs — every public page is covered */}
+      <div className="flex flex-wrap border-b border-border bg-card rounded-2xl p-1 gap-1">
+        {(
+          [
+            { id: 'home', label: t.pagesEditor.homeTab, icon: Layout },
+            { id: 'cars', label: 'السيارات (/cars)', icon: Car },
+            { id: 'products', label: 'قطع الغيار (/products)', icon: Package },
+            { id: 'blog', label: 'المدونة (/blog)', icon: FileText },
+            { id: 'contact', label: t.pagesEditor.contactTab, icon: PhoneCall },
+            { id: 'cart', label: 'السلة (/cart)', icon: ShoppingCart },
+            { id: 'trackOrder', label: 'تتبع الطلب (/track-order)', icon: Truck },
+            { id: 'chrome', label: 'التنقل والفوتر والسوشيال', icon: Navigation },
+            { id: 'policies', label: t.pagesEditor.policiesTab, icon: ShieldCheck },
+          ] as { id: PageSubTab; label: string; icon: React.ComponentType<{ className?: string }> }[]
+        ).map((tab) => {
+          const Icon = tab.icon
+          const isSelected = activePage === tab.id
+          return (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => setActivePage(tab.id)}
+              className={`inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-xs font-semibold transition-all ${
+                isSelected
+                  ? 'bg-foreground text-background shadow-xs'
+                  : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+              }`}
+            >
+              <Icon className="h-3.5 w-3.5" />
+              <span>{tab.label}</span>
+            </button>
+          )
+        })}
       </div>
 
       {/* HOME PAGE SUBSECTIONS */}
@@ -492,7 +541,7 @@ export function PagesEditorTab() {
 
           {/* SECTION: HERO */}
           {activeSection === 'hero' && (
-            <div className="space-y-6 rounded-2xl border border-border bg-card p-6 shadow-2xs">
+            <div className="space-y-6 rounded-3xl bg-card p-6 ring-1 ring-border shadow-sm">
               <div className="border-b border-border/70 pb-3">
                 <h2 className="text-sm font-bold text-foreground">
                   {t.pagesEditor.heroSection}
@@ -633,7 +682,7 @@ export function PagesEditorTab() {
 
           {/* SECTION: FLEET SHOWCASE */}
           {activeSection === 'fleet' && (
-            <div className="space-y-6 rounded-2xl border border-border bg-card p-6 shadow-2xs">
+            <div className="space-y-6 rounded-3xl bg-card p-6 ring-1 ring-border shadow-sm">
               <div className="border-b border-border/70 pb-3">
                 <h2 className="text-sm font-bold text-foreground flex items-center gap-2">
                   <Truck className="size-4 text-primary" />
@@ -764,7 +813,7 @@ export function PagesEditorTab() {
 
           {/* SECTION: STATS STRIP */}
           {activeSection === 'stats' && (
-            <div className="space-y-6 rounded-2xl border border-border bg-card p-6 shadow-2xs">
+            <div className="space-y-6 rounded-3xl bg-card p-6 ring-1 ring-border shadow-sm">
               <div className="flex items-center justify-between border-b border-border/70 pb-3">
                 <div>
                   <h2 className="text-sm font-bold text-foreground">
@@ -777,7 +826,7 @@ export function PagesEditorTab() {
                 <button
                   type="button"
                   onClick={addStat}
-                  className="inline-flex items-center gap-1.5 rounded-lg border border-primary/40 bg-primary/10 px-3 py-1.5 text-xs font-semibold text-primary hover:bg-primary/20"
+                  className="inline-flex items-center gap-1.5 rounded-full border border-accent/40 bg-accent/10 px-4 py-1.5 text-xs font-semibold text-accent hover:bg-accent/20"
                 >
                   <Plus className="h-3.5 w-3.5" />
                   <span>{t.pagesEditor.addStat}</span>
@@ -828,7 +877,7 @@ export function PagesEditorTab() {
 
           {/* SECTION: MARQUEE */}
           {activeSection === 'marquee' && (
-            <div className="space-y-6 rounded-2xl border border-border bg-card p-6 shadow-2xs">
+            <div className="space-y-6 rounded-3xl bg-card p-6 ring-1 ring-border shadow-sm">
               <div className="flex items-center justify-between border-b border-border/70 pb-3">
                 <div>
                   <h2 className="text-sm font-bold text-foreground">
@@ -841,7 +890,7 @@ export function PagesEditorTab() {
                 <button
                   type="button"
                   onClick={addMarqueeItem}
-                  className="inline-flex items-center gap-1.5 rounded-lg border border-primary/40 bg-primary/10 px-3 py-1.5 text-xs font-semibold text-primary hover:bg-primary/20"
+                  className="inline-flex items-center gap-1.5 rounded-full border border-accent/40 bg-accent/10 px-4 py-1.5 text-xs font-semibold text-accent hover:bg-accent/20"
                 >
                   <Plus className="h-3.5 w-3.5" />
                   <span>{t.pagesEditor.addMarquee}</span>
@@ -876,7 +925,7 @@ export function PagesEditorTab() {
 
           {/* SECTION: GLOBAL REACH */}
           {activeSection === 'global' && (
-            <div className="space-y-6 rounded-2xl border border-border bg-card p-6 shadow-2xs">
+            <div className="space-y-6 rounded-3xl bg-card p-6 ring-1 ring-border shadow-sm">
               <div className="border-b border-border/70 pb-3">
                 <h2 className="text-sm font-bold text-foreground">
                   {t.pagesEditor.globalReachSection}
@@ -944,7 +993,7 @@ export function PagesEditorTab() {
 
           {/* SECTION: SERVICES */}
           {activeSection === 'services' && (
-            <div className="space-y-6 rounded-2xl border border-border bg-card p-6 shadow-2xs">
+            <div className="space-y-6 rounded-3xl bg-card p-6 ring-1 ring-border shadow-sm">
               <div className="border-b border-border/70 pb-3">
                 <h2 className="text-sm font-bold text-foreground">
                   {t.pagesEditor.servicesSection}
@@ -958,20 +1007,30 @@ export function PagesEditorTab() {
                 {home.services.map((srv, idx) => (
                   <div
                     key={srv.id}
-                    className="rounded-xl border border-border bg-background/50 p-5 space-y-4"
+                    className="rounded-2xl border border-border bg-background/50 p-5 space-y-4"
                   >
-                    <span className="inline-block rounded-md bg-primary/10 px-2 py-0.5 text-xs font-bold text-primary">
-                      خدمة #{idx + 1}
-                    </span>
+                    <div className="flex items-center justify-between">
+                      <span className="inline-block rounded-full bg-foreground px-3 py-1 text-xs font-bold text-background">
+                        المشهد رقم #{idx + 1} في الصفحة الرئيسية
+                      </span>
+                      <span className="text-[10px] font-mono text-muted-foreground">
+                        Scene 0{idx + 1} — sticky fullscreen
+                      </span>
+                    </div>
 
-                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                    <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                       <MultiLangInput
-                        label={t.pagesEditor.serviceTitle}
+                        label="الوسم الصغير أعلى العنوان (Kicker)"
+                        value={srv.kicker || EMPTY_ML}
+                        onChange={(v) => handleServiceChange(srv.id, 'kicker', v)}
+                      />
+                      <MultiLangInput
+                        label="السطر الأول من العنوان (Title)"
                         value={srv.title}
                         onChange={(v) => handleServiceChange(srv.id, 'title', v)}
                       />
                       <MultiLangInput
-                        label={t.pagesEditor.serviceSubtitle}
+                        label="السطر الثاني المائل الملون (Highlight)"
                         value={srv.subtitle}
                         onChange={(v) => handleServiceChange(srv.id, 'subtitle', v)}
                       />
@@ -985,12 +1044,97 @@ export function PagesEditorTab() {
                       rows={3}
                     />
 
-                    <ImageUpload
-                      label="صورة الخدمة الفاخرة (Service Card Image)"
-                      value={srv.image}
-                      onChange={(url) => handleServiceChange(srv.id, 'image', url)}
-                      aspectHint="16:9 أو 4:3 موصى به"
-                    />
+                    <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+                      <ImageUpload
+                        label="صورة الغلاف للمشهد (Poster Image)"
+                        value={srv.image}
+                        onChange={(url) => handleServiceChange(srv.id, 'image', url)}
+                        aspectHint="16:9 — تظهر قبل تحميل الفيديو"
+                      />
+
+                      {/* Video URL — uploads stay image-only, videos are linked */}
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <label className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+                            <Film className="size-3.5 text-accent" />
+                            <span>فيديو الخلفية للمشهد (Video URL)</span>
+                          </label>
+                          <span className="text-[11px] text-muted-foreground">mp4 — رابط مباشر</span>
+                        </div>
+                        <input
+                          type="url"
+                          dir="ltr"
+                          value={srv.video || ''}
+                          onChange={(e) => handleServiceChange(srv.id, 'video', e.target.value)}
+                          placeholder="/videos/scene-showroom.mp4"
+                          className="w-full rounded-lg border border-border bg-card px-3 py-2 text-xs font-mono text-foreground focus:border-accent focus:outline-hidden"
+                        />
+                        {srv.video && (
+                          <video
+                            key={srv.video}
+                            src={srv.video}
+                            muted
+                            loop
+                            playsInline
+                            autoPlay
+                            className="aspect-video w-full rounded-lg border border-border object-cover"
+                          />
+                        )}
+                        <p className="text-[11px] text-muted-foreground">
+                          اتركه فارغاً لاستخدام الفيديو الافتراضي للمشهد.
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Features list */}
+                    <div className="space-y-3 border-t border-border/60 pt-4">
+                      <div className="flex items-center justify-between">
+                        <label className="text-xs font-bold text-foreground">
+                          نقاط ومميزات الخدمة (Features)
+                        </label>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            handleServiceChange(srv.id, 'features', [
+                              ...(srv.features || []),
+                              { ar: 'ميزة جديدة', en: 'New feature', he: 'תכונה חדשה' },
+                            ])
+                          }
+                          className="inline-flex items-center gap-1 rounded-full border border-accent/40 bg-accent/10 px-3 py-1 text-[11px] font-semibold text-accent hover:bg-accent/20"
+                        >
+                          <Plus className="h-3 w-3" />
+                          <span>إضافة ميزة</span>
+                        </button>
+                      </div>
+                      {(srv.features || []).map((feat, fIdx) => (
+                        <div key={fIdx} className="flex items-start gap-2">
+                          <div className="flex-1">
+                            <MultiLangInput
+                              label={`ميزة #${fIdx + 1}`}
+                              value={feat}
+                              onChange={(v) => {
+                                const next = [...(srv.features || [])]
+                                next[fIdx] = v
+                                handleServiceChange(srv.id, 'features', next)
+                              }}
+                            />
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              handleServiceChange(
+                                srv.id,
+                                'features',
+                                (srv.features || []).filter((_, i) => i !== fIdx)
+                              )
+                            }
+                            className="mt-6 rounded-lg p-1.5 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 ))}
               </div>
@@ -999,7 +1143,7 @@ export function PagesEditorTab() {
 
           {/* SECTION: CTA */}
           {activeSection === 'cta' && (
-            <div className="space-y-6 rounded-2xl border border-border bg-card p-6 shadow-2xs">
+            <div className="space-y-6 rounded-3xl bg-card p-6 ring-1 ring-border shadow-sm">
               <div className="border-b border-border/70 pb-3">
                 <h2 className="text-sm font-bold text-foreground">
                   {t.pagesEditor.ctaSection}
@@ -1009,6 +1153,11 @@ export function PagesEditorTab() {
                 </p>
               </div>
 
+              <MultiLangInput
+                label="النص التمهيدي الصغير (Eyebrow)"
+                value={home.cta.eyebrow || EMPTY_ML}
+                onChange={(v) => handleCtaChange('eyebrow', v)}
+              />
               <MultiLangInput
                 label="العنوان الرئيسي للدعوة"
                 value={home.cta.title}
@@ -1034,6 +1183,42 @@ export function PagesEditorTab() {
                   onChange={(v) => handleCtaChange('secondaryText', v)}
                 />
               </div>
+
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <div>
+                  <label className="text-xs font-semibold text-foreground">
+                    رابط الزر الأساسي (Button Link)
+                  </label>
+                  <input
+                    type="text"
+                    dir="ltr"
+                    value={home.cta.buttonLink || ''}
+                    onChange={(e) => handleCtaChange('buttonLink', e.target.value)}
+                    placeholder="/contact أو https://wa.me/..."
+                    className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-xs font-mono text-foreground focus:border-accent focus:outline-hidden"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-foreground">
+                    رابط الزر الثانوي (Secondary Link)
+                  </label>
+                  <input
+                    type="text"
+                    dir="ltr"
+                    value={home.cta.secondaryLink || ''}
+                    onChange={(e) => handleCtaChange('secondaryLink', e.target.value)}
+                    placeholder="/products"
+                    className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-xs font-mono text-foreground focus:border-accent focus:outline-hidden"
+                  />
+                </div>
+              </div>
+
+              <ImageUpload
+                label="صورة خلفية قسم الدعوة (اختياري — Background Image)"
+                value={home.cta.backgroundImage || ''}
+                onChange={(url) => handleCtaChange('backgroundImage', url)}
+                aspectHint="بانورامي عريض — تظهر بشفافية خلف النص"
+              />
             </div>
           )}
         </div>
@@ -1041,7 +1226,23 @@ export function PagesEditorTab() {
 
       {/* CONTACT PAGE TAB */}
       {activePage === 'contact' && (
-        <div className="space-y-6 rounded-2xl border border-border bg-card p-6 shadow-2xs">
+        <div className="space-y-6">
+          {/* Contact page hero header (pages.contact) */}
+          <PageHeaderEditor
+            icon={PhoneCall}
+            title="هيدر صفحة التواصل (/contact)"
+            subtitle="النص التمهيدي والعنوان والوصف وصورة البانر أعلى صفحة تواصل معنا"
+            value={content.pages.contact}
+            onChange={(field, val) => handlePageHeader('contact', field, val)}
+            defaults={{
+              eyebrow: { ar: 'تواصل معنا', en: 'Contact', he: 'צור קשר' },
+              title: { ar: 'لنتحدث عن', en: "Let's talk about", he: 'בואו נדבר על' },
+              titleEm: { ar: 'أسطولك', en: 'your fleet', he: 'הצי שלכם' },
+              lead: { ar: 'قطع غيار أو استيراد أو خطة أسطول كاملة — أرسل لنا رسالة وسيرد فريقنا خلال يوم عمل واحد.', en: 'Parts, imports or a full fleet plan — send us a message and our team replies within one business day.', he: 'חלפים, ייבוא או תוכנית צי מלאה — שלחו הודעה והצוות שלנו יחזור תוך יום עסקים אחד.' },
+            }}
+          />
+
+        <div className="space-y-6 rounded-3xl bg-card p-6 ring-1 ring-border shadow-sm">
           <div className="border-b border-border/70 pb-3">
             <h2 className="text-sm font-bold text-foreground">
               {t.pagesEditor.contactDetailsTitle}
@@ -1099,11 +1300,12 @@ export function PagesEditorTab() {
             onChange={(v) => handleContactChange('hours', v)}
           />
         </div>
+        </div>
       )}
 
       {/* CARS PAGE TAB */}
       {activePage === 'cars' && (
-        <div className="space-y-6 rounded-2xl border border-border bg-card p-6 shadow-2xs">
+        <div className="space-y-6 rounded-3xl bg-card p-6 ring-1 ring-border shadow-sm">
           <div className="border-b border-border/70 pb-3">
             <h2 className="text-sm font-bold text-foreground flex items-center gap-2">
               <Car className="size-4 text-primary" />
@@ -1151,7 +1353,7 @@ export function PagesEditorTab() {
 
       {/* PRODUCTS / SPARE PARTS PAGE TAB */}
       {activePage === 'products' && (
-        <div className="space-y-6 rounded-2xl border border-border bg-card p-6 shadow-2xs">
+        <div className="space-y-6 rounded-3xl bg-card p-6 ring-1 ring-border shadow-sm">
           <div className="border-b border-border/70 pb-3">
             <h2 className="text-sm font-bold text-foreground flex items-center gap-2">
               <Package className="size-4 text-primary" />
@@ -1197,13 +1399,159 @@ export function PagesEditorTab() {
         </div>
       )}
 
+      {/* BLOG PAGE TAB */}
+      {activePage === 'blog' && (
+        <PageHeaderEditor
+          icon={FileText}
+          title="محتوى وهيدر صفحة المدونة (/blog)"
+          subtitle="النص التمهيدي والعنوان والوصف المعروضة أعلى صفحة المدونة للجمهور"
+          value={content.pages.blog}
+          onChange={(field, val) => handlePageHeader('blog', field, val)}
+          defaults={{
+            eyebrow: { ar: 'المدونة', en: 'Blog', he: 'בלוג' },
+            title: { ar: 'رؤى من', en: 'Insights from', he: 'תובנות מ' },
+            titleEm: { ar: 'الأسطول', en: 'the fleet', he: 'הצי' },
+            lead: { ar: 'أخبار الصناعة، نصائح الاستيراد، أدلة إدارة الأساطيل وقصص من وراء الكواليس من فريق علي فليت.', en: 'Industry news, import tips, fleet management guides and behind-the-scenes stories from the ALI FLEET team.', he: 'חדשות מהתעשייה, טיפים לייבוא, מדריכי ניהול צי וסיפורים מאחורי הקלעים מצוות ALI FLEET.' },
+          }}
+        />
+      )}
+
+      {/* CART PAGE TAB */}
+      {activePage === 'cart' && (
+        <PageHeaderEditor
+          icon={ShoppingCart}
+          title="محتوى وهيدر صفحة سلة المشتريات (/cart)"
+          subtitle="النص التمهيدي والعنوان والوصف وصورة البانر المعروضة أعلى صفحة السلة"
+          value={content.pages.cart}
+          onChange={(field, val) => handlePageHeader('cart', field, val)}
+          defaults={{
+            eyebrow: { ar: 'السلة', en: 'Cart', he: 'עגלה' },
+            title: { ar: 'سلة المشتريات', en: 'Your cart', he: 'העגלה שלך' },
+            lead: { ar: 'راجع القطع المختارة، ثم تابع إلى متجرنا الآمن لإتمام الطلب.', en: 'Review your parts, then continue to our secure store to complete the order.', he: 'בדקו את החלפים ואז המשיכו לחנות המאובטחת שלנו להשלמת ההזמנה.' },
+          }}
+        />
+      )}
+
+      {/* TRACK ORDER PAGE TAB */}
+      {activePage === 'trackOrder' && (
+        <PageHeaderEditor
+          icon={Truck}
+          title="محتوى وهيدر صفحة تتبع الطلب (/track-order)"
+          subtitle="الشارة والعنوان والوصف المعروضة أعلى صفحة تتبع الشحنات"
+          value={content.pages.trackOrder}
+          onChange={(field, val) => handlePageHeader('trackOrder', field, val)}
+          defaults={{
+            eyebrow: { ar: 'نظام التتبع المباشر', en: 'Live Order Tracking', he: 'מערכת מעקב בזמן אמת' },
+            title: { ar: 'تتبع شحنتك وطلبك بكل دقة', en: 'Track Your Shipment & Order', he: 'מעקב אחר ההזמנה והמשלוח שלך' },
+            lead: { ar: 'أدخل رقم الطلب أو رقم الهاتف للاطلاع على خط سير الشحنة وتفاصيل التوصيل لحظة بلحظة.', en: 'Enter your order ID or phone number to view real-time delivery status and courier updates.', he: 'הזן את מספר ההזמנה או מספר הטלפון כדי לצפות בסטטוס המשלוח בזמן אמת.' },
+          }}
+        />
+      )}
+
+      {/* SITE CHROME TAB — navigation labels, footer copy, social links */}
+      {activePage === 'chrome' && (
+        <div className="space-y-6">
+          {/* Navigation labels */}
+          <div className="space-y-6 rounded-3xl bg-card p-6 ring-1 ring-border shadow-sm">
+            <div className="border-b border-border/70 pb-3">
+              <h2 className="text-sm font-bold text-foreground flex items-center gap-2">
+                <Navigation className="size-4 text-accent" />
+                <span>روابط وأسماء قائمة التنقل الرئيسية (Header Navigation)</span>
+              </h2>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                هذه الأسماء تظهر في شريط التنقل العلوي للموقع بالضبط — عدّلها بثلاث لغات
+              </p>
+            </div>
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {(
+                [
+                  { key: 'home', label: 'الرئيسية (Home)' },
+                  { key: 'products', label: 'قطع الغيار (Products)' },
+                  { key: 'cars', label: 'السيارات (Cars)' },
+                  { key: 'trackOrder', label: 'تتبع الطلب (Track Order)' },
+                  { key: 'blog', label: 'المدونة (Blog)' },
+                  { key: 'contact', label: 'تواصل معنا (Contact)' },
+                  { key: 'cart', label: 'السلة (Cart)' },
+                ] as const
+              ).map((item) => (
+                <MultiLangInput
+                  key={item.key}
+                  label={item.label}
+                  value={content.general.navigation?.[item.key] || EMPTY_ML}
+                  onChange={(v) => handleNavigationChange(item.key, v)}
+                />
+              ))}
+            </div>
+          </div>
+
+          {/* Footer copy */}
+          <div className="space-y-6 rounded-3xl bg-card p-6 ring-1 ring-border shadow-sm">
+            <div className="border-b border-border/70 pb-3">
+              <h2 className="text-sm font-bold text-foreground">
+                نصوص الفوتر (Footer Copy)
+              </h2>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                شريط الحقوق والشعار الختامي أسفل كل صفحات الموقع
+              </p>
+            </div>
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <MultiLangInput
+                label="نص الحقوق (Rights)"
+                value={content.general.footer?.rights || EMPTY_ML}
+                onChange={(v) => handleFooterChange('rights', v)}
+              />
+              <MultiLangInput
+                label="الشعار الختامي (Slogan)"
+                value={content.general.footer?.slogan || EMPTY_ML}
+                onChange={(v) => handleFooterChange('slogan', v)}
+              />
+            </div>
+          </div>
+
+          {/* Social links */}
+          <div className="space-y-6 rounded-3xl bg-card p-6 ring-1 ring-border shadow-sm">
+            <div className="border-b border-border/70 pb-3">
+              <h2 className="text-sm font-bold text-foreground">
+                روابط السوشيال ميديا (Social Links)
+              </h2>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                تظهر كأيقونات في فوتر الموقع — اترك الرابط فارغاً لإخفاء الشبكة
+              </p>
+            </div>
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {(
+                [
+                  { key: 'instagram', label: 'Instagram' },
+                  { key: 'facebook', label: 'Facebook' },
+                  { key: 'linkedin', label: 'LinkedIn' },
+                  { key: 'tiktok', label: 'TikTok' },
+                  { key: 'youtube', label: 'YouTube' },
+                ] as const
+              ).map((item) => (
+                <div key={item.key}>
+                  <label className="text-xs font-semibold text-foreground">{item.label}</label>
+                  <input
+                    type="url"
+                    dir="ltr"
+                    value={(content.general.social as any)?.[item.key] || ''}
+                    onChange={(e) => handleSocialChange(item.key, e.target.value)}
+                    placeholder={`https://${item.key}.com/...`}
+                    className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-xs font-mono text-foreground focus:border-accent focus:outline-hidden"
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* POLICIES TAB */}
       {activePage === 'policies' && (
         <div className="space-y-6">
           {policies.map((policy) => (
             <div
               key={policy.id}
-              className="rounded-2xl border border-border bg-card p-6 shadow-2xs space-y-4"
+              className="rounded-3xl bg-card p-6 ring-1 ring-border shadow-sm space-y-4"
             >
               <div className="border-b border-border/70 pb-3">
                 <span className="rounded-md bg-primary/10 px-2 py-0.5 text-xs font-bold text-primary uppercase">
@@ -1228,6 +1576,76 @@ export function PagesEditorTab() {
           ))}
         </div>
       )}
+    </div>
+  )
+}
+
+/* Shared editor for simple public page headers (eyebrow / title / titleEm /
+   lead / bannerImage) — used by the blog, cart, track-order and contact tabs. */
+function PageHeaderEditor({
+  icon: Icon,
+  title,
+  subtitle,
+  value,
+  defaults,
+  onChange,
+}: {
+  icon: React.ComponentType<{ className?: string }>
+  title: string
+  subtitle: string
+  value?: PageHeaderContent
+  defaults: {
+    eyebrow: MultiLangString
+    title: MultiLangString
+    titleEm?: MultiLangString
+    lead: MultiLangString
+  }
+  onChange: (field: keyof PageHeaderContent, val: any) => void
+}) {
+  return (
+    <div className="space-y-6 rounded-3xl bg-card p-6 ring-1 ring-border shadow-sm">
+      <div className="border-b border-border/70 pb-3">
+        <h2 className="text-sm font-bold text-foreground flex items-center gap-2">
+          <Icon className="size-4 text-accent" />
+          <span>{title}</span>
+        </h2>
+        <p className="text-xs text-muted-foreground mt-0.5">{subtitle}</p>
+      </div>
+
+      <ImageUpload
+        label="صورة البانر أعلى الصفحة (اختياري — Banner Image)"
+        value={value?.bannerImage || ''}
+        onChange={(url) => onChange('bannerImage', url)}
+        aspectHint="بانورامي عريض — تظهر باهتة خلف العنوان"
+      />
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <MultiLangInput
+          label="النص التمهيدي (Eyebrow)"
+          value={value?.eyebrow || defaults.eyebrow}
+          onChange={(v) => onChange('eyebrow', v)}
+        />
+        <MultiLangInput
+          label="العنوان الأساسي (Title)"
+          value={value?.title || defaults.title}
+          onChange={(v) => onChange('title', v)}
+        />
+        {defaults.titleEm && (
+          <MultiLangInput
+            label="الكلمة المميزة بالخط المائل (Title Italic / Em)"
+            value={value?.titleEm || defaults.titleEm}
+            onChange={(v) => onChange('titleEm', v)}
+          />
+        )}
+      </div>
+
+      <MultiLangInput
+        label="الوصف التوضيحي (Lead Description)"
+        value={value?.lead || defaults.lead}
+        onChange={(v) => onChange('lead', v)}
+        textarea
+        rows={3}
+      />
     </div>
   )
 }

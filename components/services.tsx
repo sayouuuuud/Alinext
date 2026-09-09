@@ -115,7 +115,9 @@ function SceneKicker({ index, kicker }: { index: string; kicker: string }) {
    Scene 01 — Personal Import: luxury spec sheet
    ============================================================ */
 
-function ShowroomScene({ bgImage }: { bgImage?: string }) {
+type SceneCopy = { kicker: string; title1: string; title2: string; desc: string }
+
+function ShowroomScene({ bgImage, video, copy }: { bgImage?: string; video?: string; copy: SceneCopy }) {
   const { t } = useLanguage()
   const s = t.home.services
 
@@ -136,18 +138,18 @@ function ShowroomScene({ bgImage }: { bgImage?: string }) {
     <SceneShell
       index={0}
       image={bgImage || '/images/scene-personal-import.png'}
-      video="/videos/scene-showroom.mp4"
-      alt={s.scene1Kicker}
+      video={video || '/videos/scene-showroom.mp4'}
+      alt={copy.kicker}
     >
       <div className="grid items-end gap-10 md:grid-cols-[1.2fr_0.8fr] md:items-center rtl:md:grid-cols-[0.8fr_1.2fr]">
         <div className="max-w-xl rtl:order-2">
-          <SceneKicker index="01" kicker={s.scene1Kicker} />
+          <SceneKicker index="01" kicker={copy.kicker} />
           <h3 data-title className="mt-6 overflow-hidden text-balance text-4xl font-semibold tracking-tight text-white md:text-6xl">
-            <span data-title-line className="block">{s.scene1Title1}</span>
-            <em data-title-line className="block font-serif italic text-accent">{s.scene1Title2}</em>
+            <span data-title-line className="block">{copy.title1}</span>
+            <em data-title-line className="block font-serif italic text-accent">{copy.title2}</em>
           </h3>
           <p data-reveal className="mt-5 max-w-md text-pretty leading-relaxed text-white/75">
-            {s.scene1Desc}
+            {copy.desc}
           </p>
 
           {/* Animated counters */}
@@ -208,7 +210,7 @@ function ShowroomScene({ bgImage }: { bgImage?: string }) {
    Scene 02 — Direct Import: logistics route HUD
    ============================================================ */
 
-function PortScene({ bgImage }: { bgImage?: string }) {
+function PortScene({ bgImage, video, copy }: { bgImage?: string; video?: string; copy: SceneCopy }) {
   const { t } = useLanguage()
   const s = t.home.services
 
@@ -223,17 +225,17 @@ function PortScene({ bgImage }: { bgImage?: string }) {
     <SceneShell
       index={1}
       image={bgImage || '/images/scene-direct-import.png'}
-      video="/videos/scene-port.mp4"
-      alt={s.scene2Kicker}
+      video={video || '/videos/scene-port.mp4'}
+      alt={copy.kicker}
     >
       <div className="max-w-xl">
-        <SceneKicker index="02" kicker={s.scene2Kicker} />
+        <SceneKicker index="02" kicker={copy.kicker} />
         <h3 data-title className="mt-6 overflow-hidden text-balance text-4xl font-semibold tracking-tight text-white md:text-6xl">
-          <span data-title-line className="block">{s.scene2Title1}</span>
-          <em data-title-line className="block font-serif italic text-accent">{s.scene2Title2}</em>
+          <span data-title-line className="block">{copy.title1}</span>
+          <em data-title-line className="block font-serif italic text-accent">{copy.title2}</em>
         </h3>
         <p data-reveal className="mt-5 max-w-md text-pretty leading-relaxed text-white/75">
-          {s.scene2Desc}
+          {copy.desc}
         </p>
       </div>
 
@@ -323,7 +325,7 @@ function PortScene({ bgImage }: { bgImage?: string }) {
    Scene 03 — Spare Parts: engine HUD
    ============================================================ */
 
-function PartsScene({ bgImage }: { bgImage?: string }) {
+function PartsScene({ bgImage, video, copy }: { bgImage?: string; video?: string; copy: SceneCopy }) {
   const { t } = useLanguage()
   const s = t.home.services
 
@@ -343,8 +345,8 @@ function PartsScene({ bgImage }: { bgImage?: string }) {
     <SceneShell
       index={2}
       image={bgImage || '/images/scene-spare-parts.png'}
-      video="/videos/scene-engine.mp4"
-      alt={s.scene3Kicker}
+      video={video || '/videos/scene-engine.mp4'}
+      alt={copy.kicker}
     >
       {/* Scan sweep line */}
       <div
@@ -376,13 +378,13 @@ function PartsScene({ bgImage }: { bgImage?: string }) {
       </div>
 
       <div className="max-w-xl">
-        <SceneKicker index="03" kicker={s.scene3Kicker} />
+        <SceneKicker index="03" kicker={copy.kicker} />
         <h3 data-title className="mt-6 overflow-hidden text-balance text-4xl font-semibold tracking-tight text-white md:text-6xl">
-          <span data-title-line className="block">{s.scene3Title1}</span>
-          <em data-title-line className="block font-serif italic text-accent">{s.scene3Title2}</em>
+          <span data-title-line className="block">{copy.title1}</span>
+          <em data-title-line className="block font-serif italic text-accent">{copy.title2}</em>
         </h3>
         <p data-reveal className="mt-5 max-w-md text-pretty leading-relaxed text-white/75">
-          {s.scene3Desc}
+          {copy.desc}
         </p>
 
         {/* Live inventory bars */}
@@ -423,7 +425,29 @@ function PartsScene({ bgImage }: { bgImage?: string }) {
 
 export function Services({ initialImages }: { initialImages?: PageImages }) {
   const sectionRef = useRef<HTMLElement>(null)
-  const { content } = useSiteContent()
+  const { content, tStr } = useSiteContent()
+  const { t, locale } = useLanguage()
+
+  // Each sticky scene is fully driven by the admin-editable services list
+  // (index 0 → scene 01, and so on); the locale dictionary is the fallback
+  // for any field left blank.
+  const adminServices = content?.pages?.home?.services || []
+  const ds = t.home.services
+  const sceneDicts: SceneCopy[] = [
+    { kicker: ds.scene1Kicker, title1: ds.scene1Title1, title2: ds.scene1Title2, desc: ds.scene1Desc },
+    { kicker: ds.scene2Kicker, title1: ds.scene2Title1, title2: ds.scene2Title2, desc: ds.scene2Desc },
+    { kicker: ds.scene3Kicker, title1: ds.scene3Title1, title2: ds.scene3Title2, desc: ds.scene3Desc },
+  ]
+  const sceneCopy = (i: number): SceneCopy => {
+    const svc = adminServices[i]
+    const dict = sceneDicts[i]
+    return {
+      kicker: tStr(svc?.kicker, locale) || dict.kicker,
+      title1: tStr(svc?.title, locale) || dict.title1,
+      title2: tStr(svc?.subtitle, locale) || dict.title2,
+      desc: tStr(svc?.description, locale) || dict.desc,
+    }
+  }
 
   useGSAP(
     () => {
@@ -710,11 +734,23 @@ export function Services({ initialImages }: { initialImages?: PageImages }) {
       {/* Each scene is `sticky top-0` and is followed by a viewport-height
           spacer, so it stays put for one extra screen of scrolling before the
           next scene slides over it. This replaces GSAP pinning. */}
-      <ShowroomScene bgImage={content?.pages?.home?.services?.[0]?.image || initialImages?.serviceScene1} />
+      <ShowroomScene
+        bgImage={adminServices[0]?.image || initialImages?.serviceScene1}
+        video={adminServices[0]?.video}
+        copy={sceneCopy(0)}
+      />
       <div aria-hidden="true" className="h-svh" />
-      <PortScene bgImage={content?.pages?.home?.services?.[1]?.image || initialImages?.serviceScene2} />
+      <PortScene
+        bgImage={adminServices[1]?.image || initialImages?.serviceScene2}
+        video={adminServices[1]?.video}
+        copy={sceneCopy(1)}
+      />
       <div aria-hidden="true" className="h-svh" />
-      <PartsScene bgImage={content?.pages?.home?.services?.[2]?.image || initialImages?.serviceScene3} />
+      <PartsScene
+        bgImage={adminServices[2]?.image || initialImages?.serviceScene3}
+        video={adminServices[2]?.video}
+        copy={sceneCopy(2)}
+      />
       <div aria-hidden="true" className="h-svh" />
     </section>
   )

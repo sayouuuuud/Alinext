@@ -2,7 +2,7 @@
 
 import Image from 'next/image'
 import LocaleLink from '@/components/locale-link'
-import { Mail, MapPin, Phone } from 'lucide-react'
+import { Mail, MapPin, Phone, Instagram, Facebook, Linkedin, Youtube } from 'lucide-react'
 import { useLanguage } from '@/lib/i18n/language-context'
 import { useStore } from '@/lib/store-context'
 import { useSiteContent } from '@/lib/admin/site-content-context'
@@ -14,6 +14,19 @@ export function SiteFooter() {
 
   const customLogo = content.branding?.logoDarkUrl || content.branding?.logoLightUrl || '/images/ali-fleet-logo.png'
   const customTagline = tStr(content.branding?.tagline, locale) || t.footer.tagline
+  const rightsText = tStr(content.general?.footer?.rights, locale) || t.footer.rights
+  const sloganText = tStr(content.general?.footer?.slogan, locale) || t.footer.slogan
+
+  // Social profiles are managed from the admin (general.social) — a network
+  // only renders once it actually has a URL configured.
+  const social = content.general?.social
+  const socialLinks = [
+    { label: 'Instagram', href: social?.instagram, icon: Instagram },
+    { label: 'Facebook', href: social?.facebook, icon: Facebook },
+    { label: 'LinkedIn', href: social?.linkedin, icon: Linkedin },
+    { label: 'TikTok', href: social?.tiktok, icon: null },
+    { label: 'YouTube', href: social?.youtube, icon: Youtube },
+  ].filter((s) => s.href)
 
   const columns = [
     {
@@ -93,6 +106,31 @@ export function SiteFooter() {
                 </li>
               )}
             </ul>
+
+            {socialLinks.length > 0 && (
+              <ul className="mt-6 flex items-center gap-2">
+                {socialLinks.map((s) => (
+                  <li key={s.label}>
+                    <a
+                      href={s.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={s.label}
+                      title={s.label}
+                      className="flex size-9 items-center justify-center rounded-full bg-secondary text-muted-foreground transition-colors hover:bg-foreground hover:text-background"
+                    >
+                      {s.icon ? (
+                        <s.icon className="size-4" aria-hidden="true" />
+                      ) : (
+                        <svg viewBox="0 0 24 24" fill="currentColor" className="size-4" aria-hidden="true">
+                          <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z" />
+                        </svg>
+                      )}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
 
           {columns.map((col) => (
@@ -118,7 +156,7 @@ export function SiteFooter() {
 
         <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-border pt-8 text-xs text-muted-foreground md:flex-row">
           <p>
-            © {new Date().getFullYear()} {store.name}. {t.footer.rights}
+            © {new Date().getFullYear()} {store.name}. {rightsText}
           </p>
           <div className="flex flex-wrap items-center justify-center gap-6">
             <LocaleLink
@@ -140,7 +178,7 @@ export function SiteFooter() {
               {locale === 'ar' ? 'سياسة الإرجاع والاستبدال' : locale === 'he' ? 'מדיניות החזרה והחלפה' : 'Refund & Returns'}
             </LocaleLink>
           </div>
-          <p>{t.footer.slogan}</p>
+          <p>{sloganText}</p>
         </div>
       </div>
     </footer>

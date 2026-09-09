@@ -213,7 +213,7 @@ export function OrdersTab() {
 
       {/* KPI Stats Cards */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
-        <div className="rounded-2xl border border-border bg-card p-4 shadow-2xs">
+        <div className="rounded-3xl bg-card p-4 ring-1 ring-border shadow-sm">
           <div className="flex items-center justify-between text-muted-foreground">
             <span className="text-xs font-medium">إجمالي المبيعات</span>
             <DollarSign className="size-4 text-primary" />
@@ -224,7 +224,7 @@ export function OrdersTab() {
           <span className="text-[11px] text-muted-foreground">إجمالي قيمة كافة الطلبات</span>
         </div>
 
-        <div className="rounded-2xl border border-border bg-card p-4 shadow-2xs">
+        <div className="rounded-3xl bg-card p-4 ring-1 ring-border shadow-sm">
           <div className="flex items-center justify-between text-muted-foreground">
             <span className="text-xs font-medium">طلبات جديدة</span>
             <Clock className="size-4 text-amber-500" />
@@ -235,7 +235,7 @@ export function OrdersTab() {
           <span className="text-[11px] text-muted-foreground">تتطلب المراجعة والتأكيد</span>
         </div>
 
-        <div className="rounded-2xl border border-border bg-card p-4 shadow-2xs">
+        <div className="rounded-3xl bg-card p-4 ring-1 ring-border shadow-sm">
           <div className="flex items-center justify-between text-muted-foreground">
             <span className="text-xs font-medium">قيد التجهيز والشحن</span>
             <Truck className="size-4 text-cyan-500" />
@@ -246,7 +246,7 @@ export function OrdersTab() {
           <span className="text-[11px] text-muted-foreground">جاري فحصها ونقلها للعميل</span>
         </div>
 
-        <div className="rounded-2xl border border-border bg-card p-4 shadow-2xs">
+        <div className="rounded-3xl bg-card p-4 ring-1 ring-border shadow-sm">
           <div className="flex items-center justify-between text-muted-foreground">
             <span className="text-xs font-medium">تم التسليم بنجاح</span>
             <CheckCircle2 className="size-4 text-emerald-500" />
@@ -287,7 +287,7 @@ export function OrdersTab() {
               onClick={() => setStatusFilter(tab.id)}
               className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${
                 statusFilter === tab.id
-                  ? 'bg-primary text-primary-foreground shadow-xs'
+                  ? 'bg-foreground text-background shadow-xs'
                   : 'text-muted-foreground hover:bg-muted hover:text-foreground'
               }`}
             >

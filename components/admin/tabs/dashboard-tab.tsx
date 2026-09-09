@@ -36,7 +36,7 @@ export function DashboardTab() {
       value: cars.length,
       sub: `${saleCars} للبيع • ${importCars} استيراد`,
       icon: Car,
-      color: 'from-blue-600 to-indigo-600',
+      color: 'bg-primary/10 text-primary',
       tab: 'cars' as const,
     },
     {
@@ -44,7 +44,7 @@ export function DashboardTab() {
       value: products.length,
       sub: `${products.filter((p) => p.inStock).length} متوفر بالمخزون`,
       icon: Package,
-      color: 'from-teal-600 to-emerald-600',
+      color: 'bg-accent/15 text-accent',
       tab: 'products' as const,
     },
     {
@@ -52,7 +52,7 @@ export function DashboardTab() {
       value: blog.length,
       sub: 'منشور ومفهرس بالكامل',
       icon: FileText,
-      color: 'from-purple-600 to-pink-600',
+      color: 'bg-primary/10 text-primary',
       tab: 'blog' as const,
     },
     {
@@ -60,19 +60,19 @@ export function DashboardTab() {
       value: (content.orders || []).length,
       sub: `${(content.orders || []).filter((o) => o.status === 'processing' || o.status === 'pending').length} قيد المعالجة`,
       icon: ShoppingBag,
-      color: 'from-amber-500 to-orange-600',
+      color: 'bg-accent/15 text-accent',
       tab: 'orders' as const,
     },
   ]
 
   return (
     <div className="space-y-6">
-      {/* Welcome Banner */}
-      <div className="relative overflow-hidden rounded-3xl border border-primary/20 bg-gradient-to-br from-card via-card to-primary/5 p-6 sm:p-8 shadow-sm">
+      {/* Welcome Banner — same flat card language as the storefront */}
+      <div className="relative overflow-hidden rounded-3xl bg-card p-6 ring-1 ring-border sm:p-8 shadow-sm">
         <div className="relative z-10 max-w-2xl">
-          <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+          <div className="inline-flex items-center gap-2 rounded-full bg-accent/15 px-3 py-1 text-xs font-semibold text-accent">
             <Zap className="h-3.5 w-3.5" />
-            <span>ALI FLEET Control Hub v2.0</span>
+            <span>ALI FLEET Control Hub</span>
           </div>
           <h1 className="mt-3 text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
             {t.dashboard.welcome}
@@ -86,7 +86,7 @@ export function DashboardTab() {
             <button
               type="button"
               onClick={() => setActiveTab('cars')}
-              className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-3.5 py-2 text-xs font-semibold text-primary-foreground shadow-sm shadow-primary/30 hover:opacity-95"
+              className="inline-flex items-center gap-1.5 rounded-full bg-foreground px-4 py-2 text-xs font-semibold text-background shadow-sm hover:opacity-90"
             >
               <Plus className="h-3.5 w-3.5" />
               <span>{t.dashboard.addCar}</span>
@@ -94,17 +94,17 @@ export function DashboardTab() {
             <button
               type="button"
               onClick={() => setActiveTab('pages')}
-              className="inline-flex items-center gap-1.5 rounded-xl border border-border bg-card px-3.5 py-2 text-xs font-semibold text-foreground hover:bg-muted"
+              className="inline-flex items-center gap-1.5 rounded-full border border-border bg-background px-4 py-2 text-xs font-semibold text-foreground hover:bg-secondary"
             >
-              <Edit3 className="h-3.5 w-3.5 text-primary" />
+              <Edit3 className="h-3.5 w-3.5 text-accent" />
               <span>{t.dashboard.editHome}</span>
             </button>
             <button
               type="button"
               onClick={() => setActiveTab('products')}
-              className="inline-flex items-center gap-1.5 rounded-xl border border-border bg-card px-3.5 py-2 text-xs font-semibold text-foreground hover:bg-muted"
+              className="inline-flex items-center gap-1.5 rounded-full border border-border bg-background px-4 py-2 text-xs font-semibold text-foreground hover:bg-secondary"
             >
-              <Package className="h-3.5 w-3.5 text-emerald-500" />
+              <Package className="h-3.5 w-3.5 text-accent" />
               <span>{t.dashboard.addProduct}</span>
             </button>
           </div>
@@ -119,14 +119,14 @@ export function DashboardTab() {
             <div
               key={i}
               onClick={() => setActiveTab(stat.tab)}
-              className="group cursor-pointer rounded-2xl border border-border bg-card p-5 shadow-2xs transition-all hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-md"
+              className="group cursor-pointer rounded-3xl bg-card p-5 ring-1 ring-border shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-md"
             >
               <div className="flex items-center justify-between">
                 <span className="text-xs font-medium text-muted-foreground">
                   {stat.title}
                 </span>
                 <div
-                  className={`flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br ${stat.color} text-white shadow-sm`}
+                  className={`flex h-10 w-10 items-center justify-center rounded-2xl ${stat.color}`}
                 >
                   <Icon className="h-5 w-5" />
                 </div>
