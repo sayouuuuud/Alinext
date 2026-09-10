@@ -23,6 +23,7 @@ import {
   ShoppingCart,
   Navigation,
   Film,
+  Loader2,
 } from 'lucide-react'
 import { useAdmin } from '@/lib/admin/admin-context'
 import { MultiLangInput } from '../multilang-input'
@@ -44,7 +45,7 @@ type HomeSection = 'hero' | 'fleet' | 'stats' | 'marquee' | 'global' | 'services
 const EMPTY_ML: MultiLangString = { ar: '', en: '', he: '' }
 
 export function PagesEditorTab() {
-  const { t, content, updateContent, saveAll, showToast } = useAdmin()
+  const { t, content, updateContent, saveAll, isSaving, showToast } = useAdmin()
   const [activePage, setActivePage] = useState<PageSubTab>('home')
   const [activeSection, setActiveSection] = useState<HomeSection>('hero')
 
@@ -463,10 +464,11 @@ export function PagesEditorTab() {
         <button
           type="button"
           onClick={saveAll}
-          className="inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2 text-xs font-semibold text-primary-foreground shadow-sm hover:opacity-90"
+          disabled={isSaving}
+          className="inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2 text-xs font-semibold text-primary-foreground shadow-sm hover:opacity-90 disabled:opacity-50"
         >
-          <Save className="h-4 w-4" />
-          <span>{t.header.saveAll}</span>
+          {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+          <span>{isSaving ? 'جاري الحفظ...' : t.header.saveAll}</span>
         </button>
       </div>
 

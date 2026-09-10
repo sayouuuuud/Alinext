@@ -10,6 +10,8 @@ import {
   CheckCircle2,
   XCircle,
   X,
+  Loader2,
+  Save,
 } from 'lucide-react'
 import { useAdmin } from '@/lib/admin/admin-context'
 import { MultiLangInput } from '../multilang-input'
@@ -17,11 +19,13 @@ import { ImageUpload } from '@/components/admin/image-upload'
 import type { ProductItem } from '@/lib/admin/types'
 
 export function ProductsManagerTab() {
-  const { t, content, updateContent, locale, showToast } = useAdmin()
+  const { t, content, updateContent, locale, showToast, persist, isSaving } = useAdmin()
 
   const [search, setSearch] = useState('')
   const [stockFilter, setStockFilter] = useState<'all' | 'inStock' | 'outOfStock'>('all')
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
   const [editingProduct, setEditingProduct] = useState<ProductItem | null>(null)
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
 
@@ -71,39 +75,47 @@ export function ProductsManagerTab() {
     setIsModalOpen(true)
   }
 
-  const handleSave = (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!formData.name?.ar && !formData.name?.en) {
       showToast('يرجى إدخال اسم القطعة بالعربية أو الإنجليزية', 'error')
       return
     }
-
-    if (editingProduct) {
-      updateContent((prev) => ({
-        ...prev,
-        products: prev.products.map((item) =>
-          item.id === formData.id ? formData : item
-        ),
-      }))
-      showToast('تم تحديث بيانات القطعة بنجاح')
-    } else {
-      updateContent((prev) => ({
-        ...prev,
-        products: [formData, ...prev.products],
-      }))
-      showToast('تمت إضافة القطعة إلى الكتالوج')
+    if (!formData.sku?.trim()) {
+      showToast('يرجى إدخال رمز القطعة SKU', 'error')
+      return
     }
 
-    setIsModalOpen(false)
+    setIsSubmitting(true)
+    const nextProducts = editingProduct
+      ? products.map((item) => (item.id === formData.id ? formData : item))
+      : [formData, ...products]
+
+    const success = await persist('products', nextProducts)
+    setIsSubmitting(false)
+
+    if (success) {
+      updateContent((prev) => ({ ...prev, products: nextProducts }))
+      showToast(editingProduct ? 'تم تحديث بيانات القطعة وحفظها بنجاح' : 'تمت إضافة القطعة إلى الكتالوج وحفظها في قاعدة البيانات')
+      setIsModalOpen(false)
+    } else {
+      showToast('تعذر حفظ القطعة في قاعدة البيانات، يرجى المحاولة مرة أخرى', 'error')
+    }
   }
 
-  const handleDelete = (id: string) => {
-    updateContent((prev) => ({
-      ...prev,
-      products: prev.products.filter((p) => p.id !== id),
-    }))
-    setDeleteConfirmId(null)
-    showToast('تم حذف القطعة من المتجر')
+  const handleDelete = async (id: string) => {
+    setIsDeleting(true)
+    const nextProducts = products.filter((p) => p.id !== id)
+    const success = await persist('products', nextProducts)
+    setIsDeleting(false)
+
+    if (success) {
+      updateContent((prev) => ({ ...prev, products: nextProducts }))
+      setDeleteConfirmId(null)
+      showToast('تم حذف القطعة وتحديث المتجر بنجاح')
+    } else {
+      showToast('تعذر حذف القطعة من قاعدة البيانات', 'error')
+    }
   }
 
   return (
@@ -119,14 +131,29 @@ export function ProductsManagerTab() {
           </p>
         </div>
 
-        <button
-          type="button"
-          onClick={openAddModal}
-          className="inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2.5 text-xs font-semibold text-primary-foreground shadow-sm hover:opacity-90"
-        >
-          <Plus className="h-4 w-4" />
-          <span>{t.productsManager.addNewProduct}</span>
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => persist('products', products).then((ok) => {
+              if (ok) showToast('تم حفظ كتالوج المنتجات في قاعدة البيانات بنجاح')
+              else showToast('تعذر حفظ المنتجات في قاعدة البيانات', 'error')
+            })}
+            disabled={isSaving}
+            className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-4 py-2 text-xs font-semibold text-foreground shadow-xs hover:bg-muted disabled:opacity-50"
+          >
+            {isSaving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5 text-primary" />}
+            <span>حفظ المنتجات</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={openAddModal}
+            className="inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2.5 text-xs font-semibold text-primary-foreground shadow-sm hover:opacity-90"
+          >
+            <Plus className="h-4 w-4" />
+            <span>{t.productsManager.addNewProduct}</span>
+          </button>
+        </div>
       </div>
 
       {/* Filters */}
@@ -357,9 +384,11 @@ export function ProductsManagerTab() {
                 </button>
                 <button
                   type="submit"
-                  className="rounded-lg bg-primary px-5 py-2 text-xs font-semibold text-primary-foreground hover:opacity-95"
+                  disabled={isSubmitting}
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-5 py-2 text-xs font-semibold text-primary-foreground hover:opacity-95 disabled:opacity-50"
                 >
-                  {t.productsManager.saveProduct}
+                  {isSubmitting && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+                  <span>{isSubmitting ? 'جاري الحفظ...' : t.productsManager.saveProduct}</span>
                 </button>
               </div>
             </form>
@@ -387,10 +416,12 @@ export function ProductsManagerTab() {
               </button>
               <button
                 type="button"
+                disabled={isDeleting}
                 onClick={() => handleDelete(deleteConfirmId)}
-                className="rounded-lg bg-destructive px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-destructive/90"
+                className="inline-flex items-center gap-1.5 rounded-lg bg-destructive px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-destructive/90 disabled:opacity-50"
               >
-                حذف نهائي
+                {isDeleting && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+                <span>{isDeleting ? 'جاري الحذف...' : 'حذف نهائي'}</span>
               </button>
             </div>
           </div>

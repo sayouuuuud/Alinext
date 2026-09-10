@@ -15,26 +15,29 @@ function media(value: string | undefined, fallback: string) {
   return clean.startsWith('/images/') || clean.startsWith('/icon') || clean.startsWith('https://') ? clean : fallback
 }
 
-function safeI18n(value: MultiLangString, html = false): MultiLangString {
-  const clean = (input: string) => html
-    ? sanitizeHtml(input, {
-        allowedTags: ['h1', 'h2', 'h3', 'h4', 'p', 'ul', 'ol', 'li', 'strong', 'em', 'a', 'br'],
-        allowedAttributes: { a: ['href', 'target', 'rel'] },
-        allowedSchemes: ['http', 'https', 'mailto', 'tel'],
-      })
-    : input.slice(0, 50_000)
-  return { ar: clean(value.ar || ''), en: clean(value.en || ''), he: clean(value.he || '') }
+function safeI18n(value?: MultiLangString | null, html = false): MultiLangString {
+  const clean = (input?: string) => {
+    if (!input) return ''
+    return html
+      ? sanitizeHtml(input, {
+          allowedTags: ['h1', 'h2', 'h3', 'h4', 'p', 'ul', 'ol', 'li', 'strong', 'em', 'a', 'br'],
+          allowedAttributes: { a: ['href', 'target', 'rel'] },
+          allowedSchemes: ['http', 'https', 'mailto', 'tel'],
+        })
+      : input.slice(0, 50_000)
+  }
+  return { ar: clean(value?.ar), en: clean(value?.en), he: clean(value?.he) }
 }
 
 async function syncCars(cars: CarItem[]) {
   const admin = createAdminClient()
   const rows = cars.map((car) => ({
-    id: car.id, slug: car.id, type: car.type, title: car.title, make: car.make || 'ALI FLEET', model: car.model || car.id,
-    year: Number(car.year), price_minor: car.price == null ? null : Math.round(Number(car.price) * 100), currency: 'ILS',
-    mileage: car.mileage || null, fuel: car.fuel || null, transmission: car.transmission || null, status: car.status,
+    id: car.id, slug: car.id, type: car.type || 'sale', title: car.title || { ar: '', en: '', he: '' }, make: car.make || 'ALI FLEET', model: car.model || car.id,
+    year: Number(car.year) || new Date().getFullYear(), price_minor: car.price == null ? null : Math.round(Number(car.price) * 100), currency: 'ILS',
+    mileage: car.mileage || null, fuel: car.fuel || null, transmission: car.transmission || null, status: car.status || 'available',
     featured: Boolean(car.featured), origin: car.origin || null, condition: car.condition || null, import_stage: car.stage || null,
     previous_owners: car.previousOwners ?? null, eta: car.eta || null, availability: car.availability || null,
-    specs: car.specs || {}, description: car.description, primary_image: car.image, published: true, archived_at: null,
+    specs: car.specs || {}, description: car.description || { ar: '', en: '', he: '' }, primary_image: car.image, published: true, archived_at: null,
   }))
   const { data: existing, error: existingError } = await admin.from('cars').select('id')
   if (existingError) throw existingError
@@ -72,7 +75,7 @@ async function syncProducts(products: ProductItem[]) {
       brand: product.brand || null, price_minor: Math.round(Number(product.price || 0) * 100), currency: 'ILS',
       stock_quantity: product.inStock ? Math.max(1, current?.stock_quantity || 25) : 0,
       max_order_quantity: current?.max_order_quantity || 10, featured: Boolean(product.featured),
-      compatibility_summary: product.compatibility || '', description: product.description, primary_image: product.image,
+      compatibility_summary: product.compatibility || '', description: product.description || { ar: '', en: '', he: '' }, primary_image: product.image,
       published: true, archived_at: null,
     }
   })
@@ -95,8 +98,8 @@ async function syncProducts(products: ProductItem[]) {
   if (specsDelete.error) throw specsDelete.error
   if (compatibilityDelete.error) throw compatibilityDelete.error
   const mediaRows = products.flatMap((product) => [...new Set([product.image, ...(product.images || [])].filter(Boolean))].map((url, index) => ({ product_id: product.id, url, alt: product.name, sort_order: index })))
-  const specRows = products.flatMap((product) => (product.specs || []).map((spec, index) => ({ product_id: product.id, label: spec.label, value: spec.value, sort_order: index })))
-  const compatibilityRows = products.flatMap((product) => product.compatibility.split(',').map((notes) => notes.trim()).filter(Boolean).map((notes) => ({ product_id: product.id, notes })))
+  const specRows = products.flatMap((product) => (product.specs || []).map((spec, index) => ({ product_id: product.id, label: typeof spec.label === 'string' ? { ar: spec.label, en: spec.label, he: spec.label } : spec.label, value: typeof spec.value === 'string' ? { ar: spec.value, en: spec.value, he: spec.value } : spec.value, sort_order: index })))
+  const compatibilityRows = products.flatMap((product) => (product.compatibility || '').split(',').map((notes) => notes.trim()).filter(Boolean).map((notes) => ({ product_id: product.id, notes })))
   if (mediaRows.length) { const { error } = await admin.from('product_media').insert(mediaRows); if (error) throw error }
   if (specRows.length) { const { error } = await admin.from('product_specs').insert(specRows); if (error) throw error }
   if (compatibilityRows.length) { const { error } = await admin.from('product_compatibility').insert(compatibilityRows); if (error) throw error }
@@ -105,7 +108,7 @@ async function syncProducts(products: ProductItem[]) {
 async function syncBlog(posts: BlogPostItem[]) {
   const admin = createAdminClient()
   const rows = posts.map((post) => ({
-    id: post.id, slug: post.slug || post.id, title: post.title, excerpt: post.excerpt, content: post.content || null,
+    id: post.id, slug: post.slug || post.id, title: post.title || { ar: '', en: '', he: '' }, excerpt: post.excerpt || { ar: '', en: '', he: '' }, content: post.content || null,
     author: post.author || 'ALI FLEET', author_avatar: post.authorAvatar || null, read_time: post.readTime || '5 min',
     cover_image: post.coverImage || post.image || null, tags: post.tags || [], category: post.category || 'news',
     featured: Boolean(post.featured), published: post.published !== false,
@@ -179,16 +182,20 @@ async function savePagesScope(data: unknown) {
       published: true,
     }))
   })
-  const policySlugs = { privacy: 'privacy-policy', terms: 'terms', refund: 'return-policy' }
+  const policySlugs: Record<string, string> = { privacy: 'privacy-policy', terms: 'terms', refund: 'return-policy' }
   const policies = Array.isArray(parsed.pages.policies)
-    ? (parsed.pages.policies as SiteFullContent['pages']['policies']).map((policy) => ({
-        id: policy.id,
-        slug: policySlugs[policy.id],
-        title: safeI18n(policy.title),
-        content: safeI18n(policy.content, true),
-        last_updated: policy.lastUpdated,
-        published: true,
-      }))
+    ? (parsed.pages.policies as SiteFullContent['pages']['policies']).map((policy) => {
+        const id = (policy.id || 'privacy') as 'privacy' | 'terms' | 'refund'
+        const slug = policySlugs[id] || id
+        return {
+          id,
+          slug,
+          title: safeI18n(policy.title),
+          content: safeI18n(policy.content, true),
+          last_updated: policy.lastUpdated || new Date().toISOString().slice(0, 10),
+          published: true,
+        }
+      })
     : []
   const results = await Promise.all([
     admin.from('site_settings_public').upsert([
@@ -341,8 +348,9 @@ export async function saveAdminSection(
   if (scope === 'pages') await savePagesScope(data)
   if (scope === 'cars') {
     const cars = objectArraySchema.max(500).parse(data) as unknown as CarItem[]
-    await syncCars(cars.filter((car) => ID.test(car.id)).map((car) => ({
+    await syncCars(cars.filter((car) => car.id && typeof car.id === 'string' && car.id.trim().length > 0).map((car) => ({
       ...car,
+      id: car.id.trim(),
       image: media(car.image, '/images/fleet-truck.png'),
       images: (car.images || []).map((image) => media(image, car.image || '/images/fleet-truck.png')),
       title: safeI18n(car.title),
@@ -351,8 +359,10 @@ export async function saveAdminSection(
   }
   if (scope === 'products') {
     const products = objectArraySchema.max(2000).parse(data) as unknown as ProductItem[]
-    await syncProducts(products.filter((product) => ID.test(product.id) && ID.test(product.sku)).map((product) => ({
+    await syncProducts(products.filter((product) => product.id && typeof product.id === 'string' && product.id.trim().length > 0 && typeof product.sku === 'string' && product.sku.trim().length > 0).map((product) => ({
       ...product,
+      id: product.id.trim(),
+      sku: product.sku.trim(),
       image: media(product.image, '/images/part-brake-pads.png'),
       images: (product.images || []).map((image) => media(image, product.image || '/images/part-brake-pads.png')),
       name: safeI18n(product.name),
@@ -361,8 +371,10 @@ export async function saveAdminSection(
   }
   if (scope === 'blog') {
     const posts = objectArraySchema.max(1000).parse(data) as unknown as BlogPostItem[]
-    await syncBlog(posts.filter((post) => ID.test(post.id) && ID.test(post.slug || post.id)).map((post) => ({
+    await syncBlog(posts.filter((post) => post.id && typeof post.id === 'string' && post.id.trim().length > 0).map((post) => ({
       ...post,
+      id: post.id.trim(),
+      slug: (post.slug && post.slug.trim().length > 0 ? post.slug.trim() : post.id.trim()).replace(/\s+/g, '-'),
       coverImage: media(post.coverImage || post.image, '/images/blog-hero.png'),
       image: media(post.image || post.coverImage, '/images/blog-hero.png'),
       authorAvatar: media(post.authorAvatar, '/images/hero-avatars.png'),

@@ -1,4 +1,4 @@
-import { revalidateTag } from 'next/cache'
+import { revalidatePath, revalidateTag } from 'next/cache'
 import { NextResponse } from 'next/server'
 import { getAdminSiteContent, SITE_CONTENT_TAG } from '@/lib/content/repository'
 import { saveAdminSection } from '@/lib/admin/content-repository'
@@ -53,6 +53,11 @@ export async function PATCH(request: Request) {
     if (saved.scope === 'settings' || saved.scope === 'pages') {
       revalidateTag(SEO_TAG, { expire: 0 })
     }
+
+    revalidatePath('/', 'layout')
+    revalidatePath('/cars')
+    revalidatePath('/products')
+    revalidatePath('/blog')
 
     return json({ success: true, scope: saved.scope, lastSaved: saved.lastSaved })
   } catch (error) {

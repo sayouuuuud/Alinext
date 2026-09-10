@@ -54,6 +54,7 @@ type AdminContextType = {
   content: SiteFullContent
   updateContent: (updater: (previous: SiteFullContent) => SiteFullContent) => void
   saveAll: () => Promise<boolean>
+  persist: (scope: SaveScope, data: unknown) => Promise<boolean>
   isSaving: boolean
   changePassword: (oldPassword: string, newPassword: string) => Promise<boolean>
   resetDefaults: () => void
@@ -103,29 +104,38 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
   const removeToast = (id: string) => setToasts((current) => current.filter((toast) => toast.id !== id))
   const updateContent = (updater: (previous: SiteFullContent) => SiteFullContent) => setContent(updater)
 
-  const persist = async (scope: SaveScope, data: unknown) => {
-    const response = await fetch('/api/admin/content', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ scope, data }),
-    })
-    if (!response.ok) throw new Error('save_failed')
-    const result = await response.json()
-    setContent((current) => ({ ...current, lastSaved: result.lastSaved || current.lastSaved }))
-  }
-
-  const saveAll = async () => {
+  const persist = async (scope: SaveScope, data: unknown): Promise<boolean> => {
     setIsSaving(true)
     try {
-      const scope = saveScopeForTab(activeTab)
-      await persist(scope, payloadForScope(scope, content))
-      showToast(adminI18n[locale].header.savedSuccess, 'success')
+      const response = await fetch('/api/admin/content', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ scope, data }),
+      })
+      if (!response.ok) {
+        const errJson = await response.json().catch(() => ({}))
+        throw new Error(errJson.error || 'save_failed')
+      }
+      const result = await response.json()
+      setContent((current) => ({ ...current, lastSaved: result.lastSaved || current.lastSaved }))
       return true
-    } catch {
-      showToast(locale === 'ar' ? 'تعذر حفظ هذا القسم في قاعدة البيانات.' : 'Could not save this section to the database.', 'error')
+    } catch (error) {
+      console.error(`Failed to persist scope ${scope}:`, error)
       return false
     } finally {
       setIsSaving(false)
+    }
+  }
+
+  const saveAll = async () => {
+    const scope = saveScopeForTab(activeTab)
+    const success = await persist(scope, payloadForScope(scope, content))
+    if (success) {
+      showToast(adminI18n[locale].header.savedSuccess, 'success')
+      return true
+    } else {
+      showToast(locale === 'ar' ? 'تعذر حفظ هذا القسم في قاعدة البيانات، يرجى التحقق من الاتصال.' : 'Could not save this section to the database.', 'error')
+      return false
     }
   }
 
@@ -181,7 +191,7 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
   return (
     <AdminContext.Provider value={{
       locale, setLocale, t: dictionary, dir: dictionary.dir, theme, setTheme, toggleTheme, activeTab, setActiveTab,
-      content, updateContent, saveAll, isSaving, changePassword, resetDefaults, exportBackup, importBackup,
+      content, updateContent, saveAll, persist, isSaving, changePassword, resetDefaults, exportBackup, importBackup,
       toasts, showToast, removeToast,
     }}>
       <div className={`${theme} admin-shell min-h-screen font-sans`} dir={dictionary.dir} lang={locale}>{children}</div>

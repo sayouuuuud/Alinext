@@ -12,6 +12,8 @@ import {
   User,
   X,
   Tag,
+  Loader2,
+  Save,
 } from 'lucide-react'
 import { useAdmin } from '@/lib/admin/admin-context'
 import { MultiLangInput } from '../multilang-input'
@@ -19,10 +21,12 @@ import { ImageUpload } from '@/components/admin/image-upload'
 import type { BlogPostItem } from '@/lib/admin/types'
 
 export function BlogManagerTab() {
-  const { t, content, updateContent, locale, showToast } = useAdmin()
+  const { t, content, updateContent, locale, showToast, persist, isSaving } = useAdmin()
 
   const [search, setSearch] = useState('')
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
   const [editingPost, setEditingPost] = useState<BlogPostItem | null>(null)
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
 
@@ -75,7 +79,7 @@ export function BlogManagerTab() {
     setIsModalOpen(true)
   }
 
-  const handleSave = (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!formData.title?.ar && !formData.title?.en) {
       showToast('يرجى كتابة عنوان المقال', 'error')
@@ -95,30 +99,36 @@ export function BlogManagerTab() {
       tags: cleanedTags,
     }
 
-    if (editingPost) {
-      updateContent((prev) => ({
-        ...prev,
-        blog: prev.blog.map((item) => (item.id === payload.id ? payload : item)),
-      }))
-      showToast('تم تحديث المقال بنجاح')
-    } else {
-      updateContent((prev) => ({
-        ...prev,
-        blog: [payload, ...prev.blog],
-      }))
-      showToast('تم نشر وحفظ المقال الجديد')
-    }
+    setIsSubmitting(true)
+    const nextBlog = editingPost
+      ? blogPosts.map((item) => (item.id === payload.id ? payload : item))
+      : [payload, ...blogPosts]
 
-    setIsModalOpen(false)
+    const success = await persist('blog', nextBlog)
+    setIsSubmitting(false)
+
+    if (success) {
+      updateContent((prev) => ({ ...prev, blog: nextBlog }))
+      showToast(editingPost ? 'تم تحديث المقال وحفظه بنجاح' : 'تم نشر وحفظ المقال الجديد في قاعدة البيانات')
+      setIsModalOpen(false)
+    } else {
+      showToast('تعذر حفظ المقال في قاعدة البيانات، يرجى المحاولة مرة أخرى', 'error')
+    }
   }
 
-  const handleDelete = (id: string) => {
-    updateContent((prev) => ({
-      ...prev,
-      blog: prev.blog.filter((p) => p.id !== id),
-    }))
-    setDeleteConfirmId(null)
-    showToast('تم حذف المقال')
+  const handleDelete = async (id: string) => {
+    setIsDeleting(true)
+    const nextBlog = blogPosts.filter((p) => p.id !== id)
+    const success = await persist('blog', nextBlog)
+    setIsDeleting(false)
+
+    if (success) {
+      updateContent((prev) => ({ ...prev, blog: nextBlog }))
+      setDeleteConfirmId(null)
+      showToast('تم حذف المقال وتحديث المدونة بنجاح')
+    } else {
+      showToast('تعذر حذف المقال من قاعدة البيانات', 'error')
+    }
   }
 
   return (
@@ -134,14 +144,29 @@ export function BlogManagerTab() {
           </p>
         </div>
 
-        <button
-          type="button"
-          onClick={openAddModal}
-          className="inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2.5 text-xs font-semibold text-primary-foreground shadow-sm hover:opacity-90"
-        >
-          <Plus className="h-4 w-4" />
-          <span>{t.blogManager.addNewArticle}</span>
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => persist('blog', blogPosts).then((ok) => {
+              if (ok) showToast('تم حفظ مقالات المدونة في قاعدة البيانات بنجاح')
+              else showToast('تعذر حفظ المقالات في قاعدة البيانات', 'error')
+            })}
+            disabled={isSaving}
+            className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-4 py-2 text-xs font-semibold text-foreground shadow-xs hover:bg-muted disabled:opacity-50"
+          >
+            {isSaving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5 text-primary" />}
+            <span>حفظ المقالات</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={openAddModal}
+            className="inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2.5 text-xs font-semibold text-primary-foreground shadow-sm hover:opacity-90"
+          >
+            <Plus className="h-4 w-4" />
+            <span>{t.blogManager.addNewArticle}</span>
+          </button>
+        </div>
       </div>
 
       {/* Search */}
@@ -345,9 +370,11 @@ export function BlogManagerTab() {
                 </button>
                 <button
                   type="submit"
-                  className="rounded-lg bg-primary px-5 py-2 text-xs font-semibold text-primary-foreground hover:opacity-95"
+                  disabled={isSubmitting}
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-5 py-2 text-xs font-semibold text-primary-foreground hover:opacity-95 disabled:opacity-50"
                 >
-                  حفظ المقال
+                  {isSubmitting && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+                  <span>{isSubmitting ? 'جاري الحفظ...' : 'حفظ المقال'}</span>
                 </button>
               </div>
             </form>
@@ -375,10 +402,12 @@ export function BlogManagerTab() {
               </button>
               <button
                 type="button"
+                disabled={isDeleting}
                 onClick={() => handleDelete(deleteConfirmId)}
-                className="rounded-lg bg-destructive px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-destructive/90"
+                className="inline-flex items-center gap-1.5 rounded-lg bg-destructive px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-destructive/90 disabled:opacity-50"
               >
-                حذف نهائي
+                {isDeleting && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+                <span>{isDeleting ? 'جاري الحذف...' : 'حذف نهائي'}</span>
               </button>
             </div>
           </div>

@@ -14,6 +14,8 @@ import {
   X,
   Gauge,
   Zap,
+  Loader2,
+  Save,
 } from 'lucide-react'
 import { useAdmin } from '@/lib/admin/admin-context'
 import { MultiLangInput } from '../multilang-input'
@@ -21,12 +23,14 @@ import { ImageUpload } from '@/components/admin/image-upload'
 import type { CarItem, MultiLangString } from '@/lib/admin/types'
 
 export function CarsManagerTab() {
-  const { t, content, updateContent, locale, showToast } = useAdmin()
+  const { t, content, updateContent, locale, showToast, persist, isSaving } = useAdmin()
 
   const [search, setSearch] = useState('')
   const [typeFilter, setTypeFilter] = useState<'all' | 'sale' | 'import'>('all')
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
   const [editingCar, setEditingCar] = useState<CarItem | null>(null)
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
 
@@ -90,37 +94,43 @@ export function CarsManagerTab() {
     setIsModalOpen(true)
   }
 
-  const handleSaveCar = (e: React.FormEvent) => {
+  const handleSaveCar = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!formData.title?.ar && !formData.title?.en) {
       showToast('يرجى إدخال اسم السيارة بالعربية أو الإنجليزية', 'error')
       return
     }
 
-    if (editingCar) {
-      updateContent((prev) => ({
-        ...prev,
-        cars: prev.cars.map((c) => (c.id === formData.id ? formData : c)),
-      }))
-      showToast('تم تحديث بيانات السيارة بنجاح')
-    } else {
-      updateContent((prev) => ({
-        ...prev,
-        cars: [formData, ...prev.cars],
-      }))
-      showToast('تمت إضافة السيارة الجديدة للأسطول')
-    }
+    setIsSubmitting(true)
+    const nextCars = editingCar
+      ? cars.map((c) => (c.id === formData.id ? formData : c))
+      : [formData, ...cars]
 
-    setIsModalOpen(false)
+    const success = await persist('cars', nextCars)
+    setIsSubmitting(false)
+
+    if (success) {
+      updateContent((prev) => ({ ...prev, cars: nextCars }))
+      showToast(editingCar ? 'تم تحديث بيانات السيارة وحفظها بنجاح' : 'تمت إضافة السيارة الجديدة وحفظها في قاعدة البيانات')
+      setIsModalOpen(false)
+    } else {
+      showToast('تعذر حفظ بيانات السيارة في قاعدة البيانات، يرجى المحاولة مرة أخرى', 'error')
+    }
   }
 
-  const handleDeleteCar = (id: string) => {
-    updateContent((prev) => ({
-      ...prev,
-      cars: prev.cars.filter((c) => c.id !== id),
-    }))
-    setDeleteConfirmId(null)
-    showToast('تم حذف السيارة من الأسطول')
+  const handleDeleteCar = async (id: string) => {
+    setIsDeleting(true)
+    const nextCars = cars.filter((c) => c.id !== id)
+    const success = await persist('cars', nextCars)
+    setIsDeleting(false)
+
+    if (success) {
+      updateContent((prev) => ({ ...prev, cars: nextCars }))
+      setDeleteConfirmId(null)
+      showToast('تم حذف السيارة وتحديث قاعدة البيانات بنجاح')
+    } else {
+      showToast('تعذر حذف السيارة من قاعدة البيانات', 'error')
+    }
   }
 
   return (
@@ -136,14 +146,29 @@ export function CarsManagerTab() {
           </p>
         </div>
 
-        <button
-          type="button"
-          onClick={openAddModal}
-          className="inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2.5 text-xs font-semibold text-primary-foreground shadow-sm hover:opacity-90"
-        >
-          <Plus className="h-4 w-4" />
-          <span>{t.carsManager.addNewCar}</span>
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => persist('cars', cars).then((ok) => {
+              if (ok) showToast('تم حفظ أسطول السيارات في قاعدة البيانات بنجاح')
+              else showToast('تعذر حفظ السيارات في قاعدة البيانات', 'error')
+            })}
+            disabled={isSaving}
+            className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-4 py-2 text-xs font-semibold text-foreground shadow-xs hover:bg-muted disabled:opacity-50"
+          >
+            {isSaving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5 text-primary" />}
+            <span>حفظ الأسطول</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={openAddModal}
+            className="inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2.5 text-xs font-semibold text-primary-foreground shadow-sm hover:opacity-90"
+          >
+            <Plus className="h-4 w-4" />
+            <span>{t.carsManager.addNewCar}</span>
+          </button>
+        </div>
       </div>
 
       {/* Search & Filters */}
@@ -488,9 +513,11 @@ export function CarsManagerTab() {
                 </button>
                 <button
                   type="submit"
-                  className="rounded-lg bg-primary px-5 py-2 text-xs font-semibold text-primary-foreground hover:opacity-95 shadow-xs"
+                  disabled={isSubmitting}
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-5 py-2 text-xs font-semibold text-primary-foreground hover:opacity-95 shadow-xs disabled:opacity-50"
                 >
-                  {t.carsManager.saveCar}
+                  {isSubmitting && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+                  <span>{isSubmitting ? 'جاري الحفظ...' : t.carsManager.saveCar}</span>
                 </button>
               </div>
             </form>
@@ -518,10 +545,12 @@ export function CarsManagerTab() {
               </button>
               <button
                 type="button"
+                disabled={isDeleting}
                 onClick={() => handleDeleteCar(deleteConfirmId)}
-                className="rounded-lg bg-destructive px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-destructive/90"
+                className="inline-flex items-center gap-1.5 rounded-lg bg-destructive px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-destructive/90 disabled:opacity-50"
               >
-                حذف نهائي
+                {isDeleting && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+                <span>{isDeleting ? 'جاري الحذف...' : 'حذف نهائي'}</span>
               </button>
             </div>
           </div>
