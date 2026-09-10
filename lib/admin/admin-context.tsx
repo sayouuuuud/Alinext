@@ -223,7 +223,11 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
         removeToast,
       }}
     >
-      <div className={`${theme} min-h-screen font-sans`} dir={dict.dir}>
+      <div
+        className={`${theme} admin-shell min-h-screen font-sans`}
+        dir={dict.dir}
+        lang={locale}
+      >
         {children}
       </div>
     </AdminContext.Provider>
