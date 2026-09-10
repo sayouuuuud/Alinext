@@ -176,6 +176,10 @@ export async function getSiteContent(): Promise<SiteFullContent> {
   return cachedPublicContent()
 }
 
+function paymentMethod(value: string): OrderRecord['paymentMethod'] {
+  return value === 'card' || value === 'bank_transfer' ? value : 'cod'
+}
+
 function addressSnapshot(value: Json) {
   const data = record(value)
   return {
@@ -219,7 +223,7 @@ export async function getAdminSiteContent(): Promise<SiteFullContent> {
       sku: item.sku,
     })),
     shippingAddress: addressSnapshot(order.shipping_address),
-    paymentMethod: order.payment_method,
+    paymentMethod: paymentMethod(order.payment_method),
     paymentStatus: order.payment_status,
     trackingNumber: order.tracking_number || undefined,
     carrier: order.carrier || undefined,

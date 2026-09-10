@@ -69,7 +69,7 @@ export function AdminSidebar() {
     },
     {
       id: 'inquiries',
-      label: t.tabs.inquiries,
+      label: t.tabs.inquiries ?? 'Inquiries',
       icon: MessageSquareText,
       badge: content.inquiries?.filter((inquiry) => inquiry.status === 'new').length || 0,
       badgeColor: 'bg-muted text-muted-foreground',
