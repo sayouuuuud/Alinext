@@ -1,514 +1,420 @@
 'use client'
 
-import React, { useState, useMemo } from 'react'
+import Image from 'next/image'
+import { useEffect, useMemo, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 import {
-  Search,
-  Package,
-  Truck,
-  CheckCircle2,
-  Clock,
-  MapPin,
   AlertCircle,
-  Copy,
-  Check,
-  Phone,
-  MessageCircle,
+  ArrowRight,
   Calendar,
-  CreditCard,
-  Building2,
-  ExternalLink,
-  ChevronRight,
+  Check,
+  Clock,
+  Copy,
+  MapPin,
+  MessageCircle,
+  Package,
+  Phone,
+  Search,
   ShieldCheck,
-  RotateCcw,
+  Truck,
 } from 'lucide-react'
+import LocaleLink from '@/components/locale-link'
 import { useSiteContent } from '@/lib/admin/site-content-context'
 import { useLanguage } from '@/lib/i18n/language-context'
-import { useSearchParams } from 'next/navigation'
-import type { OrderRecord, OrderStatus } from '@/lib/admin/types'
+import { useStore } from '@/lib/store-context'
+import { formatPrice } from '@/lib/format'
+import { proxied } from '@/lib/img-proxy'
+import { whatsappLink } from '@/lib/site-config'
+import type {
+  TrackingOrder,
+  TrackingOrdersResult,
+  TrackingOrderStatus,
+} from '@/lib/commerce/types'
 
-const STATUS_STEPS: { key: OrderStatus; labelAr: string; labelEn: string; labelHe: string; step: number }[] = [
-  { key: 'pending', labelAr: 'تم استلام الطلب', labelEn: 'Order Placed', labelHe: 'ההזמנה התקבלה', step: 1 },
-  { key: 'confirmed', labelAr: 'تم تأكيد الطلب', labelEn: 'Order Confirmed', labelHe: 'אושר במלאي', step: 2 },
-  { key: 'processing', labelAr: 'التجهيز والفحص', labelEn: 'Processing & QA', labelHe: 'בהכנה ובדיקה', step: 3 },
-  { key: 'shipping', labelAr: 'قيد الشحن والتوصيل', labelEn: 'In Transit', labelHe: 'במשלוח והפצה', step: 4 },
-  { key: 'delivered', labelAr: 'تم التوصيل بنجاح', labelEn: 'Delivered', labelHe: 'נמסר בהצלחה', step: 5 },
+const STATUS_STEPS: Array<{ key: TrackingOrderStatus; ar: string; en: string; he: string }> = [
+  { key: 'pending', ar: 'تم استلام الطلب', en: 'Order placed', he: 'ההזמנה התקבלה' },
+  { key: 'confirmed', ar: 'تم تأكيد الطلب', en: 'Order confirmed', he: 'ההזמנה אושרה' },
+  { key: 'processing', ar: 'التجهيز والفحص', en: 'Processing and QA', he: 'הכנה ובדיקה' },
+  { key: 'shipping', ar: 'قيد الشحن', en: 'In transit', he: 'במשלוח' },
+  { key: 'delivered', ar: 'تم التوصيل', en: 'Delivered', he: 'נמסר' },
 ]
 
-export function TrackOrderScreen() {
-  const { content, tStr } = useSiteContent()
+function normalizeIdentifier(value: string) {
+  return value.trim().replace(/^#/, '').toUpperCase()
+}
+
+function statusStep(status: TrackingOrderStatus) {
+  if (status === 'completed') return 5
+  const index = STATUS_STEPS.findIndex((step) => step.key === status)
+  return index >= 0 ? index + 1 : status === 'cancelled' ? -1 : 1
+}
+
+function statusLabel(status: TrackingOrderStatus, locale: 'ar' | 'en' | 'he') {
+  const normalized = status === 'completed' ? 'delivered' : status
+  const step = STATUS_STEPS.find((item) => item.key === normalized)
+  if (step) return step[locale]
+  if (status === 'cancelled') {
+    return locale === 'ar' ? 'تم الإلغاء' : locale === 'he' ? 'בוטל' : 'Cancelled'
+  }
+  return status
+}
+
+function dateLocale(locale: 'ar' | 'en' | 'he') {
+  return locale === 'ar' ? 'ar' : locale === 'he' ? 'he' : 'en'
+}
+
+function paymentLabel(method: string, locale: 'ar' | 'en' | 'he') {
+  if (method === 'bank_transfer') {
+    return locale === 'ar' ? 'تحويل بنكي' : locale === 'he' ? 'העברה בנקאית' : 'Bank transfer'
+  }
+  return locale === 'ar' ? 'الدفع عند الاستلام' : locale === 'he' ? 'תשלום במסירה' : 'Pay on delivery'
+}
+
+function OrderDetails({ order }: { order: TrackingOrder }) {
   const { locale } = useLanguage()
-  const lang = locale
-  const searchParams = useSearchParams()
-  const [searchQuery, setSearchQuery] = useState('ORD-7830')
+  const store = useStore()
+  const currentStep = statusStep(order.status)
+  const trackingCode = order.trackingNumber
   const [copied, setCopied] = useState(false)
+  const supportMessage =
+    locale === 'ar'
+      ? `مرحباً علي فليت، أحتاج مساعدة بخصوص الطلب ${order.orderNumber}`
+      : locale === 'he'
+        ? `שלום ALI FLEET, אני צריך עזרה עם ההזמנה ${order.orderNumber}`
+        : `Hello ALI FLEET, I need help with order ${order.orderNumber}`
+  const whatsappHref = whatsappLink(supportMessage, store.whatsapp)
 
-  // The page header is admin-editable (pages.trackOrder); the built-in
-  // trilingual strings stay as the fallback.
-  const pageHeader = content?.pages?.trackOrder
-  const headerEyebrow =
-    tStr(pageHeader?.eyebrow, lang) ||
-    (lang === 'ar' ? 'نظام التتبع المباشر' : lang === 'he' ? 'מערכת מעקב בזמן אמת' : 'Live Order Tracking')
-  const headerTitle =
-    tStr(pageHeader?.title, lang) ||
-    (lang === 'ar' ? 'تتبع شحنتك وطلبك بكل دقة' : lang === 'he' ? 'מעקב אחר ההזמנה והמשלוח שלך' : 'Track Your Shipment & Order')
-  const headerLead =
-    tStr(pageHeader?.lead, lang) ||
-    (lang === 'ar'
-      ? 'أدخل رقم الطلب أو رقم الهاتف للاطلاع على خط سير الشحنة وتفاصيل التوصيل لحظة بلحظة.'
-      : lang === 'he'
-      ? 'הזן את מספר ההזמנה או מספר הטלפון כדי לצפות בסטטוס המשלוח בזמן אמת.'
-      : 'Enter your order ID or phone number to view real-time delivery status and courier updates.')
-
-  React.useEffect(() => {
-    const urlOrder = searchParams.get('order')
-    if (urlOrder) {
-      setSearchQuery(urlOrder)
-    }
-  }, [searchParams])
-
-  const isRtl = lang === 'ar' || lang === 'he'
-
-  // Look for order
-  const matchedOrder = useMemo(() => {
-    if (!searchQuery.trim()) return null
-    const q = searchQuery.trim().toLowerCase().replace('#', '')
-    const orders = content?.orders || []
-    return (
-      orders.find((o) => {
-        const idVal = (o?.id || '').toLowerCase()
-        const numVal = ((o as any)?.orderNumber || '').toLowerCase()
-        const phoneVal = (o?.customerPhone || '').toLowerCase()
-        const emailVal = (o?.customerEmail || '').toLowerCase()
-        const nameVal = (o?.customerName || '').toLowerCase()
-
-        return (
-          idVal.includes(q) ||
-          numVal.includes(q) ||
-          idVal.replace(/[^0-9]/g, '').includes(q) ||
-          phoneVal.replace(/[^0-9]/g, '').includes(q.replace(/[^0-9]/g, '')) ||
-          emailVal.includes(q) ||
-          nameVal.includes(q)
-        )
-      }) || null
-    )
-  }, [searchQuery, content?.orders])
-
-  const copyTracking = (code: string) => {
-    navigator.clipboard.writeText(code)
+  const copyTracking = async () => {
+    if (!trackingCode) return
+    await navigator.clipboard.writeText(trackingCode)
     setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
-  }
-
-  const getStatusBadge = (status: OrderStatus) => {
-    switch (status) {
-      case 'delivered':
-        return {
-          bg: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
-          label: lang === 'ar' ? 'تم التوصيل' : lang === 'he' ? 'נמסר' : 'Delivered',
-          icon: CheckCircle2,
-        }
-      case 'shipping':
-        return {
-          bg: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20',
-          label: lang === 'ar' ? 'في طريق التوصيل' : lang === 'he' ? 'במשלוח' : 'In Transit',
-          icon: Truck,
-        }
-      case 'processing':
-        return {
-          bg: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20',
-          label: lang === 'ar' ? 'قيد التجهيز والفحص' : lang === 'he' ? 'בהכנה' : 'Processing',
-          icon: Clock,
-        }
-      case 'confirmed':
-        return {
-          bg: 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20',
-          label: lang === 'ar' ? 'تم التأكيد' : lang === 'he' ? 'אושר' : 'Confirmed',
-          icon: ShieldCheck,
-        }
-      case 'cancelled':
-        return {
-          bg: 'bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/20',
-          label: lang === 'ar' ? 'تم الإلغاء' : lang === 'he' ? 'בוטל' : 'Cancelled',
-          icon: AlertCircle,
-        }
-      default:
-        return {
-          bg: 'bg-slate-500/10 text-slate-600 dark:text-slate-400 border-slate-500/20',
-          label: lang === 'ar' ? 'بانتظار المراجعة' : lang === 'he' ? 'ממתין' : 'Pending',
-          icon: Clock,
-        }
-    }
-  }
-
-  const getStepIndex = (status: OrderStatus) => {
-    switch (status) {
-      case 'pending':
-        return 1
-      case 'confirmed':
-        return 2
-      case 'processing':
-        return 3
-      case 'shipping':
-        return 4
-      case 'delivered':
-        return 5
-      case 'cancelled':
-        return -1
-      default:
-        return 1
-    }
+    window.setTimeout(() => setCopied(false), 1800)
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background via-muted/30 to-background pt-32 pb-24 text-foreground">
-      <div className="mx-auto max-w-5xl px-4 md:px-6">
-        {/* Header Title */}
-        <div className="text-center max-w-2xl mx-auto mb-10">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-semibold uppercase tracking-wider mb-4">
-            <Truck className="size-4" />
-            <span>{headerEyebrow}</span>
+    <div className="flex flex-col gap-6">
+      <section className="overflow-hidden rounded-3xl bg-card p-6 shadow-xl ring-1 ring-border md:p-8">
+        <div className="flex flex-col gap-4 border-b border-border pb-6 md:flex-row md:items-center md:justify-between">
+          <div>
+            <div className="flex flex-wrap items-center gap-3">
+              <h2 className="font-mono text-xl font-bold tracking-tight text-foreground md:text-2xl">
+                {order.orderNumber}
+              </h2>
+              <span className={`inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-sm font-semibold ring-1 ${order.status === 'cancelled' ? 'bg-destructive/10 text-destructive ring-destructive/20' : 'bg-primary/10 text-primary ring-primary/20'}`}>
+                {order.status === 'cancelled' ? <AlertCircle className="size-4" aria-hidden="true" /> : <ShieldCheck className="size-4" aria-hidden="true" />}
+                {statusLabel(order.status, locale)}
+              </span>
+            </div>
+            <p className="mt-2 flex items-center gap-2 text-sm text-muted-foreground">
+              <Calendar className="size-4" aria-hidden="true" />
+              {new Date(order.createdAt).toLocaleDateString(dateLocale(locale), { dateStyle: 'long' })}
+            </p>
           </div>
-          <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight">
-            {headerTitle}
-          </h1>
-          <p className="mt-3 text-muted-foreground text-sm md:text-base">
-            {headerLead}
-          </p>
+          {order.estimatedDelivery ? (
+            <div className="rounded-2xl bg-secondary px-4 py-3">
+              <p className="text-sm text-muted-foreground">
+                {locale === 'ar' ? 'التسليم المتوقع' : locale === 'he' ? 'מסירה משוערת' : 'Estimated delivery'}
+              </p>
+              <p className="mt-1 flex items-center gap-2 text-sm font-bold text-foreground">
+                <Truck className="size-4 text-primary" aria-hidden="true" />
+                {new Date(order.estimatedDelivery).toLocaleDateString(dateLocale(locale), { dateStyle: 'medium' })}
+              </p>
+            </div>
+          ) : null}
         </div>
 
-        {/* Search Box */}
-        <div className="max-w-2xl mx-auto mb-8">
-          <div className="relative flex items-center shadow-lg rounded-2xl bg-card border border-border p-2 focus-within:ring-2 focus-within:ring-primary/40 transition-all">
-            <Search className="size-5 text-muted-foreground ms-3 me-2 shrink-0" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder={
-                lang === 'ar'
-                  ? 'أدخل رقم الطلب (مثال: ORD-7821) أو رقم هاتفك...'
-                  : lang === 'he'
-                  ? 'הזן מספר הזמנה (למשל ORD-7821) או טלפון...'
-                  : 'Enter order number (e.g. ORD-7821) or phone...'
-              }
-              className="w-full bg-transparent border-none text-sm md:text-base text-foreground placeholder:text-muted-foreground focus:outline-hidden py-2"
-            />
-            {searchQuery && (
-              <button
-                onClick={() => setSearchQuery('')}
-                className="px-2.5 py-1 text-xs text-muted-foreground hover:text-foreground"
-              >
-                {lang === 'ar' ? 'مسح' : 'Clear'}
-              </button>
-            )}
-            <button
-              onClick={() => {}}
-              className="px-5 py-2.5 rounded-xl bg-primary text-primary-foreground font-medium text-sm hover:opacity-90 transition-opacity shrink-0"
-            >
-              {lang === 'ar' ? 'تتبع الآن' : lang === 'he' ? 'עקוב עכשיו' : 'Track Now'}
-            </button>
-          </div>
-
-          {/* Quick sample buttons */}
-          <div className="flex flex-wrap items-center justify-center gap-2 mt-3 text-xs text-muted-foreground">
-            <span>{lang === 'ar' ? 'نماذج جاهزة للتجربة:' : 'Try sample orders:'}</span>
-            {(content?.orders || []).slice(0, 5).map((o) => {
-              const displayId = o.id || (o as any).orderNumber || 'ORD'
-              return (
-                <button
-                  key={o.id}
-                  onClick={() => setSearchQuery(displayId)}
-                  className="px-2.5 py-1 rounded-full bg-card border border-border/80 text-foreground font-mono hover:border-primary transition-colors text-[11px]"
-                >
-                  #{displayId} ({o.status})
-                </button>
-              )
-            })}
-          </div>
-        </div>
-
-        {/* Results Container */}
-        {matchedOrder ? (
-          <div className="space-y-6">
-            {/* Card 1: Order Status & Stepper */}
-            <div className="rounded-3xl bg-card border border-border/80 shadow-xl p-6 md:p-8 overflow-hidden relative">
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border pb-6">
-                <div>
-                  <div className="flex items-center gap-3">
-                    <h2 className="text-xl md:text-2xl font-bold font-mono tracking-tight text-foreground">
-                      #{matchedOrder.id || (matchedOrder as any).orderNumber}
-                    </h2>
-                    {(() => {
-                      const badge = getStatusBadge(matchedOrder.status)
-                      const Icon = badge.icon
-                      return (
-                        <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border ${badge.bg}`}>
-                          <Icon className="size-3.5" />
-                          <span>{badge.label}</span>
-                        </span>
-                      )
-                    })()}
-                  </div>
-                  <p className="text-xs md:text-sm text-muted-foreground mt-1.5 flex items-center gap-2">
-                    <Calendar className="size-3.5" />
-                    <span>
-                      {lang === 'ar' ? 'تاريخ الإنشاء:' : 'Created:'}{' '}
-                      {matchedOrder.date
-                        ? new Date(matchedOrder.date).toLocaleDateString()
-                        : (matchedOrder as any).createdAt || '2026-09-08'}
-                    </span>
-                  </p>
-                </div>
-
-                {matchedOrder.estimatedDelivery && (
-                  <div className="bg-primary/5 border border-primary/20 rounded-2xl px-4 py-2.5 text-right md:text-end">
-                    <div className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">
-                      {lang === 'ar' ? 'التسليم المتوقع' : 'Estimated Delivery'}
-                    </div>
-                    <div className="text-sm font-bold text-primary flex items-center gap-1.5 mt-0.5 justify-end">
-                      <Truck className="size-4" />
-                      <span>{matchedOrder.estimatedDelivery}</span>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Cancelled Notice or Stepper */}
-              {matchedOrder.status === 'cancelled' ? (
-                <div className="my-8 p-4 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 flex items-center gap-3">
-                  <AlertCircle className="size-6 shrink-0" />
-                  <div>
-                    <div className="font-bold text-sm">
-                      {lang === 'ar' ? 'تم إلغاء هذا الطلب' : 'This order has been cancelled'}
-                    </div>
-                    <div className="text-xs mt-0.5">
-                      {lang === 'ar'
-                        ? 'يرجى التواصل مع خدمة عملاء علي فليت لأي استفسار أو استرداد للمبلغ.'
-                        : 'Please contact ALI FLEET customer support for refund assistance.'}
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div className="py-8">
-                  <div className="relative">
-                    {/* Progress Bar Background */}
-                    <div className="hidden md:block absolute top-5 inset-x-8 h-1 bg-muted rounded-full" />
-                    {/* Progress Bar Active */}
-                    {(() => {
-                      const currentStep = getStepIndex(matchedOrder.status)
-                      const progressPct = ((currentStep - 1) / (STATUS_STEPS.length - 1)) * 100
-                      return (
-                        <div
-                          className="hidden md:block absolute top-5 start-8 h-1 bg-primary rounded-full transition-all duration-700"
-                          style={{ width: `calc(${progressPct}% - 3rem)` }}
-                        />
-                      )
-                    })()}
-
-                    {/* Steps */}
-                    <div className="grid grid-cols-1 md:grid-cols-5 gap-6 md:gap-2">
-                      {STATUS_STEPS.map((s, idx) => {
-                        const currentStep = getStepIndex(matchedOrder.status)
-                        const isDone = currentStep >= s.step
-                        const isCurrent = currentStep === s.step
-                        const label = lang === 'ar' ? s.labelAr : lang === 'he' ? s.labelHe : s.labelEn
-
-                        return (
-                          <div key={s.key} className="flex md:flex-col items-center md:text-center gap-4 md:gap-2 relative z-10">
-                            <div
-                              className={`size-10 rounded-full flex items-center justify-center font-bold text-sm transition-all duration-300 ${
-                                isCurrent
-                                  ? 'bg-primary text-primary-foreground ring-4 ring-primary/20 scale-110 shadow-lg shadow-primary/25'
-                                  : isDone
-                                  ? 'bg-primary text-primary-foreground'
-                                  : 'bg-muted text-muted-foreground border border-border'
-                              }`}
-                            >
-                              {isDone && !isCurrent ? <Check className="size-5" /> : s.step}
-                            </div>
-                            <div className="flex-1 md:flex-none">
-                              <div className={`text-xs md:text-sm font-semibold ${isCurrent ? 'text-primary' : isDone ? 'text-foreground' : 'text-muted-foreground'}`}>
-                                {label}
-                              </div>
-                              {isCurrent && (
-                                <div className="text-[11px] text-primary/80 font-medium">
-                                  {lang === 'ar' ? 'المرحلة الحالية' : 'Current Stage'}
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        )
-                      })}
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Carrier & Tracking Code Pill */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 pt-6 border-t border-border">
-                <div className="p-3.5 rounded-2xl bg-muted/40 border border-border/60">
-                  <div className="text-[11px] text-muted-foreground font-medium uppercase tracking-wider flex items-center gap-1.5">
-                    <Building2 className="size-3.5 text-primary" />
-                    <span>{lang === 'ar' ? 'شركة الشحن' : 'Carrier'}</span>
-                  </div>
-                  <div className="font-semibold text-sm text-foreground mt-1">
-                    {matchedOrder.carrier || (lang === 'ar' ? 'علي فليت إكسبريس' : 'ALI FLEET Express')}
-                  </div>
-                </div>
-
-                <div className="p-3.5 rounded-2xl bg-muted/40 border border-border/60">
-                  <div className="text-[11px] text-muted-foreground font-medium uppercase tracking-wider flex items-center gap-1.5">
-                    <Truck className="size-3.5 text-primary" />
-                    <span>{lang === 'ar' ? 'رقم بوليصة الشحن' : 'Tracking Code'}</span>
-                  </div>
-                  <div className="flex items-center justify-between mt-1">
-                    <span className="font-mono text-xs md:text-sm font-bold text-foreground">
-                      {matchedOrder.trackingNumber || 'AF-TRK-782190'}
-                    </span>
-                    <button
-                      onClick={() => copyTracking(matchedOrder.trackingNumber || 'AF-TRK-782190')}
-                      title="نسخ رقم الشحنة"
-                      className="p-1 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
-                    >
-                      {copied ? <Check className="size-3.5 text-emerald-500" /> : <Copy className="size-3.5" />}
-                    </button>
-                  </div>
-                </div>
-
-                <div className="p-3.5 rounded-2xl bg-muted/40 border border-border/60">
-                  <div className="text-[11px] text-muted-foreground font-medium uppercase tracking-wider flex items-center gap-1.5">
-                    <CreditCard className="size-3.5 text-primary" />
-                    <span>{lang === 'ar' ? 'حالة الدفع' : 'Payment'}</span>
-                  </div>
-                  <div className="font-semibold text-sm text-foreground mt-1 flex items-center gap-2">
-                    <span>{matchedOrder.paymentMethod}</span>
-                    <span className="text-xs px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-600 font-medium">
-                      {matchedOrder.paymentStatus === 'paid' ? (lang === 'ar' ? 'مدفوع' : 'Paid') : (lang === 'ar' ? 'بانتظار التحصيل' : 'Pending')}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Card 2: Two-column Details (Items + Shipping Details) */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {/* Order Items (2 cols) */}
-              <div className="lg:col-span-2 rounded-3xl bg-card border border-border/80 shadow-xl p-6">
-                <h3 className="text-base md:text-lg font-bold text-foreground flex items-center gap-2 mb-4">
-                  <Package className="size-4 text-primary" />
-                  <span>{lang === 'ar' ? 'المنتجات المطلوبة في الشحنة' : 'Items in Shipment'}</span>
-                  <span className="text-xs font-normal text-muted-foreground">({matchedOrder.items.length})</span>
-                </h3>
-
-                <div className="divide-y divide-border">
-                  {matchedOrder.items.map((item, idx) => (
-                    <div key={idx} className="py-3.5 flex items-center gap-3.5">
-                      <div className="size-16 rounded-xl bg-muted/50 border border-border overflow-hidden shrink-0 flex items-center justify-center">
-                        {item.image ? (
-                          <img src={item.image} alt={item.title} className="w-full h-full object-cover" />
-                        ) : (
-                          <Package className="size-6 text-muted-foreground" />
-                        )}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h4 className="text-sm font-semibold text-foreground truncate">
-                          {(item as any).title || (item as any).name}
-                        </h4>
-                        <p className="text-xs text-muted-foreground mt-0.5">
-                          {lang === 'ar' ? 'الكمية:' : 'Qty:'} <span className="font-semibold text-foreground">{item.quantity}</span>
-                        </p>
-                      </div>
-                      <div className="text-end font-bold text-sm text-foreground">
-                        {matchedOrder.currency || '₪'} {(item.price * item.quantity).toLocaleString()}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="mt-4 pt-4 border-t border-border flex justify-between items-center text-sm font-bold">
-                  <span>{lang === 'ar' ? 'المجموع الكلي' : 'Total Amount'}</span>
-                  <span className="text-lg text-primary">
-                    {matchedOrder.currency || '₪'} {(matchedOrder.total ?? (matchedOrder as any).totalAmount ?? 0).toLocaleString()}
-                  </span>
-                </div>
-              </div>
-
-              {/* Shipping Address & Direct Help (1 col) */}
-              <div className="space-y-6">
-                <div className="rounded-3xl bg-card border border-border/80 shadow-xl p-6">
-                  <h3 className="text-sm font-bold text-foreground uppercase tracking-wider flex items-center gap-2 mb-3 text-muted-foreground">
-                    <MapPin className="size-4 text-primary" />
-                    <span>{lang === 'ar' ? 'عنوان التسليم والعميل' : 'Delivery Details'}</span>
-                  </h3>
-                  <div className="text-sm space-y-1 text-foreground">
-                    <div className="font-semibold">{matchedOrder.customerName}</div>
-                    <div className="text-muted-foreground text-xs">{matchedOrder.customerPhone}</div>
-                    <div className="text-muted-foreground text-xs">
-                      {typeof matchedOrder.shippingAddress === 'string'
-                        ? matchedOrder.shippingAddress
-                        : `${matchedOrder.shippingAddress?.street || ''}, ${matchedOrder.shippingAddress?.city || ''} ${matchedOrder.shippingAddress?.country || ''}`}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="rounded-3xl bg-gradient-to-br from-card to-primary/5 border border-primary/20 shadow-xl p-6">
-                  <h3 className="text-sm font-bold text-foreground flex items-center gap-2 mb-2">
-                    <MessageCircle className="size-4 text-primary" />
-                    <span>{lang === 'ar' ? 'تحتاج مساعدة بشأن الطلب؟' : 'Need Help with Order?'}</span>
-                  </h3>
-                  <p className="text-xs text-muted-foreground mb-4">
-                    {lang === 'ar'
-                      ? 'فريق الدعم الفني جاهز لخدمتك والرد على كافة استفسارات الشحن والجمارك على مدار الساعة.'
-                      : 'Our support team is ready to answer any questions about your shipment.'}
-                  </p>
-
-                  <div className="space-y-2">
-                    <a
-                      href={`https://wa.me/972501234567?text=${encodeURIComponent(
-                        `مرحباً علي فليت، استفسار بخصوص طلبي رقم #${matchedOrder.id || (matchedOrder as any).orderNumber}`
-                      )}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-medium text-xs shadow-md transition-colors"
-                    >
-                      <MessageCircle className="size-4" />
-                      <span>{lang === 'ar' ? 'محادثة واتساب مباشرة' : 'WhatsApp Support'}</span>
-                    </a>
-                    <a
-                      href="tel:+972501234567"
-                      className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-card border border-border hover:bg-muted text-foreground font-medium text-xs transition-colors"
-                    >
-                      <Phone className="size-4" />
-                      <span>{lang === 'ar' ? 'اتصال بالدعم' : 'Call Support'}</span>
-                    </a>
-                  </div>
-                </div>
-              </div>
-            </div>
+        {order.status === 'cancelled' ? (
+          <div className="mt-6 flex items-start gap-3 rounded-2xl bg-destructive/10 p-4 text-destructive ring-1 ring-destructive/20">
+            <AlertCircle className="mt-0.5 size-5 shrink-0" aria-hidden="true" />
+            <p className="text-sm leading-relaxed">
+              {locale === 'ar'
+                ? 'أُلغي هذا الطلب. تواصل مع فريق الدعم إذا كنت بحاجة إلى تفاصيل إضافية.'
+                : locale === 'he'
+                  ? 'ההזמנה בוטלה. צרו קשר עם התמיכה אם דרושים פרטים נוספים.'
+                  : 'This order was cancelled. Contact support if you need more information.'}
+            </p>
           </div>
         ) : (
-          /* Empty / Not Found State */
-          <div className="rounded-3xl bg-card border border-border/80 shadow-xl p-12 text-center max-w-xl mx-auto">
-            <div className="size-16 rounded-full bg-muted flex items-center justify-center mx-auto text-muted-foreground mb-4">
-              <Package className="size-8" />
-            </div>
-            <h3 className="text-lg font-bold text-foreground">
-              {lang === 'ar' ? 'لم يتم العثور على طلب بهذا الرقم' : 'No Order Found'}
-            </h3>
-            <p className="text-xs md:text-sm text-muted-foreground mt-2 max-w-sm mx-auto">
-              {lang === 'ar'
-                ? 'تأكد من كتابة رقم الطلب بالشكل الصحيح مثل ORD-7821 أو رقم الهاتف المسجل به الطلب.'
-                : 'Please make sure you entered the correct order ID (e.g. ORD-7821) or phone number.'}
+          <ol className="mt-8 grid gap-4 md:grid-cols-5">
+            {STATUS_STEPS.map((step, index) => {
+              const stepNumber = index + 1
+              const done = currentStep >= stepNumber
+              const current = currentStep === stepNumber
+              return (
+                <li key={step.key} className="flex items-center gap-3 md:flex-col md:text-center">
+                  <span className={`flex size-10 shrink-0 items-center justify-center rounded-full text-sm font-bold ring-1 ${done ? 'bg-primary text-primary-foreground ring-primary' : 'bg-secondary text-muted-foreground ring-border'} ${current ? 'outline-4 outline-primary/15' : ''}`}>
+                    {done && !current ? <Check className="size-5" aria-hidden="true" /> : stepNumber}
+                  </span>
+                  <div>
+                    <p className={`text-sm font-semibold ${done ? 'text-foreground' : 'text-muted-foreground'}`}>{step[locale]}</p>
+                    {current ? (
+                      <p className="mt-1 text-sm text-primary">
+                        {locale === 'ar' ? 'المرحلة الحالية' : locale === 'he' ? 'שלב נוכחי' : 'Current stage'}
+                      </p>
+                    ) : null}
+                  </div>
+                </li>
+              )
+            })}
+          </ol>
+        )}
+
+        <div className="mt-8 grid gap-3 border-t border-border pt-6 sm:grid-cols-3">
+          <div className="rounded-2xl bg-secondary p-4">
+            <p className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Truck className="size-4 text-primary" aria-hidden="true" />
+              {locale === 'ar' ? 'شركة الشحن' : locale === 'he' ? 'חברת שילוח' : 'Carrier'}
             </p>
-            <div className="mt-6 flex justify-center gap-3">
-              <button
-                onClick={() => setSearchQuery('ORD-7821')}
-                className="px-4 py-2 rounded-xl bg-primary text-primary-foreground text-xs font-semibold hover:opacity-90 transition-opacity"
-              >
-                {lang === 'ar' ? 'عرض طلب تجريبي #ORD-7821' : 'View Sample #ORD-7821'}
-              </button>
+            <p className="mt-2 text-sm font-semibold text-foreground">
+              {order.carrier || (locale === 'ar' ? 'لم تُعيّن بعد' : locale === 'he' ? 'טרם הוקצה' : 'Not assigned yet')}
+            </p>
+          </div>
+          <div className="rounded-2xl bg-secondary p-4">
+            <p className="text-sm text-muted-foreground">
+              {locale === 'ar' ? 'رقم التتبع' : locale === 'he' ? 'מספר מעקב' : 'Tracking number'}
+            </p>
+            <div className="mt-2 flex items-center justify-between gap-2">
+              <p className="truncate font-mono text-sm font-bold text-foreground">
+                {trackingCode || (locale === 'ar' ? 'غير متاح بعد' : locale === 'he' ? 'טרם זמין' : 'Not available yet')}
+              </p>
+              {trackingCode ? (
+                <button
+                  type="button"
+                  onClick={copyTracking}
+                  aria-label={locale === 'ar' ? 'نسخ رقم التتبع' : locale === 'he' ? 'העתקת מספר מעקב' : 'Copy tracking number'}
+                  className="flex size-8 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-card hover:text-foreground"
+                >
+                  {copied ? <Check className="size-4 text-accent" aria-hidden="true" /> : <Copy className="size-4" aria-hidden="true" />}
+                </button>
+              ) : null}
             </div>
           </div>
+          <div className="rounded-2xl bg-secondary p-4">
+            <p className="text-sm text-muted-foreground">
+              {locale === 'ar' ? 'الدفع' : locale === 'he' ? 'תשלום' : 'Payment'}
+            </p>
+            <p className="mt-2 text-sm font-semibold text-foreground">
+              {paymentLabel(order.paymentMethod, locale)} · {order.paymentStatus === 'paid' ? (locale === 'ar' ? 'مدفوع' : locale === 'he' ? 'שולם' : 'Paid') : (locale === 'ar' ? 'غير مدفوع' : locale === 'he' ? 'טרם שולם' : 'Unpaid')}
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <div className="grid gap-6 lg:grid-cols-[1.6fr_1fr]">
+        <section className="rounded-3xl bg-card p-6 shadow-xl ring-1 ring-border">
+          <h3 className="flex items-center gap-2 font-serif text-xl text-foreground">
+            <Package className="size-5 text-primary" aria-hidden="true" />
+            {locale === 'ar' ? 'قطع الغيار في الطلب' : locale === 'he' ? 'פריטים בהזמנה' : 'Items in this order'}
+          </h3>
+          <ul className="mt-4 divide-y divide-border">
+            {order.items.map((item) => (
+              <li key={item.id} className="flex items-center gap-4 py-4">
+                <div className="relative flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-secondary">
+                  {item.image ? (
+                    <Image src={proxied(item.image)} alt={item.name[locale]} fill sizes="64px" className="object-cover" />
+                  ) : (
+                    <Package className="size-6 text-muted-foreground" aria-hidden="true" />
+                  )}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-semibold text-foreground">{item.name[locale]}</p>
+                  <p className="mt-1 font-mono text-sm text-muted-foreground" dir="ltr">
+                    {item.sku} · ×{item.quantity}
+                  </p>
+                </div>
+                <p className="shrink-0 text-sm font-bold text-foreground" dir="ltr">
+                  {formatPrice(item.lineTotalMinor / 100, order.currency === 'ILS' ? '₪' : order.currency)}
+                </p>
+              </li>
+            ))}
+          </ul>
+          <div className="flex items-center justify-between gap-4 border-t border-border pt-4">
+            <span className="text-sm font-semibold text-muted-foreground">
+              {locale === 'ar' ? 'إجمالي الطلب' : locale === 'he' ? 'סה״כ הזמנה' : 'Order total'}
+            </span>
+            <span className="font-serif text-xl text-primary" dir="ltr">
+              {formatPrice(order.totalMinor / 100, order.currency === 'ILS' ? '₪' : order.currency)}
+            </span>
+          </div>
+        </section>
+
+        <div className="flex flex-col gap-6">
+          <section className="rounded-3xl bg-card p-6 shadow-xl ring-1 ring-border">
+            <h3 className="flex items-center gap-2 text-sm font-bold text-foreground">
+              <MapPin className="size-4 text-primary" aria-hidden="true" />
+              {locale === 'ar' ? 'عنوان التسليم' : locale === 'he' ? 'כתובת למשלוח' : 'Delivery address'}
+            </h3>
+            <address className="mt-3 text-sm not-italic leading-relaxed text-muted-foreground">
+              <strong className="block text-foreground">{order.shippingAddress.fullName || order.customerName}</strong>
+              <span className="block" dir="ltr">{order.shippingAddress.phone || order.customerPhone}</span>
+              <span className="block">{[order.shippingAddress.street, order.shippingAddress.city, order.shippingAddress.postalCode, order.shippingAddress.country].filter(Boolean).join(', ')}</span>
+            </address>
+          </section>
+
+          <section className="rounded-3xl bg-card p-6 shadow-xl ring-1 ring-border">
+            <h3 className="flex items-center gap-2 text-sm font-bold text-foreground">
+              <Clock className="size-4 text-primary" aria-hidden="true" />
+              {locale === 'ar' ? 'سجل الحالة' : locale === 'he' ? 'היסטוריית סטטוס' : 'Status history'}
+            </h3>
+            <ol className="mt-4 flex flex-col gap-4">
+              {order.history.map((entry) => (
+                <li key={entry.id} className="flex gap-3">
+                  <span className="mt-1 size-2 shrink-0 rounded-full bg-primary" aria-hidden="true" />
+                  <div>
+                    <p className="text-sm font-semibold text-foreground">{statusLabel(entry.toStatus, locale)}</p>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      {new Date(entry.createdAt).toLocaleString(dateLocale(locale), { dateStyle: 'medium', timeStyle: 'short' })}
+                    </p>
+                  </div>
+                </li>
+              ))}
+            </ol>
+          </section>
+
+          <section className="rounded-3xl bg-primary p-6 text-primary-foreground shadow-xl">
+            <h3 className="flex items-center gap-2 text-sm font-bold">
+              <MessageCircle className="size-4" aria-hidden="true" />
+              {locale === 'ar' ? 'هل تحتاج مساعدة؟' : locale === 'he' ? 'צריכים עזרה?' : 'Need help?'}
+            </h3>
+            <div className="mt-4 flex flex-col gap-2">
+              {whatsappHref ? (
+                <a href={whatsappHref} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 rounded-full bg-background px-4 py-2.5 text-sm font-semibold text-foreground transition-opacity hover:opacity-90">
+                  <MessageCircle className="size-4" aria-hidden="true" />
+                  WhatsApp
+                </a>
+              ) : null}
+              {store.phone ? (
+                <a href={`tel:${store.phone}`} className="flex items-center justify-center gap-2 rounded-full bg-primary-foreground/10 px-4 py-2.5 text-sm font-semibold text-primary-foreground ring-1 ring-primary-foreground/25 transition-opacity hover:opacity-80">
+                  <Phone className="size-4" aria-hidden="true" />
+                  {store.phone}
+                </a>
+              ) : null}
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export function TrackOrderScreen({ tracking }: { tracking: TrackingOrdersResult }) {
+  const { content, tStr } = useSiteContent()
+  const { locale } = useLanguage()
+  const searchParams = useSearchParams()
+  const [query, setQuery] = useState('')
+  const [submittedQuery, setSubmittedQuery] = useState('')
+  const pageHeader = content.pages?.trackOrder
+  const headerEyebrow = tStr(pageHeader?.eyebrow, locale) || (locale === 'ar' ? 'تتبع خاص وآمن' : locale === 'he' ? 'מעקב פרטי ומאובטח' : 'Private, secure tracking')
+  const headerTitle = tStr(pageHeader?.title, locale) || (locale === 'ar' ? 'تتبع طلبك' : locale === 'he' ? 'מעקב אחר ההזמנה' : 'Track your order')
+  const headerLead = tStr(pageHeader?.lead, locale) || (locale === 'ar' ? 'سجّل الدخول وابحث برقم الطلب الكامل لعرض آخر تحديثات الشحن.' : locale === 'he' ? 'התחברו וחפשו לפי מספר ההזמנה המלא כדי לראות עדכוני משלוח.' : 'Sign in and use the complete order number to see the latest delivery updates.')
+
+  useEffect(() => {
+    const order = searchParams.get('order')
+    if (!order) return
+    setQuery(order)
+    setSubmittedQuery(order)
+  }, [searchParams])
+
+  const matchedOrder = useMemo(() => {
+    if (tracking.state !== 'ready' || !submittedQuery) return null
+    const normalized = normalizeIdentifier(submittedQuery)
+    return tracking.orders.find((order) => normalizeIdentifier(order.orderNumber) === normalized || normalizeIdentifier(order.id) === normalized) || null
+  }, [submittedQuery, tracking])
+
+  const submitSearch = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    setSubmittedQuery(query)
+  }
+
+  return (
+    <div className="min-h-screen bg-background pb-24 pt-32 text-foreground">
+      <div className="mx-auto max-w-5xl px-4 md:px-6">
+        <header className="mx-auto max-w-2xl text-center">
+          <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-2 text-sm font-semibold text-primary">
+            <Truck className="size-4" aria-hidden="true" />
+            {headerEyebrow}
+          </div>
+          <h1 className="mt-5 text-balance font-serif text-4xl tracking-tight md:text-5xl">{headerTitle}</h1>
+          <p className="mt-4 text-pretty text-sm leading-relaxed text-muted-foreground md:text-base">{headerLead}</p>
+        </header>
+
+        {tracking.state === 'signed_out' ? (
+          <section className="mx-auto mt-10 flex max-w-xl flex-col items-center rounded-3xl bg-card p-8 text-center shadow-xl ring-1 ring-border md:p-12">
+            <span className="flex size-14 items-center justify-center rounded-full bg-secondary text-primary">
+              <ShieldCheck className="size-7" aria-hidden="true" />
+            </span>
+            <h2 className="mt-5 font-serif text-2xl text-foreground">
+              {locale === 'ar' ? 'سجّل الدخول لعرض طلباتك' : locale === 'he' ? 'התחברו כדי לראות את ההזמנות' : 'Sign in to view your orders'}
+            </h2>
+            <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+              {locale === 'ar' ? 'حمايةً لبياناتك، لا نعرض الطلبات عبر الهاتف أو البحث العام.' : locale === 'he' ? 'כדי להגן על המידע שלכם, הזמנות אינן מוצגות בחיפוש ציבורי.' : 'To protect your information, orders are never exposed through public or phone-number search.'}
+            </p>
+            <LocaleLink href="/account/login?redirectTo=/track-order" className="mt-6 inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90">
+              {locale === 'ar' ? 'تسجيل الدخول' : locale === 'he' ? 'התחברות' : 'Sign in'}
+              <ArrowRight className="size-4" aria-hidden="true" data-flip-rtl />
+            </LocaleLink>
+          </section>
+        ) : tracking.state === 'error' ? (
+          <p role="alert" className="mx-auto mt-10 max-w-xl rounded-3xl bg-destructive/10 p-6 text-center text-sm text-destructive ring-1 ring-destructive/20">
+            {locale === 'ar' ? 'تعذر تحميل طلباتك الآن. حاول تحديث الصفحة.' : locale === 'he' ? 'לא הצלחנו לטעון את ההזמנות. נסו לרענן את הדף.' : 'We could not load your orders. Please refresh the page.'}
+          </p>
+        ) : tracking.orders.length === 0 ? (
+          <section className="mx-auto mt-10 flex max-w-xl flex-col items-center rounded-3xl bg-card p-8 text-center shadow-xl ring-1 ring-border md:p-12">
+            <Package className="size-10 text-muted-foreground" aria-hidden="true" />
+            <h2 className="mt-5 font-serif text-2xl text-foreground">{locale === 'ar' ? 'لا توجد طلبات بعد' : locale === 'he' ? 'אין עדיין הזמנות' : 'No orders yet'}</h2>
+            <LocaleLink href="/products" className="mt-6 inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90">
+              {locale === 'ar' ? 'تصفح قطع الغيار' : locale === 'he' ? 'עיון בחלקי חילוף' : 'Browse parts'}
+              <ArrowRight className="size-4" aria-hidden="true" data-flip-rtl />
+            </LocaleLink>
+          </section>
+        ) : (
+          <>
+            <form onSubmit={submitSearch} className="mx-auto mt-10 flex max-w-2xl flex-col gap-3 sm:flex-row">
+              <label className="relative flex-1">
+                <span className="sr-only">{locale === 'ar' ? 'رقم الطلب' : locale === 'he' ? 'מספר הזמנה' : 'Order number'}</span>
+                <Search className="pointer-events-none absolute start-4 top-1/2 size-5 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
+                <input
+                  value={query}
+                  onChange={(event) => setQuery(event.target.value)}
+                  placeholder={locale === 'ar' ? 'مثال: AF-202609-000001' : locale === 'he' ? 'לדוגמה: AF-202609-000001' : 'Example: AF-202609-000001'}
+                  autoComplete="off"
+                  className="w-full rounded-2xl bg-card py-4 pe-4 ps-12 text-sm text-foreground shadow-lg ring-1 ring-border outline-none placeholder:text-muted-foreground focus:ring-2 focus:ring-primary"
+                />
+              </label>
+              <button type="submit" className="rounded-2xl bg-primary px-7 py-4 text-sm font-semibold text-primary-foreground shadow-lg transition-opacity hover:opacity-90">
+                {locale === 'ar' ? 'تتبع الآن' : locale === 'he' ? 'מעקב עכשיו' : 'Track now'}
+              </button>
+            </form>
+
+            <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
+              <span className="text-sm text-muted-foreground">{locale === 'ar' ? 'طلباتك الأخيرة:' : locale === 'he' ? 'הזמנות אחרונות:' : 'Recent orders:'}</span>
+              {tracking.orders.slice(0, 5).map((order) => (
+                <button
+                  key={order.id}
+                  type="button"
+                  onClick={() => {
+                    setQuery(order.orderNumber)
+                    setSubmittedQuery(order.orderNumber)
+                  }}
+                  className="rounded-full bg-card px-3 py-1.5 font-mono text-sm text-foreground ring-1 ring-border transition-colors hover:ring-primary"
+                >
+                  {order.orderNumber}
+                </button>
+              ))}
+            </div>
+
+            <div className="mt-8">
+              {matchedOrder ? (
+                <OrderDetails order={matchedOrder} />
+              ) : submittedQuery ? (
+                <section className="mx-auto max-w-xl rounded-3xl bg-card p-8 text-center shadow-xl ring-1 ring-border">
+                  <Package className="mx-auto size-10 text-muted-foreground" aria-hidden="true" />
+                  <h2 className="mt-4 font-serif text-2xl text-foreground">{locale === 'ar' ? 'لم نجد هذا الطلب في حسابك' : locale === 'he' ? 'ההזמנה לא נמצאה בחשבון' : 'Order not found in your account'}</h2>
+                  <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{locale === 'ar' ? 'استخدم رقم الطلب الكامل كما يظهر في رسالة التأكيد.' : locale === 'he' ? 'השתמשו במספר ההזמנה המלא כפי שמופיע באישור.' : 'Use the complete order number shown in your confirmation.'}</p>
+                </section>
+              ) : null}
+            </div>
+          </>
         )}
       </div>
     </div>

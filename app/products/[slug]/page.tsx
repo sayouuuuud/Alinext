@@ -5,6 +5,8 @@ import { ProductDetail } from '@/components/product-detail'
 import { absoluteUrl } from '@/lib/seo'
 import { serializeJsonLd } from '@/lib/json-ld'
 import { getPart, getRelatedParts } from '@/lib/content/catalog'
+import { getPublicMetadata } from '@/lib/content/metadata'
+import { getRequestLocale } from '@/lib/i18n/request-locale'
 
 /** Product detail pages resolve directly from the local content catalog. */
 
@@ -17,23 +19,21 @@ export async function generateMetadata({
   const part = await getPart(slug)
   if (!part) return { title: 'ALI FLEET' }
 
-  // English falls back to the Hebrew original for products that are not
-  // translated yet, which is still far better metadata than a bare site name.
-  const title = part.name.en || part.name.he
-  const description = part.description.en || part.description.he || undefined
+  const locale = await getRequestLocale()
+  const title = part.name[locale] || part.name.en || part.name.he
+  const description = part.description[locale] || part.description.en || part.description.he
 
-  return {
-    title: `${title} — ALI FLEET Spare Parts`,
-    description,
-    alternates: { canonical: `/products/${slug}` },
-    openGraph: {
-      type: 'website',
+  return getPublicMetadata({
+    entityType: 'product',
+    entityId: slug,
+    locale,
+    fallback: {
       title: `${title} — ALI FLEET Spare Parts`,
       description,
-      url: absoluteUrl(`/products/${slug}`),
-      images: part.image ? [{ url: part.image, alt: title }] : undefined,
+      path: `/products/${slug}`,
+      image: part.image,
     },
-  }
+  })
 }
 
 export default async function ProductPage({

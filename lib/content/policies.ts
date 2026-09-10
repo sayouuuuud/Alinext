@@ -1,15 +1,17 @@
 import 'server-only'
 
+import { unstable_cache } from 'next/cache'
 import sanitizeHtml from 'sanitize-html'
 import type { Locale } from '@/lib/i18n/config'
-import type { PolicyItem } from '@/lib/admin/types'
+import { createPublicClient } from '@/lib/supabase/server'
+import type { Json } from '@/lib/supabase/database.types'
 import type { MultilingualPolicy, PolicyPageData, PolicyType } from './types'
-import { getSiteContent } from './repository'
+import { POLICIES_TAG, PUBLIC_CONTENT_TAG, i18n } from './public-database'
 
 export type { MultilingualPolicy, PolicyPageData, PolicyType } from './types'
 
 const routeByType: Record<PolicyType, string> = { privacy: '/privacy-policy', terms: '/terms', return: '/return-policy' }
-const itemIdByType: Record<PolicyType, PolicyItem['id']> = { privacy: 'privacy', terms: 'terms', return: 'refund' }
+const itemIdByType: Record<PolicyType, string> = { privacy: 'privacy', terms: 'terms', return: 'refund' }
 
 function safeContent(value: string): string {
   const looksLikeHtml = /<\/?[a-z][\s\S]*>/i.test(value)
@@ -24,23 +26,49 @@ function safeContent(value: string): string {
   })
 }
 
-function toPage(item: PolicyItem, type: PolicyType, locale: Locale, databaseId: number): PolicyPageData {
+type PolicyRow = {
+  id: string
+  slug: string
+  title: Json
+  content: Json
+  last_updated: string
+}
+
+const cachedPolicies = unstable_cache(
+  async (): Promise<PolicyRow[]> => {
+    const { data, error } = await createPublicClient()
+      .from('policy_pages')
+      .select('id,slug,title,content,last_updated')
+      .eq('published', true)
+    if (error) throw new Error(`Public policies unavailable: ${error.message}`)
+    return (data || []) as unknown as PolicyRow[]
+  },
+  ['alifleet-public-policies-v2'],
+  { tags: [PUBLIC_CONTENT_TAG, POLICIES_TAG], revalidate: 3600 },
+)
+
+function toPage(row: PolicyRow, type: PolicyType, locale: Locale, databaseId: number): PolicyPageData {
+  const title = i18n(row.title)
+  const content = i18n(row.content)
   const route = routeByType[type]
   return {
     databaseId,
-    title: item.title[locale] || item.title.en || item.title.ar,
-    slug: route.slice(1),
+    title: title[locale] || title.en || title.ar,
+    slug: row.slug || route.slice(1),
     uri: `${route}/`,
-    modified: item.lastUpdated,
-    content: safeContent(item.content[locale] || item.content.en || item.content.ar),
+    modified: row.last_updated,
+    content: safeContent(content[locale] || content.en || content.ar),
   }
 }
 
 async function getPolicy(type: PolicyType): Promise<MultilingualPolicy> {
-  const content = await getSiteContent()
-  const item = content.pages.policies.find((policy) => policy.id === itemIdByType[type])
-  if (!item) return { ar: null, en: null, he: null }
-  return { ar: toPage(item, type, 'ar', 1), en: toPage(item, type, 'en', 2), he: toPage(item, type, 'he', 3) }
+  const row = (await cachedPolicies()).find((item) => item.id === itemIdByType[type])
+  if (!row) return { ar: null, en: null, he: null }
+  return {
+    ar: toPage(row, type, 'ar', 1),
+    en: toPage(row, type, 'en', 2),
+    he: toPage(row, type, 'he', 3),
+  }
 }
 
 export async function getPolicyByLocale(policyType: PolicyType, locale: Locale): Promise<PolicyPageData | null> {

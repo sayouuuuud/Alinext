@@ -10,8 +10,6 @@ import { resolveCopy } from '@/lib/i18n/copy-block'
 import type { CarsPageCopy } from '@/lib/content/types'
 import { ImportCarCard } from '@/components/import-car-card'
 import LocaleLink from '@/components/locale-link'
-import { useSiteContent } from '@/lib/admin/site-content-context'
-import { carToImport } from '@/lib/content/adapters'
 
 type Props = {
   cars: ImportCar[]
@@ -22,28 +20,19 @@ type Props = {
 
 export function ImportBrowser({ cars, status, copy }: Props) {
   const { t, locale } = useLanguage()
-  const { content } = useSiteContent()
   const [origin, setOrigin] = useState<CarOrigin | 'all'>('all')
   const [carStatus, setCarStatus] = useState<CarStatus | 'all'>('all')
   const [page, setPage] = useState(1)
   const PAGE_SIZE = 6 // 2 rows × 3 cols
 
-  const managedCars = useMemo(
-    () => content.cars.filter((car) => car.type === 'import').map(carToImport),
-    [content.cars]
-  )
-
-  const effectiveCars = managedCars.length > 0 ? managedCars : cars
-  const effectiveStatus = effectiveCars.length > 0 ? 'ok' : status
-
   const filtered = useMemo(
     () =>
-      effectiveCars.filter(
+      cars.filter(
         (car) =>
           (origin === 'all' || car.origin === origin) &&
           (carStatus === 'all' || car.status === carStatus)
       ),
-    [effectiveCars, origin, carStatus]
+    [cars, origin, carStatus]
   )
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))

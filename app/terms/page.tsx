@@ -2,18 +2,26 @@ import type { Metadata } from 'next'
 import { SiteHeader } from '@/components/site-header'
 import { SiteFooter } from '@/components/site-footer'
 import { PolicyScreen } from '@/components/policy-screen'
-import { getTermsPolicy } from '@/lib/content/policies'
+import { getTermsPolicy, getPolicyByLocale } from '@/lib/content/policies'
 import { isLocale } from '@/lib/i18n/config'
+import { getRequestLocale } from '@/lib/i18n/request-locale'
+import { getPublicMetadata } from '@/lib/content/metadata'
 
 export const revalidate = 600
 
-export const metadata: Metadata = {
-  title: 'Terms & Conditions | الشروط والأحكام | ALI FLEET',
-  description:
-    'Official terms and conditions of service for ALI FLEET customers, commercial vehicle purchases, and vehicle importing.',
-  alternates: {
-    canonical: '/terms',
-  },
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await getRequestLocale()
+  const policy = await getPolicyByLocale('terms', locale)
+  return getPublicMetadata({
+    entityType: 'policy',
+    entityId: 'terms',
+    locale,
+    fallback: {
+      title: policy?.title || 'Terms & Conditions | ALI FLEET',
+      description: 'Official service terms for ALI FLEET customers, purchases, and vehicle imports.',
+      path: '/terms',
+    },
+  })
 }
 
 type PageProps = {

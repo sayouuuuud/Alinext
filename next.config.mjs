@@ -6,6 +6,15 @@ const privateNoStoreHeaders = [
   { key: 'Expires', value: '0' },
 ]
 
+const supabaseConnectSources = (() => {
+  try {
+    const url = new URL(process.env.NEXT_PUBLIC_SUPABASE_URL)
+    return `${url.origin} wss://${url.host}`
+  } catch {
+    return ''
+  }
+})()
+
 const contentSecurityPolicy = [
   "default-src 'self'",
   "base-uri 'self'",
@@ -16,7 +25,7 @@ const contentSecurityPolicy = [
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob: https:",
   "font-src 'self' data:",
-  "connect-src 'self' https://connect.facebook.net https://www.facebook.com",
+  `connect-src 'self' ${supabaseConnectSources} https://connect.facebook.net https://www.facebook.com`,
   "frame-src 'self'",
   "worker-src 'self' blob:",
   "media-src 'self' https:",
@@ -59,6 +68,11 @@ const nextConfig = {
       },
       { source: '/account/:path*', headers: privateNoStoreHeaders },
       { source: '/my-account', headers: privateNoStoreHeaders },
+      { source: '/admin/:path*', headers: privateNoStoreHeaders },
+      { source: '/api/admin/:path*', headers: privateNoStoreHeaders },
+      { source: '/auth/:path*', headers: privateNoStoreHeaders },
+      { source: '/cart', headers: privateNoStoreHeaders },
+      { source: '/track-order', headers: privateNoStoreHeaders },
     ]
   },
 }

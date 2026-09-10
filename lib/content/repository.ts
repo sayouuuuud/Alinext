@@ -1,7 +1,7 @@
 import 'server-only'
 
-import { unstable_cache } from 'next/cache'
 import { createAdminClient } from '@/lib/supabase/server'
+import { getPublicSiteContent, PUBLIC_CONTENT_TAG } from './public-database'
 import type { Json } from '@/lib/supabase/database.types'
 import type {
   BlogPostItem,
@@ -14,7 +14,7 @@ import type {
   SiteFullContent,
 } from '@/lib/admin/types'
 
-export const SITE_CONTENT_TAG = 'site-content'
+export const SITE_CONTENT_TAG = PUBLIC_CONTENT_TAG
 
 function record(value: Json | undefined | null): Record<string, Json | undefined> {
   return value && typeof value === 'object' && !Array.isArray(value)
@@ -31,12 +31,6 @@ function i18n(value: Json | undefined | null, fallback = ''): MultiLangString {
   }
 }
 
-function isSiteContent(value: unknown): value is SiteFullContent {
-  if (!value || typeof value !== 'object') return false
-  const content = value as Partial<SiteFullContent>
-  return Boolean(content.pages?.home && Array.isArray(content.cars) && Array.isArray(content.products) && Array.isArray(content.blog))
-}
-
 type MediaRow = { car_id?: string; product_id?: string; url: string; sort_order: number }
 type HighlightRow = { car_id: string; content: Json; sort_order: number }
 type SpecRow = { product_id: string; label: Json; value: Json; sort_order: number }
@@ -44,8 +38,9 @@ type CompatibilityRow = { product_id: string; notes: string | null; make: string
 
 async function loadBaseAndCatalog(includeUnpublished: boolean): Promise<SiteFullContent> {
   const admin = createAdminClient()
-  const [contentResult, carsResult, carMediaResult, highlightsResult, productsResult, productMediaResult, specsResult, compatibilityResult, postsResult] = await Promise.all([
-    admin.from('site_content').select('payload,updated_at').eq('id', 1).single(),
+  const [baseContent, privateSettingsResult, carsResult, carMediaResult, highlightsResult, productsResult, productMediaResult, specsResult, compatibilityResult, postsResult] = await Promise.all([
+    getPublicSiteContent(),
+    admin.from('site_settings_private').select('key,value,updated_at'),
     admin.from('cars').select('*').order('featured', { ascending: false }).order('created_at', { ascending: false }),
     admin.from('car_media').select('car_id,url,sort_order').order('sort_order'),
     admin.from('car_highlights').select('car_id,content,sort_order').order('sort_order'),
@@ -56,9 +51,8 @@ async function loadBaseAndCatalog(includeUnpublished: boolean): Promise<SiteFull
     admin.from('blog_posts').select('*').order('published_at', { ascending: false }),
   ])
 
-  const firstError = [contentResult, carsResult, carMediaResult, highlightsResult, productsResult, productMediaResult, specsResult, compatibilityResult, postsResult].find((result) => result.error)?.error
+  const firstError = [privateSettingsResult, carsResult, carMediaResult, highlightsResult, productsResult, productMediaResult, specsResult, compatibilityResult, postsResult].find((result) => result.error)?.error
   if (firstError) throw new Error(`Supabase content query failed: ${firstError.message}`)
-  if (!isSiteContent(contentResult.data?.payload)) throw new Error('Supabase site_content payload is invalid')
 
   const carMedia = (carMediaResult.data || []) as unknown as MediaRow[]
   const highlights = (highlightsResult.data || []) as unknown as HighlightRow[]
@@ -140,40 +134,28 @@ async function loadBaseAndCatalog(includeUnpublished: boolean): Promise<SiteFull
       featured: post.featured,
     }))
 
+  const privateRows = (privateSettingsResult.data || []) as unknown as Array<{ key: string; value: Json; updated_at: string }>
+  const privateSettings = new Map(privateRows.map((row) => [row.key, row.value]))
+  const security = record(privateSettings.get('admin_security'))
+  const lastSaved = [baseContent.lastSaved, ...privateRows.map((row) => row.updated_at)].sort().at(-1) || baseContent.lastSaved
+
   return {
-    ...contentResult.data.payload,
-    lastSaved: contentResult.data.updated_at,
+    ...baseContent,
+    lastSaved,
+    security: {
+      ...baseContent.security,
+      sessionTimeoutMinutes: typeof security.session_timeout_minutes === 'number' ? security.session_timeout_minutes : 60,
+      notifyOnNewLogin: security.notify_on_new_login === true,
+    },
+    notifications: record(privateSettings.get('notifications')) as unknown as SiteFullContent['notifications'],
     cars,
     products,
     blog,
   }
 }
 
-function publicOnly(content: SiteFullContent): SiteFullContent {
-  return {
-    ...content,
-    security: { username: '', email: '', twoFactorEnabled: false, sessionTimeoutMinutes: 0 },
-    notifications: {},
-    commerce: {
-      ...content.commerce,
-      enableCardPayment: false,
-      enableCardPayments: false,
-      enablePaypal: false,
-    },
-    orders: [],
-    customers: [],
-    inquiries: [],
-  }
-}
-
-const cachedPublicContent = unstable_cache(
-  async () => publicOnly(await loadBaseAndCatalog(false)),
-  ['alifleet-public-content-v1'],
-  { tags: [SITE_CONTENT_TAG], revalidate: 300 },
-)
-
 export async function getSiteContent(): Promise<SiteFullContent> {
-  return cachedPublicContent()
+  return getPublicSiteContent()
 }
 
 function paymentMethod(value: string): OrderRecord['paymentMethod'] {

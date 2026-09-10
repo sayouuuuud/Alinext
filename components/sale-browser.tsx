@@ -10,8 +10,6 @@ import { useLanguage } from '@/lib/i18n/language-context'
 import { resolveCopy } from '@/lib/i18n/copy-block'
 import type { CarsPageCopy } from '@/lib/content/types'
 import { SaleCarCard } from '@/components/sale-car-card'
-import { useSiteContent } from '@/lib/admin/site-content-context'
-import { carToSale } from '@/lib/content/adapters'
 
 type Props = {
   cars: SaleCar[]
@@ -22,28 +20,19 @@ type Props = {
 
 export function SaleBrowser({ cars, status, copy }: Props) {
   const { t, locale } = useLanguage()
-  const { content } = useSiteContent()
   const [condition, setCondition] = useState<SaleCarCondition | 'all'>('all')
   const [carStatus, setCarStatus] = useState<SaleCarStatus | 'all'>('all')
   const [page, setPage] = useState(1)
   const PAGE_SIZE = 6 // 2 rows × 3 cols
 
-  const managedCars = useMemo(
-    () => content.cars.filter((car) => car.type === 'sale').map(carToSale),
-    [content.cars]
-  )
-
-  const effectiveCars = managedCars.length > 0 ? managedCars : cars
-  const effectiveStatus = effectiveCars.length > 0 ? 'ok' : status
-
   const filtered = useMemo(
     () =>
-      effectiveCars.filter(
+      cars.filter(
         (car) =>
           (condition === 'all' || car.condition === condition) &&
           (carStatus === 'all' || car.status === carStatus)
       ),
-    [effectiveCars, condition, carStatus]
+    [cars, condition, carStatus]
   )
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
@@ -76,7 +65,7 @@ export function SaleBrowser({ cars, status, copy }: Props) {
     </section>
   )
 
-  if (effectiveStatus === 'empty') {
+  if (status === 'empty') {
     return (
       <Shell>
         <div className="mt-10 rounded-3xl bg-card p-12 text-center ring-1 ring-border">
