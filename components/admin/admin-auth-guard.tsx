@@ -1,149 +1,194 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
-import { Lock, Eye, EyeOff, ShieldCheck, ArrowRight, KeyRound, AlertCircle } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { AlertCircle, ArrowRight, Eye, EyeOff, KeyRound, Loader2, Lock, ShieldCheck } from 'lucide-react'
+import { createClient } from '@/lib/supabase/client'
 import { useAdmin } from '@/lib/admin/admin-context'
 
-export function AdminAuthGuard({ children }: { children: React.ReactNode }) {
-  const { content, t, locale } = useAdmin()
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null)
-  const [passwordInput, setPasswordInput] = useState('')
-  const [showPassword, setShowPassword] = useState(false)
-  const [error, setError] = useState('')
-  const [isSubmitting, setIsSubmitting] = useState(false)
+type Step = 'checking' | 'login' | 'enroll' | 'challenge' | 'ready'
 
-  const activePassword = content.security?.passwordHash || 'alifleet2026'
+export function AdminAuthGuard({ children }: { children: React.ReactNode }) {
+  const { locale } = useAdmin()
+  const [step, setStep] = useState<Step>('checking')
+  const [email, setEmail] = useState('admin@test.com')
+  const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
+  const [code, setCode] = useState('')
+  const [factorId, setFactorId] = useState('')
+  const [qrCode, setQrCode] = useState('')
+  const [secret, setSecret] = useState('')
+  const [error, setError] = useState('')
+  const [pending, setPending] = useState(false)
+
+  const copy = locale === 'ar'
+    ? {
+        title: 'لوحة تحكم علي فليت', lead: 'دخول آمن عبر Supabase Auth والمصادقة الثنائية.',
+        email: 'البريد الإلكتروني', password: 'كلمة المرور', login: 'تسجيل الدخول', checking: 'جاري التحقق من الجلسة...',
+        mfaTitle: 'المصادقة الثنائية', enroll: 'امسح رمز QR بتطبيق المصادقة ثم أدخل الرمز المكوّن من 6 أرقام.',
+        challenge: 'أدخل الرمز الحالي من تطبيق المصادقة.', verify: 'تحقق وافتح اللوحة', invalid: 'تعذر التحقق. راجع البيانات والرمز ثم حاول مجددًا.',
+      }
+    : {
+        title: 'ALI FLEET Admin', lead: 'Secure access with Supabase Auth and multi-factor authentication.',
+        email: 'Email address', password: 'Password', login: 'Sign in', checking: 'Checking your session...',
+        mfaTitle: 'Two-factor authentication', enroll: 'Scan the QR code with your authenticator app, then enter the 6-digit code.',
+        challenge: 'Enter the current code from your authenticator app.', verify: 'Verify and open dashboard', invalid: 'Verification failed. Check your details and code, then try again.',
+      }
 
   useEffect(() => {
-    try {
-      const auth = window.sessionStorage.getItem('alifleet_admin_auth')
-      if (auth === 'true') {
-        setIsAuthenticated(true)
-      } else {
-        setIsAuthenticated(false)
-      }
-    } catch {
-      setIsAuthenticated(false)
-    }
+    fetch('/api/admin/session', { cache: 'no-store' })
+      .then((result) => {
+        if (result.ok) {
+          setStep('ready')
+          window.dispatchEvent(new Event('alifleet-admin-authenticated'))
+        } else {
+          setStep('login')
+        }
+      })
+      .catch(() => setStep('login'))
   }, [])
 
-  const handleLogin = (e: React.FormEvent) => {
-    e.preventDefault()
-    setError('')
-    setIsSubmitting(true)
-
-    setTimeout(() => {
-      if (passwordInput === activePassword) {
-        try {
-          window.sessionStorage.setItem('alifleet_admin_auth', 'true')
-        } catch {}
-        setIsAuthenticated(true)
+  async function establishAdminSession() {
+    const result = await fetch('/api/admin/session', { method: 'POST' })
+    if (result.ok) {
+      setStep('ready')
+      window.dispatchEvent(new Event('alifleet-admin-authenticated'))
+      return true
+    }
+    const payload = await result.json().catch(() => ({ code: 'unexpected' }))
+    if (payload.code === 'mfa_required') {
+      const supabase = createClient()
+      const factors = await supabase.auth.mfa.listFactors()
+      if (factors.error) throw factors.error
+      const verifiedFactor = factors.data.totp.find((factor) => factor.status === 'verified')
+      if (verifiedFactor) {
+        setFactorId(verifiedFactor.id)
+        setStep('challenge')
       } else {
-        setError(
-          locale === 'ar'
-            ? 'كلمة المرور غير صحيحة! يرجى المحاولة مجدداً.'
-            : locale === 'he'
-            ? 'סיסמה שגויה! נסה שוב.'
-            : 'Incorrect password! Please try again.'
-        )
+        const enrollment = await supabase.auth.mfa.enroll({ factorType: 'totp', friendlyName: 'ALI FLEET Admin' })
+        if (enrollment.error) throw enrollment.error
+        setFactorId(enrollment.data.id)
+        setQrCode(enrollment.data.totp.qr_code)
+        setSecret(enrollment.data.totp.secret)
+        setStep('enroll')
       }
-      setIsSubmitting(false)
-    }, 300)
+      return false
+    }
+    await createClient().auth.signOut()
+    throw new Error('admin_session_rejected')
   }
 
-  // Prevent flash while checking session
-  if (isAuthenticated === null) {
+  async function handleLogin(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    setPending(true)
+    setError('')
+    try {
+      const { error: loginError } = await createClient().auth.signInWithPassword({ email: email.trim().toLowerCase(), password })
+      if (loginError) throw loginError
+      await establishAdminSession()
+    } catch {
+      setError(copy.invalid)
+      setStep('login')
+    } finally {
+      setPending(false)
+    }
+  }
+
+  async function handleMfa(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    if (!/^\d{6}$/.test(code)) {
+      setError(copy.invalid)
+      return
+    }
+    setPending(true)
+    setError('')
+    try {
+      const { error: verifyError } = await createClient().auth.mfa.challengeAndVerify({ factorId, code })
+      if (verifyError) throw verifyError
+      await establishAdminSession()
+    } catch {
+      setError(copy.invalid)
+    } finally {
+      setPending(false)
+    }
+  }
+
+  if (step === 'checking') {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background text-foreground">
-        <div className="size-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-      </div>
-    )
-  }
-
-  if (!isAuthenticated) {
-    const isRtl = locale === 'ar' || locale === 'he'
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-background p-4 text-foreground">
-        <div className="w-full max-w-md rounded-3xl bg-card p-8 ring-1 ring-border shadow-xl space-y-6">
-          {/* Brand & Shield Emblem */}
-          <div className="text-center space-y-2">
-            <div className="mx-auto flex size-16 items-center justify-center rounded-3xl bg-secondary text-accent">
-              <ShieldCheck className="size-8" />
-            </div>
-            <h1 className="text-2xl font-black tracking-tight text-foreground">
-              {locale === 'ar' ? 'لوحة تحكم علي فليت' : locale === 'he' ? 'לוח ניהול ALI FLEET' : 'ALI FLEET Admin'}
-            </h1>
-            <p className="text-xs text-muted-foreground">
-              {locale === 'ar'
-                ? 'منطقة محمية — يرجى إدخال كلمة المرور للوصول إلى لوحة الإدارة'
-                : locale === 'he'
-                ? 'אזור מאובטח — הזן סיסמה כדי לגשת ללוח הניהול'
-                : 'Restricted Area — Enter master password to access administration'}
-            </p>
-          </div>
-
-          <form onSubmit={handleLogin} className="space-y-4 pt-2">
-            <div>
-              <label className="text-xs font-semibold text-foreground flex items-center justify-between">
-                <span>{locale === 'ar' ? 'كلمة المرور' : locale === 'he' ? 'סיסמה' : 'Password'}</span>
-                <span className="text-[10px] text-muted-foreground font-mono">
-                  {locale === 'ar' ? 'الافتراضي: alifleet2026' : 'Default: alifleet2026'}
-                </span>
-              </label>
-              <div className="relative mt-1.5">
-                <KeyRound className="absolute start-3.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  required
-                  autoFocus
-                  value={passwordInput}
-                  onChange={(e) => {
-                    setPasswordInput(e.target.value)
-                    if (error) setError('')
-                  }}
-                  placeholder="••••••••••••"
-                  className="w-full rounded-full border border-border bg-background ps-10 pe-11 py-3 text-sm text-foreground focus:border-accent focus:ring-2 focus:ring-accent/20 focus:outline-hidden transition-all"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute end-3 top-1/2 -translate-y-1/2 p-1.5 text-muted-foreground hover:text-foreground rounded-lg transition-colors"
-                >
-                  {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
-                </button>
-              </div>
-            </div>
-
-            {error && (
-              <div className="flex items-center gap-2 p-3 rounded-xl bg-destructive/10 border border-destructive/20 text-destructive text-xs font-medium animate-shake">
-                <AlertCircle className="size-4 shrink-0" />
-                <span>{error}</span>
-              </div>
-            )}
-
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="w-full inline-flex items-center justify-center gap-2 rounded-full bg-foreground py-3 px-4 text-sm font-bold text-background shadow-lg shadow-foreground/10 hover:opacity-90 transition-all disabled:opacity-50"
-            >
-              <Lock className="size-4" />
-              <span>{isSubmitting ? (locale === 'ar' ? 'جاري التحقق...' : 'Verifying...') : (locale === 'ar' ? 'تسجيل الدخول للوحة' : 'Unlock Dashboard')}</span>
-              <ArrowRight className="size-4" />
-            </button>
-          </form>
-
-          <div className="pt-2 text-center">
-            <a
-              href="/"
-              className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-4 transition-colors"
-            >
-              {locale === 'ar' ? '← العودة للموقع الرئيسي' : '← Return to storefront'}
-            </a>
-          </div>
+        <div className="flex items-center gap-3 text-sm text-muted-foreground">
+          <Loader2 className="size-5 animate-spin" aria-hidden="true" />
+          {copy.checking}
         </div>
       </div>
     )
   }
 
-  return <>{children}</>
+  if (step === 'ready') return <>{children}</>
+
+  const isMfa = step === 'enroll' || step === 'challenge'
+  return (
+    <main className="flex min-h-screen items-center justify-center bg-background p-4 text-foreground">
+      <section className="w-full max-w-md rounded-3xl bg-card p-7 shadow-xl ring-1 ring-border md:p-8" aria-labelledby="admin-auth-title">
+        <div className="flex flex-col items-center gap-3 text-center">
+          <div className="flex size-14 items-center justify-center rounded-2xl bg-secondary text-accent">
+            <ShieldCheck className="size-7" aria-hidden="true" />
+          </div>
+          <div>
+            <h1 id="admin-auth-title" className="text-balance font-serif text-2xl font-bold tracking-tight">{isMfa ? copy.mfaTitle : copy.title}</h1>
+            <p className="mt-2 text-pretty text-sm leading-relaxed text-muted-foreground">{isMfa ? (step === 'enroll' ? copy.enroll : copy.challenge) : copy.lead}</p>
+          </div>
+        </div>
+
+        {error ? (
+          <div role="alert" className="mt-5 flex items-start gap-2 rounded-2xl bg-destructive/10 p-3 text-sm text-destructive ring-1 ring-destructive/20">
+            <AlertCircle className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+            <span>{error}</span>
+          </div>
+        ) : null}
+
+        {!isMfa ? (
+          <form onSubmit={handleLogin} className="mt-6 flex flex-col gap-4">
+            <label className="flex flex-col gap-2 text-sm font-medium">
+              {copy.email}
+              <input type="email" required autoComplete="username" value={email} onChange={(event) => setEmail(event.target.value)} disabled={pending} className="rounded-full border border-border bg-background px-4 py-3 outline-none focus:border-accent" />
+            </label>
+            <label className="flex flex-col gap-2 text-sm font-medium">
+              {copy.password}
+              <span className="relative">
+                <KeyRound className="absolute start-4 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
+                <input type={showPassword ? 'text' : 'password'} required autoComplete="current-password" value={password} onChange={(event) => setPassword(event.target.value)} disabled={pending} className="w-full rounded-full border border-border bg-background py-3 ps-11 pe-12 outline-none focus:border-accent" />
+                <button type="button" onClick={() => setShowPassword((value) => !value)} className="absolute end-3 top-1/2 flex size-8 -translate-y-1/2 items-center justify-center rounded-full text-muted-foreground hover:text-foreground" aria-label={showPassword ? 'Hide password' : 'Show password'}>
+                  {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                </button>
+              </span>
+            </label>
+            <button type="submit" disabled={pending} className="mt-2 inline-flex items-center justify-center gap-2 rounded-full bg-foreground px-5 py-3 text-sm font-bold text-background disabled:opacity-60">
+              {pending ? <Loader2 className="size-4 animate-spin" /> : <Lock className="size-4" />}
+              {copy.login}
+              <ArrowRight className="size-4 rtl:rotate-180" />
+            </button>
+          </form>
+        ) : (
+          <form onSubmit={handleMfa} className="mt-6 flex flex-col gap-4">
+            {step === 'enroll' && qrCode ? (
+              <div className="flex flex-col items-center gap-3 rounded-2xl bg-background p-4 ring-1 ring-border">
+                <img src={qrCode} alt="TOTP enrollment QR code" className="size-48 rounded-xl" />
+                <code className="max-w-full break-all text-center text-xs text-muted-foreground">{secret}</code>
+              </div>
+            ) : null}
+            <label className="flex flex-col gap-2 text-sm font-medium">
+              {copy.mfaTitle}
+              <input inputMode="numeric" pattern="[0-9]{6}" maxLength={6} required autoComplete="one-time-code" value={code} onChange={(event) => setCode(event.target.value.replace(/\D/g, '').slice(0, 6))} disabled={pending} className="rounded-full border border-border bg-background px-4 py-3 text-center font-mono text-xl tracking-[0.35em] outline-none focus:border-accent" />
+            </label>
+            <button type="submit" disabled={pending} className="inline-flex items-center justify-center gap-2 rounded-full bg-foreground px-5 py-3 text-sm font-bold text-background disabled:opacity-60">
+              {pending ? <Loader2 className="size-4 animate-spin" /> : <ShieldCheck className="size-4" />}
+              {copy.verify}
+            </button>
+          </form>
+        )}
+
+        <a href="/" className="mt-6 block text-center text-sm text-muted-foreground underline-offset-4 hover:underline">{locale === 'ar' ? 'العودة إلى الموقع' : 'Return to storefront'}</a>
+      </section>
+    </main>
+  )
 }

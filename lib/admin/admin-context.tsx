@@ -1,34 +1,14 @@
 'use client'
 
-import React, { createContext, useContext, useEffect, useState } from 'react'
-import {
-  getStoredContent,
-  saveContent as persistContent,
-  resetToDefault as persistReset,
-  exportBackupJson,
-  parseAndValidateBackup,
-  CONTENT_UPDATE_EVENT,
-} from './content-store'
+import { createContext, useContext, useEffect, useState } from 'react'
+import { createClient } from '@/lib/supabase/client'
+import { defaultSiteContent } from './default-content'
 import { adminI18n, type AdminDictionary, type AdminLocale } from './admin-i18n'
 import type { SiteFullContent } from './types'
 
-export type AdminTab =
-  | 'dashboard'
-  | 'pages'
-  | 'cars'
-  | 'products'
-  | 'blog'
-  | 'orders'
-  | 'customers'
-  | 'settings'
-
+export type AdminTab = 'dashboard' | 'pages' | 'cars' | 'products' | 'blog' | 'orders' | 'inquiries' | 'customers' | 'settings'
 export type AdminTheme = 'dark' | 'light'
-
-type ToastMessage = {
-  id: string
-  message: string
-  type: 'success' | 'error' | 'info'
-}
+type ToastMessage = { id: string; message: string; type: 'success' | 'error' | 'info' }
 
 type AdminContextType = {
   locale: AdminLocale
@@ -36,20 +16,20 @@ type AdminContextType = {
   t: AdminDictionary
   dir: 'rtl' | 'ltr'
   theme: AdminTheme
-  setTheme: (th: AdminTheme) => void
+  setTheme: (theme: AdminTheme) => void
   toggleTheme: () => void
   activeTab: AdminTab
   setActiveTab: (tab: AdminTab) => void
   content: SiteFullContent
-  updateContent: (updater: (prev: SiteFullContent) => SiteFullContent) => void
-  saveAll: () => boolean
+  updateContent: (updater: (previous: SiteFullContent) => SiteFullContent) => void
+  saveAll: () => Promise<boolean>
   isSaving: boolean
-  changePassword: (oldPass: string, newPass: string) => boolean
+  changePassword: (oldPassword: string, newPassword: string) => Promise<boolean>
   resetDefaults: () => void
   exportBackup: () => void
-  importBackup: (jsonStr: string) => boolean
+  importBackup: (json: string) => boolean
   toasts: ToastMessage[]
-  showToast: (message: string, type?: 'success' | 'error' | 'info') => void
+  showToast: (message: string, type?: ToastMessage['type']) => void
   removeToast: (id: string) => void
 }
 
@@ -57,183 +37,125 @@ const AdminContext = createContext<AdminContextType | null>(null)
 
 export function AdminProvider({ children }: { children: React.ReactNode }) {
   const [locale, setLocaleState] = useState<AdminLocale>('ar')
-  // The admin follows the storefront's light-first design system; the dark
-  // toggle stays available as a preference, not the default.
   const [theme, setThemeState] = useState<AdminTheme>('light')
   const [activeTab, setActiveTab] = useState<AdminTab>('dashboard')
-  const [content, setContent] = useState<SiteFullContent>(getStoredContent)
+  const [content, setContent] = useState<SiteFullContent>(defaultSiteContent)
   const [isSaving, setIsSaving] = useState(false)
   const [toasts, setToasts] = useState<ToastMessage[]>([])
 
-  // Load user preferences for admin theme & locale
   useEffect(() => {
-    try {
-      const savedTheme = localStorage.getItem('alifleet_admin_theme') as AdminTheme | null
-      if (savedTheme === 'light' || savedTheme === 'dark') {
-        setThemeState(savedTheme)
-      }
-      const savedLocale = localStorage.getItem('alifleet_admin_locale') as AdminLocale | null
-      if (savedLocale === 'ar' || savedLocale === 'en' || savedLocale === 'he') {
-        setLocaleState(savedLocale)
-      }
-    } catch {
-      // ignore
-    }
+    const savedTheme = localStorage.getItem('alifleet_admin_theme') as AdminTheme | null
+    const savedLocale = localStorage.getItem('alifleet_admin_locale') as AdminLocale | null
+    if (savedTheme === 'light' || savedTheme === 'dark') setThemeState(savedTheme)
+    if (savedLocale === 'ar' || savedLocale === 'en' || savedLocale === 'he') setLocaleState(savedLocale)
   }, [])
 
-  // The theme is scoped to the admin wrapper div below (the `.dark`
-  // custom variant targets `.dark *`). We deliberately do NOT touch
-  // document.documentElement — a class there leaks into the public
-  // storefront when the admin navigates back without a full reload.
-
-  // Sync content updates
   useEffect(() => {
-    function handleUpdate(e: Event) {
-      const customEvent = e as CustomEvent<SiteFullContent>
-      if (customEvent.detail) {
-        setContent(customEvent.detail)
-      }
+    async function loadContent() {
+      const response = await fetch('/api/admin/content', { cache: 'no-store' })
+      if (response.ok) setContent(await response.json())
     }
-    window.addEventListener(CONTENT_UPDATE_EVENT, handleUpdate)
-    return () => window.removeEventListener(CONTENT_UPDATE_EVENT, handleUpdate)
+    loadContent().catch(() => undefined)
+    window.addEventListener('alifleet-admin-authenticated', loadContent)
+    return () => window.removeEventListener('alifleet-admin-authenticated', loadContent)
   }, [])
 
-  const setLocale = (loc: AdminLocale) => {
-    setLocaleState(loc)
-    try {
-      localStorage.setItem('alifleet_admin_locale', loc)
-    } catch {}
-  }
+  const setLocale = (value: AdminLocale) => { setLocaleState(value); localStorage.setItem('alifleet_admin_locale', value) }
+  const setTheme = (value: AdminTheme) => { setThemeState(value); localStorage.setItem('alifleet_admin_theme', value) }
+  const toggleTheme = () => setTheme(theme === 'dark' ? 'light' : 'dark')
 
-  const setTheme = (th: AdminTheme) => {
-    setThemeState(th)
-    try {
-      localStorage.setItem('alifleet_admin_theme', th)
-    } catch {}
+  const showToast = (message: string, type: ToastMessage['type'] = 'success') => {
+    const id = crypto.randomUUID()
+    setToasts((current) => [...current, { id, message, type }])
+    window.setTimeout(() => setToasts((current) => current.filter((toast) => toast.id !== id)), 4000)
   }
+  const removeToast = (id: string) => setToasts((current) => current.filter((toast) => toast.id !== id))
+  const updateContent = (updater: (previous: SiteFullContent) => SiteFullContent) => setContent(updater)
 
-  const toggleTheme = () => {
-    setTheme(theme === 'dark' ? 'light' : 'dark')
-  }
-
-  const showToast = (message: string, type: 'success' | 'error' | 'info' = 'success') => {
-    const id = Math.random().toString(36).substring(2, 9)
-    setToasts((prev) => [...prev, { id, message, type }])
-    setTimeout(() => {
-      setToasts((prev) => prev.filter((t) => t.id !== id))
-    }, 4000)
-  }
-
-  const removeToast = (id: string) => {
-    setToasts((prev) => prev.filter((t) => t.id !== id))
-  }
-
-  const updateContent = (updater: (prev: SiteFullContent) => SiteFullContent) => {
-    setContent((prev) => {
-      const next = updater(prev)
-      persistContent(next)
-      return next
+  const persist = async (value: SiteFullContent) => {
+    const response = await fetch('/api/admin/content', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(value),
     })
+    if (!response.ok) throw new Error('save_failed')
+    const result = await response.json()
+    setContent((current) => ({ ...current, lastSaved: result.lastSaved || current.lastSaved }))
   }
 
-  const saveAll = (): boolean => {
+  const saveAll = async () => {
     setIsSaving(true)
-    const success = persistContent(content)
-    setTimeout(() => {
+    try {
+      await persist(content)
+      showToast(adminI18n[locale].header.savedSuccess, 'success')
+      return true
+    } catch {
+      showToast(locale === 'ar' ? 'تعذر الحفظ في قاعدة البيانات.' : 'Could not save to the database.', 'error')
+      return false
+    } finally {
       setIsSaving(false)
-      if (success) {
-        showToast(adminI18n[locale].header.savedSuccess, 'success')
-      } else {
-        showToast('Error saving data', 'error')
-      }
-    }, 400)
-    return success
+    }
   }
 
   const resetDefaults = () => {
-    const fresh = persistReset()
-    setContent(fresh)
-    showToast('Reset to factory defaults successfully', 'info')
+    setContent(defaultSiteContent)
+    persist(defaultSiteContent)
+      .then(() => showToast(locale === 'ar' ? 'تمت استعادة محتوى البذرة.' : 'Seed content restored.', 'info'))
+      .catch(() => showToast(locale === 'ar' ? 'تعذرت استعادة المحتوى.' : 'Could not restore content.', 'error'))
   }
 
   const exportBackup = () => {
-    exportBackupJson(content)
-    showToast('Backup JSON downloaded', 'success')
+    const safeBackup = {
+      version: content.version, exportedAt: new Date().toISOString(), branding: content.branding,
+      commerce: content.commerce, seo: content.seo, maintenance: content.maintenance, general: content.general,
+      pages: content.pages, cars: content.cars, products: content.products, blog: content.blog,
+    }
+    const anchor = document.createElement('a')
+    anchor.href = URL.createObjectURL(new Blob([JSON.stringify(safeBackup, null, 2)], { type: 'application/json' }))
+    anchor.download = `alifleet-content-${new Date().toISOString().slice(0, 10)}.json`
+    anchor.click()
+    URL.revokeObjectURL(anchor.href)
+    showToast(locale === 'ar' ? 'تم تنزيل نسخة المحتوى دون بيانات شخصية.' : 'Content-only backup downloaded.')
   }
 
-  const importBackup = (jsonStr: string): boolean => {
-    const parsed = parseAndValidateBackup(jsonStr)
-    if (!parsed) {
-      showToast('Invalid backup JSON format', 'error')
+  const importBackup = (json: string) => {
+    try {
+      const parsed = JSON.parse(json) as Partial<SiteFullContent>
+      if (!parsed.pages?.home || !Array.isArray(parsed.cars) || !Array.isArray(parsed.products) || !Array.isArray(parsed.blog)) throw new Error('invalid')
+      setContent((current) => ({ ...current, ...parsed, security: current.security, notifications: current.notifications, orders: current.orders, customers: current.customers, inquiries: current.inquiries }))
+      showToast(locale === 'ar' ? 'تم فحص النسخة. اضغط حفظ لتطبيقها.' : 'Backup validated. Save to apply it.', 'info')
+      return true
+    } catch {
+      showToast(locale === 'ar' ? 'ملف النسخة غير صالح.' : 'Invalid backup file.', 'error')
       return false
     }
-    setContent(parsed)
-    persistContent(parsed)
-    showToast('Backup restored successfully!', 'success')
-    return true
   }
 
-  const changePassword = (oldPass: string, newPass: string): boolean => {
-    const currentPass = content.security?.passwordHash || 'alifleet2026'
-    if (oldPass !== currentPass) {
-      showToast(adminI18n[locale].settings.security.wrongPasswordError, 'error')
-      return false
-    }
-    if (!newPass || newPass.length < 6) {
-      showToast(adminI18n[locale].settings.security.passwordEmptyError, 'error')
-      return false
-    }
-
-    updateContent((prev) => ({
-      ...prev,
-      security: {
-        ...prev.security,
-        passwordHash: newPass,
-        lastPasswordChange: new Date().toISOString().slice(0, 10),
-      },
-    }))
+  const changePassword = async (oldPassword: string, newPassword: string) => {
+    const supabase = createClient()
+    const { data } = await supabase.auth.getUser()
+    if (!data.user?.email || newPassword.length < 8) { showToast(adminI18n[locale].settings.security.passwordEmptyError, 'error'); return false }
+    const signIn = await supabase.auth.signInWithPassword({ email: data.user.email, password: oldPassword })
+    if (signIn.error) { showToast(adminI18n[locale].settings.security.wrongPasswordError, 'error'); return false }
+    const update = await supabase.auth.updateUser({ password: newPassword })
+    if (update.error) { showToast(locale === 'ar' ? 'تعذر تحديث كلمة المرور.' : 'Could not update password.', 'error'); return false }
+    await fetch('/api/admin/session', { method: 'PATCH' })
     showToast(adminI18n[locale].settings.security.passwordChangedSuccess, 'success')
     return true
   }
 
-  const dict = adminI18n[locale] || adminI18n.ar
-
+  const dictionary = adminI18n[locale] || adminI18n.ar
   return (
-    <AdminContext.Provider
-      value={{
-        locale,
-        setLocale,
-        t: dict,
-        dir: dict.dir,
-        theme,
-        setTheme,
-        toggleTheme,
-        activeTab,
-        setActiveTab,
-        content,
-        updateContent,
-        saveAll,
-        isSaving,
-        changePassword,
-        resetDefaults,
-        exportBackup,
-        importBackup,
-        toasts,
-        showToast,
-        removeToast,
-      }}
-    >
-      <div className={`${theme} min-h-screen font-sans`} dir={dict.dir}>
-        {children}
-      </div>
+    <AdminContext.Provider value={{
+      locale, setLocale, t: dictionary, dir: dictionary.dir, theme, setTheme, toggleTheme, activeTab, setActiveTab,
+      content, updateContent, saveAll, isSaving, changePassword, resetDefaults, exportBackup, importBackup,
+      toasts, showToast, removeToast,
+    }}>
+      <div className={`${theme} admin-shell min-h-screen font-sans`} dir={dictionary.dir} lang={locale}>{children}</div>
     </AdminContext.Provider>
   )
 }
 
 export function useAdmin() {
-  const ctx = useContext(AdminContext)
-  if (!ctx) {
-    throw new Error('useAdmin must be used within an AdminProvider')
-  }
-  return ctx
+  const context = useContext(AdminContext)
+  if (!context) throw new Error('useAdmin must be used within an AdminProvider')
+  return context
 }

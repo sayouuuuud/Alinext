@@ -1,48 +1,34 @@
+import { revalidateTag } from 'next/cache'
 import { NextResponse } from 'next/server'
-import fs from 'fs'
-import path from 'path'
-import { defaultSiteContent } from '@/lib/admin/default-content'
+import { getAdminSiteContent, SITE_CONTENT_TAG } from '@/lib/content/repository'
+import { saveAdminContent } from '@/lib/admin/content-repository'
+import { AdminSessionError, validateAdminSession } from '@/lib/admin/session-server'
 import type { SiteFullContent } from '@/lib/admin/types'
 
-const DATA_DIR = path.join(process.cwd(), 'data')
-const CONTENT_FILE = path.join(DATA_DIR, 'site-content.json')
+export const dynamic = 'force-dynamic'
 
-function ensureDirectoryExists() {
-  if (!fs.existsSync(DATA_DIR)) {
-    fs.mkdirSync(DATA_DIR, { recursive: true })
-  }
+function json(body: object, status = 200) {
+  return NextResponse.json(body, { status, headers: { 'Cache-Control': 'no-store' } })
 }
 
 export async function GET() {
   try {
-    ensureDirectoryExists()
-    if (fs.existsSync(CONTENT_FILE)) {
-      const raw = fs.readFileSync(CONTENT_FILE, 'utf8')
-      const parsed = JSON.parse(raw)
-      if (parsed && parsed.pages && parsed.version === defaultSiteContent.version) {
-        return NextResponse.json(parsed)
-      }
-    }
-    // Return default if file doesn't exist or is older version
-    return NextResponse.json(defaultSiteContent)
+    await validateAdminSession()
+    return json(await getAdminSiteContent())
   } catch (error) {
-    console.warn('API /api/admin/content GET error:', error)
-    return NextResponse.json(defaultSiteContent)
+    return json({ error: error instanceof AdminSessionError ? error.code : 'content_unavailable' }, error instanceof AdminSessionError ? 401 : 500)
   }
 }
 
 export async function POST(request: Request) {
   try {
-    const payload = (await request.json()) as SiteFullContent
-    if (!payload || !payload.pages) {
-      return NextResponse.json({ error: 'Invalid content payload' }, { status: 400 })
-    }
-
-    ensureDirectoryExists()
-    fs.writeFileSync(CONTENT_FILE, JSON.stringify(payload, null, 2), 'utf8')
-    return NextResponse.json({ success: true, lastSaved: payload.lastSaved })
+    const session = await validateAdminSession()
+    const payload = await request.json() as SiteFullContent
+    const saved = await saveAdminContent(payload, session)
+    revalidateTag(SITE_CONTENT_TAG, { expire: 0 })
+    return json({ success: true, lastSaved: saved.lastSaved })
   } catch (error) {
-    console.error('API /api/admin/content POST error:', error)
-    return NextResponse.json({ error: 'Failed to save content' }, { status: 500 })
+    const unauthorized = error instanceof AdminSessionError
+    return json({ error: unauthorized ? error.code : 'save_failed' }, unauthorized ? 401 : 400)
   }
 }

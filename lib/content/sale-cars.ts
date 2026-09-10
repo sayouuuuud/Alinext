@@ -8,7 +8,8 @@ export type SaleCarsStatus = 'ok' | 'empty'
 export type SaleInventory = { cars: SaleCar[]; status: SaleCarsStatus }
 
 export async function getSaleCars(): Promise<SaleInventory> {
-  const cars = getSiteContent().cars
+  const content = await getSiteContent()
+  const cars = content.cars
     .filter((car) => car.type === 'sale')
     .map(carToSale)
     .sort((a, b) => Number(Boolean(b.featured)) - Number(Boolean(a.featured)))
@@ -16,16 +17,12 @@ export async function getSaleCars(): Promise<SaleInventory> {
 }
 
 export async function getSaleCar(slug: string): Promise<SaleCar | null> {
-  const car = getSiteContent().cars.find(
-    (item) => item.id === slug && item.type === 'sale'
-  )
+  const content = await getSiteContent()
+  const car = content.cars.find((item) => item.id === slug && item.type === 'sale')
   return car ? carToSale(car) : null
 }
 
-export async function getSimilarSaleCars(
-  car: SaleCar,
-  limit = 3
-): Promise<SaleCar[]> {
+export async function getSimilarSaleCars(car: SaleCar, limit = 3): Promise<SaleCar[]> {
   const { cars } = await getSaleCars()
   const others = cars.filter((item) => item.slug !== car.slug)
   return [

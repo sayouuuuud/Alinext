@@ -8,11 +8,11 @@ import {
   Package,
   FileText,
   ShoppingBag,
+  MessageSquareText,
   Users,
   Settings,
   ChevronLeft,
   ChevronRight,
-  Sparkles,
 } from 'lucide-react'
 import { useAdmin, type AdminTab } from '@/lib/admin/admin-context'
 
@@ -68,6 +68,13 @@ export function AdminSidebar() {
       badgeColor: pendingOrdersCount > 0 ? 'bg-amber-500 text-white animate-pulse' : 'bg-muted text-muted-foreground',
     },
     {
+      id: 'inquiries',
+      label: t.tabs.inquiries ?? 'Inquiries',
+      icon: MessageSquareText,
+      badge: content.inquiries?.filter((inquiry) => inquiry.status === 'new').length || 0,
+      badgeColor: 'bg-muted text-muted-foreground',
+    },
+    {
       id: 'customers',
       label: t.tabs.customers,
       icon: Users,
@@ -84,27 +91,27 @@ export function AdminSidebar() {
   return (
     <aside
       className={`relative flex flex-col border-e border-border bg-card transition-all duration-300 ${
-        collapsed ? 'w-16' : 'w-64'
+        collapsed ? 'w-20' : 'w-72'
       }`}
     >
       {/* Collapse Toggle Button */}
       <button
         type="button"
         onClick={() => setCollapsed(!collapsed)}
-        className={`absolute -end-3 top-20 z-40 flex h-6 w-6 items-center justify-center rounded-full border border-border bg-card text-foreground shadow-md transition-transform hover:bg-muted ${
+        className={`absolute -end-3.5 top-20 z-40 flex size-7 items-center justify-center rounded-full border border-border bg-card text-foreground shadow-md transition-transform hover:bg-muted ${
           dir === 'rtl' ? 'rotate-180' : ''
         }`}
         title={collapsed ? 'توسيع القائمة' : 'تصغير القائمة'}
       >
         {collapsed ? (
-          <ChevronRight className="h-3.5 w-3.5" />
+          <ChevronRight className="size-4" />
         ) : (
-          <ChevronLeft className="h-3.5 w-3.5" />
+          <ChevronLeft className="size-4" />
         )}
       </button>
 
       {/* Navigation Items */}
-      <nav className="flex-1 space-y-1.5 p-3">
+      <nav className="flex flex-1 flex-col gap-2 p-4">
         {navItems.map((item) => {
           const Icon = item.icon
           const isActive = activeTab === item.id
@@ -114,25 +121,25 @@ export function AdminSidebar() {
               key={item.id}
               type="button"
               onClick={() => setActiveTab(item.id)}
-              className={`group flex w-full items-center gap-3 rounded-full px-4 py-2.5 text-xs font-semibold transition-all ${
+              className={`group flex w-full items-center gap-4 rounded-full px-5 py-3.5 text-sm font-semibold transition-all ${
                 isActive
                   ? 'bg-foreground text-background shadow-sm'
                   : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
-              } ${collapsed ? 'justify-center px-2' : ''}`}
+              } ${collapsed ? 'justify-center px-3' : ''}`}
               title={collapsed ? item.label : undefined}
             >
               <Icon
-                className={`h-4 w-4 shrink-0 transition-transform group-hover:scale-110 ${
+                className={`size-5 shrink-0 transition-transform group-hover:scale-110 ${
                   isActive ? 'text-background' : 'text-accent'
                 }`}
               />
 
               {!collapsed && (
-                <div className="flex flex-1 items-center justify-between overflow-hidden">
+                <div className="flex min-w-0 flex-1 items-center justify-between overflow-hidden">
                   <span className="truncate text-start">{item.label}</span>
                   {item.badge !== undefined && (
                     <span
-                      className={`ms-2 rounded-full px-2 py-0.5 text-[10px] font-bold ${
+                      className={`ms-2 rounded-full px-2.5 py-0.5 text-sm font-bold ${
                         isActive
                           ? 'bg-background/15 text-background'
                           : item.badgeColor || 'bg-muted text-muted-foreground'
@@ -150,14 +157,14 @@ export function AdminSidebar() {
 
       {/* Footer Info Box */}
       {!collapsed && (
-        <div className="p-3.5 m-3 rounded-2xl bg-secondary">
-          <div className="flex items-center gap-2">
-            <div className="h-2 w-2 rounded-full bg-accent animate-pulse" />
-            <span className="text-[11px] font-semibold text-foreground">
+        <div className="m-4 rounded-2xl bg-secondary p-4">
+          <div className="flex items-center gap-2.5">
+            <div className="size-2.5 rounded-full bg-accent animate-pulse" />
+            <span className="text-sm font-semibold text-foreground">
               ALI FLEET Engine
             </span>
           </div>
-          <p className="mt-1 text-[10px] text-muted-foreground">
+          <p className="mt-1.5 text-sm leading-6 text-muted-foreground">
             نظام إدارة فوري ومزود بـ 3 لغات (AR, HE, EN)
           </p>
         </div>

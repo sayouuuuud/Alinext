@@ -245,6 +245,23 @@ html[lang='he'] {
   --font-serif: var(--font-noto-hebrew), sans-serif;
 }
 
+/* The admin locale is independent from the storefront locale, so its nested
+   language scope must select the matching typeface explicitly. */
+.admin-shell[lang='ar'] {
+  --font-sans: var(--font-cairo), sans-serif;
+  --font-serif: var(--font-cairo), sans-serif;
+}
+
+.admin-shell[lang='he'] {
+  --font-sans: var(--font-noto-hebrew), sans-serif;
+  --font-serif: var(--font-noto-hebrew), sans-serif;
+}
+
+.admin-shell[lang='en'] {
+  --font-sans: var(--font-geist-sans), 'Geist Fallback', sans-serif;
+  --font-serif: var(--font-fraunces), 'Fraunces Fallback', serif;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
