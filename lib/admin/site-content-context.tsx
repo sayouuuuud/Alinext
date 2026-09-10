@@ -1,9 +1,8 @@
 'use client'
 
-import { createContext, useContext, useEffect, useState } from 'react'
+import { createContext, useContext, useEffect } from 'react'
 import { usePathname } from 'next/navigation'
 import { MaintenanceScreen } from '@/components/maintenance-screen'
-import { defaultSiteContent } from './default-content'
 import type { MultiLangString, SiteFullContent } from './types'
 import type { Locale } from '@/lib/i18n/config'
 
@@ -12,21 +11,22 @@ type SiteContentContextValue = {
   tStr: (item?: MultiLangString | null, locale?: Locale) => string
 }
 
-const SiteContentContext = createContext<SiteContentContextValue>({
-  content: defaultSiteContent,
-  tStr: (item, locale = 'he') => item?.[locale] || item?.en || item?.ar || item?.he || '',
-})
+const SiteContentContext = createContext<SiteContentContextValue | null>(null)
 
-export function SiteContentProvider({ children, initialContent }: { children: React.ReactNode; initialContent?: SiteFullContent }) {
-  const [content, setContent] = useState<SiteFullContent>(initialContent ?? defaultSiteContent)
+export function SiteContentProvider({
+  children,
+  initialContent,
+}: {
+  children: React.ReactNode
+  initialContent: SiteFullContent
+}) {
   const pathname = usePathname()
+  const content = initialContent
 
   useEffect(() => {
-    if (initialContent) setContent(initialContent)
-  }, [initialContent])
-
-  useEffect(() => {
-    if (content.branding?.accentColor) document.documentElement.style.setProperty('--primary', content.branding.accentColor)
+    if (content.branding?.accentColor) {
+      document.documentElement.style.setProperty('--primary', content.branding.accentColor)
+    }
     if (content.branding?.faviconUrl) {
       const link = (document.querySelector("link[rel*='icon']") || document.createElement('link')) as HTMLLinkElement
       link.type = 'image/x-icon'
@@ -36,7 +36,8 @@ export function SiteContentProvider({ children, initialContent }: { children: Re
     }
   }, [content.branding])
 
-  const tStr = (item?: MultiLangString | null, locale: Locale = 'he') => item?.[locale] || item?.en || item?.ar || item?.he || ''
+  const tStr = (item?: MultiLangString | null, locale: Locale = 'he') =>
+    item?.[locale] || item?.en || item?.ar || item?.he || ''
   const isMaintenanceActive = Boolean(content.maintenance?.enabled)
   const isPrivateRoute = pathname?.startsWith('/admin') || pathname?.startsWith('/account') || pathname?.startsWith('/auth')
 
@@ -48,5 +49,7 @@ export function SiteContentProvider({ children, initialContent }: { children: Re
 }
 
 export function useSiteContent() {
-  return useContext(SiteContentContext)
+  const context = useContext(SiteContentContext)
+  if (!context) throw new Error('useSiteContent must be used inside SiteContentProvider')
+  return context
 }

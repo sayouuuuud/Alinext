@@ -9,6 +9,37 @@ import type { SiteFullContent } from './types'
 export type AdminTab = 'dashboard' | 'pages' | 'cars' | 'products' | 'blog' | 'orders' | 'inquiries' | 'customers' | 'settings'
 export type AdminTheme = 'dark' | 'light'
 type ToastMessage = { id: string; message: string; type: 'success' | 'error' | 'info' }
+type SaveScope = Exclude<AdminTab, 'dashboard'>
+
+function saveScopeForTab(tab: AdminTab): SaveScope {
+  return tab === 'dashboard' ? 'settings' : tab
+}
+
+function payloadForScope(scope: SaveScope, content: SiteFullContent): unknown {
+  if (scope === 'pages') {
+    return {
+      pages: content.pages,
+      general: {
+        contact: content.general.contact,
+        social: content.general.social,
+        navigation: content.general.navigation,
+        footer: content.general.footer,
+      },
+    }
+  }
+  if (scope === 'settings') {
+    return {
+      branding: content.branding,
+      commerce: content.commerce,
+      seo: content.seo,
+      maintenance: content.maintenance,
+      notifications: content.notifications,
+      security: content.security,
+      currency: content.general.currency,
+    }
+  }
+  return content[scope]
+}
 
 type AdminContextType = {
   locale: AdminLocale
@@ -72,9 +103,11 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
   const removeToast = (id: string) => setToasts((current) => current.filter((toast) => toast.id !== id))
   const updateContent = (updater: (previous: SiteFullContent) => SiteFullContent) => setContent(updater)
 
-  const persist = async (value: SiteFullContent) => {
+  const persist = async (scope: SaveScope, data: unknown) => {
     const response = await fetch('/api/admin/content', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(value),
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ scope, data }),
     })
     if (!response.ok) throw new Error('save_failed')
     const result = await response.json()
@@ -84,11 +117,12 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
   const saveAll = async () => {
     setIsSaving(true)
     try {
-      await persist(content)
+      const scope = saveScopeForTab(activeTab)
+      await persist(scope, payloadForScope(scope, content))
       showToast(adminI18n[locale].header.savedSuccess, 'success')
       return true
     } catch {
-      showToast(locale === 'ar' ? 'تعذر الحفظ في قاعدة البيانات.' : 'Could not save to the database.', 'error')
+      showToast(locale === 'ar' ? 'تعذر حفظ هذا القسم في قاعدة البيانات.' : 'Could not save this section to the database.', 'error')
       return false
     } finally {
       setIsSaving(false)
@@ -97,7 +131,8 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
 
   const resetDefaults = () => {
     setContent(defaultSiteContent)
-    persist(defaultSiteContent)
+    const scopes: SaveScope[] = ['pages', 'cars', 'products', 'blog', 'settings']
+    Promise.all(scopes.map((scope) => persist(scope, payloadForScope(scope, defaultSiteContent))))
       .then(() => showToast(locale === 'ar' ? 'تمت استعادة محتوى البذرة.' : 'Seed content restored.', 'info'))
       .catch(() => showToast(locale === 'ar' ? 'تعذرت استعادة المحتوى.' : 'Could not restore content.', 'error'))
   }

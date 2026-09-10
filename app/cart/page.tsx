@@ -3,6 +3,7 @@ import { SiteHeader } from '@/components/site-header'
 import { SiteFooter } from '@/components/site-footer'
 import { CartScreen } from '@/components/cart-screen'
 import { getCatalog } from '@/lib/content/catalog'
+import { loadCheckoutDefaults } from '@/lib/commerce/queries'
 
 export const metadata: Metadata = {
   title: 'Cart | سلة المشتريات | ALI FLEET',
@@ -11,17 +12,20 @@ export const metadata: Metadata = {
   alternates: {
     canonical: '/cart',
   },
+  robots: { index: false, follow: false },
 }
 
 export default async function CartPage() {
-  // Resolve persisted cart slugs against the current local catalog snapshot.
-  const { parts } = await getCatalog()
+  const [{ parts }, checkoutDefaults] = await Promise.all([
+    getCatalog(),
+    loadCheckoutDefaults(),
+  ])
 
   return (
     <>
       <SiteHeader />
       <main>
-        <CartScreen catalog={parts} />
+        <CartScreen catalog={parts} checkoutDefaults={checkoutDefaults} />
       </main>
       <SiteFooter />
     </>

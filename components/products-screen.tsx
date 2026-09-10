@@ -1,15 +1,13 @@
 'use client'
 
-import { useMemo } from 'react'
 import { PackageX } from 'lucide-react'
 import LocaleLink from '@/components/locale-link'
-import type { PartCategory, PartSummary } from '@/lib/data/parts'
+import type { PartSummary } from '@/lib/data/parts'
 import type { CatalogStatus } from '@/lib/content/catalog'
 import { useLanguage } from '@/lib/i18n/language-context'
 import { PageHero } from '@/components/page-hero'
 import { ProductsBrowser } from '@/components/products-browser'
 import { useSiteContent } from '@/lib/admin/site-content-context'
-import { productToSummary } from '@/lib/content/adapters'
 
 export function ProductsScreen({
   parts,
@@ -24,13 +22,6 @@ export function ProductsScreen({
   const { content, tStr } = useSiteContent()
   const productsPage = content?.pages?.products
 
-  const managedParts = useMemo(
-    () => content.products.map(productToSummary),
-    [content.products]
-  )
-
-  const effectiveParts = managedParts.length > 0 ? managedParts : parts
-
   return (
     <>
       <PageHero
@@ -41,7 +32,7 @@ export function ProductsScreen({
         bannerImage={productsPage?.bannerImage}
       />
 
-      {effectiveParts.length === 0 ? (
+      {parts.length === 0 ? (
         <section className="mx-auto max-w-7xl px-4 pb-24 md:px-8">
           <div className="flex flex-col items-center rounded-3xl bg-card p-12 text-center ring-1 ring-border md:p-20">
             <span className="flex size-16 items-center justify-center rounded-full bg-secondary">
@@ -74,7 +65,7 @@ export function ProductsScreen({
               </p>
             </div>
           )}
-          <ProductsBrowser parts={effectiveParts} />
+          <ProductsBrowser parts={parts} />
         </>
       )}
     </>

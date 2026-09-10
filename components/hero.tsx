@@ -196,6 +196,7 @@ export function Hero({ initialImages }: { initialImages?: PageImages }) {
                 fill
                 className="scale-105 animate-in fade-in object-cover duration-500"
                 priority
+                loading="eager"
                 quality={82}
                 sizes="(max-width: 1024px) 100vw, 60vw"
               />

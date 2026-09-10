@@ -6,16 +6,6 @@ import { createAdminClient } from '@/lib/supabase/server'
 import type { ValidAdminSession } from './session-server'
 import type { BlogPostItem, CarItem, CustomerItem, MultiLangString, ProductItem, SiteFullContent } from './types'
 
-const contentSchema = z.object({
-  version: z.number(),
-  pages: z.object({ home: z.record(z.string(), z.unknown()) }).passthrough(),
-  cars: z.array(z.object({ id: z.string().min(1).max(120) }).passthrough()).max(500),
-  products: z.array(z.object({ id: z.string().min(1).max(120), sku: z.string().min(1).max(120) }).passthrough()).max(2000),
-  blog: z.array(z.object({ id: z.string().min(1).max(120) }).passthrough()).max(1000),
-  orders: z.array(z.unknown()).max(5000),
-  customers: z.array(z.unknown()).max(5000),
-}).passthrough()
-
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 const ID = /^[a-zA-Z0-9][a-zA-Z0-9_-]{0,119}$/
 
@@ -34,44 +24,6 @@ function safeI18n(value: MultiLangString, html = false): MultiLangString {
       })
     : input.slice(0, 50_000)
   return { ar: clean(value.ar || ''), en: clean(value.en || ''), he: clean(value.he || '') }
-}
-
-function sanitizedContent(input: SiteFullContent): SiteFullContent {
-  const parsed = contentSchema.parse(input) as SiteFullContent
-  const content = structuredClone(parsed)
-  delete content.security.passwordHash
-  content.version = 5
-  content.lastSaved = new Date().toISOString()
-  content.commerce.enableCardPayment = false
-  content.commerce.enableCardPayments = false
-  content.commerce.enablePaypal = false
-  content.branding.logoLightUrl = media(content.branding.logoLightUrl, '/images/ali-fleet-logo.png')
-  content.branding.logoDarkUrl = media(content.branding.logoDarkUrl, '/images/ali-fleet-logo.png')
-  content.branding.faviconUrl = media(content.branding.faviconUrl, '/icon.svg')
-  content.cars = content.cars.filter((item) => ID.test(item.id)).map((car) => ({
-    ...car,
-    image: media(car.image, '/images/fleet-truck.png'),
-    images: (car.images || []).map((image) => media(image, car.image || '/images/fleet-truck.png')),
-    title: safeI18n(car.title),
-    description: safeI18n(car.description),
-  }))
-  content.products = content.products.filter((item) => ID.test(item.id)).map((product) => ({
-    ...product,
-    image: media(product.image, '/images/part-brake-pads.png'),
-    images: (product.images || []).map((image) => media(image, product.image || '/images/part-brake-pads.png')),
-    name: safeI18n(product.name),
-    description: safeI18n(product.description),
-  }))
-  content.blog = content.blog.filter((item) => ID.test(item.id)).map((post) => ({
-    ...post,
-    coverImage: media(post.coverImage || post.image, '/images/blog-hero.png'),
-    image: media(post.image || post.coverImage, '/images/blog-hero.png'),
-    authorAvatar: media(post.authorAvatar, '/images/hero-avatars.png'),
-    title: safeI18n(post.title),
-    excerpt: safeI18n(post.excerpt),
-    content: post.content ? safeI18n(post.content, true) : undefined,
-  }))
-  return content
 }
 
 async function syncCars(cars: CarItem[]) {
@@ -167,102 +119,270 @@ async function syncBlog(posts: BlogPostItem[]) {
   if (rows.length) { const { error } = await admin.from('blog_posts').upsert(rows); if (error) throw error }
 }
 
-async function syncSettings(content: SiteFullContent, actorId: string) {
-  const admin = createAdminClient()
-  const taxRate = Number(content.commerce.vatPercentage ?? content.commerce.taxRatePercent ?? 17)
-  const freeShipping = Number(content.commerce.freeDeliveryThreshold ?? content.commerce.freeShippingThreshold ?? 500)
-  const publicSettings = [
-    { key: 'branding', value: content.branding }, { key: 'contact', value: content.general.contact },
-    { key: 'social', value: content.general.social }, { key: 'navigation', value: content.general.navigation || {} },
-    { key: 'footer', value: content.general.footer || {} }, { key: 'maintenance', value: content.maintenance },
-    { key: 'seo', value: content.seo },
-    { key: 'commerce', value: { currency: 'ILS', currency_symbol: content.general.currency || '₪', tax_rate_percent: taxRate, free_shipping_threshold_minor: Math.round(freeShipping * 100), shipping_flat_minor: 5000, online_payments_enabled: false, cod_enabled: true, bank_transfer_enabled: Boolean(content.commerce.enableBankTransfer) } },
-  ]
-  const privateSettings = [
-    { key: 'notifications', value: content.notifications || {} },
-    { key: 'admin_security', value: { session_timeout_minutes: Number(content.security.sessionTimeoutMinutes || 60), notify_on_new_login: Boolean(content.security.notifyOnNewLogin) } },
-  ]
-  const pageRows = Object.entries(content.pages).flatMap(([pageKey, page]) => {
-    if (!page || typeof page !== 'object' || pageKey === 'policies') return []
-    return Object.entries(page).filter(([sectionKey]) => sectionKey !== 'policies').map(([sectionKey, sectionContent], sortOrder) => ({ page_key: pageKey, section_key: sectionKey, content: sectionContent, sort_order: sortOrder, published: true }))
-  })
-  const policySlugs = { privacy: 'privacy-policy', terms: 'terms', refund: 'return-policy' }
-  const policies = content.pages.policies.map((policy) => ({ id: policy.id, slug: policySlugs[policy.id], title: policy.title, content: safeI18n(policy.content, true), last_updated: policy.lastUpdated, published: true }))
-
-  const results = await Promise.all([
-    admin.from('site_settings_public').upsert(publicSettings),
-    admin.from('site_settings_private').upsert(privateSettings),
-    pageRows.length ? admin.from('page_sections').upsert(pageRows, { onConflict: 'page_key,section_key' }) : Promise.resolve({ error: null }),
-    policies.length ? admin.from('policy_pages').upsert(policies) : Promise.resolve({ error: null }),
-  ])
-  const error = results.find((result) => result.error)?.error
-  if (error) throw error
-
-  const documentPayload: SiteFullContent = { ...content, orders: [], customers: [], inquiries: [] }
-  const { error: contentError } = await admin.from('site_content').upsert({ id: 1, payload: documentPayload, version: 6, updated_by: actorId })
-  if (contentError) throw contentError
-}
-
 const transitions: Record<string, string[]> = {
   pending: ['confirmed', 'cancelled'], confirmed: ['processing', 'cancelled'], processing: ['shipping', 'cancelled'],
   shipping: ['delivered', 'cancelled'], delivered: ['completed'], cancelled: [], completed: [],
 }
 
-async function syncOperations(content: SiteFullContent) {
+export type AdminSaveScope =
+  | 'pages'
+  | 'cars'
+  | 'products'
+  | 'blog'
+  | 'orders'
+  | 'customers'
+  | 'inquiries'
+  | 'settings'
+
+const saveScopeSchema = z.enum([
+  'pages',
+  'cars',
+  'products',
+  'blog',
+  'orders',
+  'customers',
+  'inquiries',
+  'settings',
+])
+const objectArraySchema = z.array(z.record(z.string(), z.unknown())).max(5000)
+
+function requireContentRole(session: ValidAdminSession) {
+  if (session.role !== 'owner' && session.role !== 'content_editor') {
+    throw new Error('insufficient_role')
+  }
+}
+
+function requireOperationsRole(session: ValidAdminSession) {
+  if (session.role !== 'owner' && session.role !== 'operations') {
+    throw new Error('insufficient_role')
+  }
+}
+
+async function savePagesScope(data: unknown) {
+  const parsed = z.object({
+    pages: z.record(z.string(), z.unknown()),
+    general: z.object({
+      contact: z.record(z.string(), z.unknown()),
+      social: z.record(z.string(), z.unknown()),
+      navigation: z.record(z.string(), z.unknown()).optional(),
+      footer: z.record(z.string(), z.unknown()).optional(),
+    }),
+  }).parse(data)
   const admin = createAdminClient()
-  const { data: currentOrders, error: orderError } = await admin.from('orders').select('order_number,status')
-  if (orderError) throw orderError
+  const pageRows = Object.entries(parsed.pages).flatMap(([pageKey, page]) => {
+    if (!page || typeof page !== 'object' || pageKey === 'policies') return []
+    return Object.entries(page).map(([sectionKey, sectionContent], sortOrder) => ({
+      page_key: pageKey,
+      section_key: sectionKey,
+      content: sectionContent,
+      sort_order: sortOrder,
+      published: true,
+    }))
+  })
+  const policySlugs = { privacy: 'privacy-policy', terms: 'terms', refund: 'return-policy' }
+  const policies = Array.isArray(parsed.pages.policies)
+    ? (parsed.pages.policies as SiteFullContent['pages']['policies']).map((policy) => ({
+        id: policy.id,
+        slug: policySlugs[policy.id],
+        title: safeI18n(policy.title),
+        content: safeI18n(policy.content, true),
+        last_updated: policy.lastUpdated,
+        published: true,
+      }))
+    : []
+  const results = await Promise.all([
+    admin.from('site_settings_public').upsert([
+      { key: 'contact', value: parsed.general.contact },
+      { key: 'social', value: parsed.general.social },
+      { key: 'navigation', value: parsed.general.navigation || {} },
+      { key: 'footer', value: parsed.general.footer || {} },
+    ]),
+    pageRows.length
+      ? admin.from('page_sections').upsert(pageRows, { onConflict: 'page_key,section_key' })
+      : Promise.resolve({ error: null }),
+    policies.length
+      ? admin.from('policy_pages').upsert(policies)
+      : Promise.resolve({ error: null }),
+  ])
+  const error = results.find((result) => result.error)?.error
+  if (error) throw error
+}
+
+async function saveSettingsScope(data: unknown) {
+  const parsed = z.object({
+    branding: z.record(z.string(), z.unknown()),
+    commerce: z.record(z.string(), z.unknown()),
+    seo: z.record(z.string(), z.unknown()),
+    maintenance: z.record(z.string(), z.unknown()),
+    notifications: z.record(z.string(), z.unknown()),
+    security: z.record(z.string(), z.unknown()),
+    currency: z.string().max(12),
+  }).parse(data)
+  const branding = parsed.branding as unknown as SiteFullContent['branding']
+  branding.logoLightUrl = media(branding.logoLightUrl, '/images/ali-fleet-logo.png')
+  branding.logoDarkUrl = media(branding.logoDarkUrl, '/images/ali-fleet-logo.png')
+  branding.faviconUrl = media(branding.faviconUrl, '/icon.svg')
+  const commerce = parsed.commerce as unknown as SiteFullContent['commerce']
+  const taxRate = Math.min(100, Math.max(0, Number(commerce.vatPercentage ?? commerce.taxRatePercent ?? 17)))
+  const freeShipping = Math.max(0, Number(commerce.freeDeliveryThreshold ?? commerce.freeShippingThreshold ?? 500))
+  const security = parsed.security as unknown as SiteFullContent['security']
+  const admin = createAdminClient()
+  const results = await Promise.all([
+    admin.from('site_settings_public').upsert([
+      { key: 'branding', value: branding },
+      { key: 'maintenance', value: parsed.maintenance },
+      { key: 'seo', value: parsed.seo },
+      {
+        key: 'commerce',
+        value: {
+          currency: 'ILS',
+          currency_symbol: parsed.currency || '₪',
+          tax_rate_percent: taxRate,
+          free_shipping_threshold_minor: Math.round(freeShipping * 100),
+          shipping_flat_minor: 5000,
+          online_payments_enabled: false,
+          cod_enabled: true,
+          bank_transfer_enabled: Boolean(commerce.enableBankTransfer),
+        },
+      },
+    ]),
+    admin.from('site_settings_private').upsert([
+      { key: 'notifications', value: parsed.notifications },
+      {
+        key: 'admin_security',
+        value: {
+          session_timeout_minutes: Math.min(480, Math.max(15, Number(security.sessionTimeoutMinutes || 60))),
+          notify_on_new_login: Boolean(security.notifyOnNewLogin),
+        },
+      },
+    ]),
+  ])
+  const error = results.find((result) => result.error)?.error
+  if (error) throw error
+}
+
+async function saveOrdersScope(data: unknown) {
+  const orders = objectArraySchema.max(5000).parse(data) as unknown as SiteFullContent['orders']
+  const admin = createAdminClient()
+  const { data: currentOrders, error: lookupError } = await admin.from('orders').select('order_number,status')
+  if (lookupError) throw lookupError
   const currentByNumber = new Map((currentOrders || []).map((order) => [order.order_number, order.status]))
-  for (const order of content.orders) {
+  for (const order of orders) {
     const current = currentByNumber.get(order.id)
     if (!current) continue
-    if (order.status !== current && !transitions[current]?.includes(order.status)) throw new Error(`Invalid order transition: ${current} -> ${order.status}`)
+    if (order.status !== current && !transitions[current]?.includes(order.status)) {
+      throw new Error(`Invalid order transition: ${current} -> ${order.status}`)
+    }
     const { error } = await admin.from('orders').update({
-      status: order.status, tracking_number: order.trackingNumber || null, carrier: order.carrier || null,
-      estimated_delivery: order.estimatedDelivery || null, admin_notes: order.notes || null, payment_status: order.paymentStatus,
+      status: order.status,
+      tracking_number: order.trackingNumber || null,
+      carrier: order.carrier || null,
+      estimated_delivery: order.estimatedDelivery || null,
+      admin_notes: order.notes || null,
+      payment_status: order.paymentStatus,
     }).eq('order_number', order.id)
     if (error) throw error
   }
+}
 
-  for (const customer of content.customers) {
+async function saveCustomersScope(data: unknown) {
+  const customers = objectArraySchema.max(5000).parse(data) as unknown as CustomerItem[]
+  const admin = createAdminClient()
+  for (const customer of customers) {
     let userId = customer.id
     if (!UUID.test(userId)) {
       const invitation = await admin.auth.admin.inviteUserByEmail(customer.email, {
         data: { display_name: customer.name, phone: customer.phone, preferred_locale: 'ar' },
-        ...(process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL ? { redirectTo: process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL } : {}),
+        ...(process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL
+          ? { redirectTo: process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL }
+          : {}),
       })
       if (invitation.error) throw invitation.error
       userId = invitation.data.user.id
     }
     const { error } = await admin.from('profiles').update({
-      display_name: customer.name.slice(0, 120), phone: customer.phone.slice(0, 40), tier: customer.tier,
-      status: customer.status, interested_in: customer.interestedIn || null, admin_notes: customer.notes || null,
+      display_name: customer.name.slice(0, 120),
+      phone: customer.phone.slice(0, 40),
+      tier: customer.tier,
+      status: customer.status,
+      interested_in: customer.interestedIn || null,
+      admin_notes: customer.notes || null,
     }).eq('id', userId)
     if (error) throw error
-    const banResult = await admin.auth.admin.updateUserById(userId, { ban_duration: customer.status === 'suspended' ? '876000h' : 'none' })
+    const banResult = await admin.auth.admin.updateUserById(userId, {
+      ban_duration: customer.status === 'suspended' ? '876000h' : 'none',
+    })
     if (banResult.error) throw banResult.error
   }
+}
 
-  for (const inquiry of content.inquiries || []) {
+async function saveInquiriesScope(data: unknown) {
+  const inquiries = objectArraySchema.max(5000).parse(data) as unknown as NonNullable<SiteFullContent['inquiries']>
+  const admin = createAdminClient()
+  for (const inquiry of inquiries) {
     if (!UUID.test(inquiry.id)) continue
     const { error } = await admin.from('inquiries').update({ status: inquiry.status }).eq('id', inquiry.id)
     if (error) throw error
   }
 }
 
-export async function saveAdminContent(input: SiteFullContent, session: ValidAdminSession) {
-  const content = sanitizedContent(input)
-  if (session.role === 'owner' || session.role === 'content_editor') {
-    await syncCars(content.cars)
-    await syncProducts(content.products)
-    await syncBlog(content.blog)
-    await syncSettings(content, session.userId)
+export async function saveAdminSection(
+  rawScope: unknown,
+  data: unknown,
+  session: ValidAdminSession,
+) {
+  const scope = saveScopeSchema.parse(rawScope)
+  if (['pages', 'cars', 'products', 'blog', 'settings'].includes(scope)) {
+    requireContentRole(session)
+  } else {
+    requireOperationsRole(session)
   }
-  if (session.role === 'owner' || session.role === 'operations') await syncOperations(content)
+
+  if (scope === 'pages') await savePagesScope(data)
+  if (scope === 'cars') {
+    const cars = objectArraySchema.max(500).parse(data) as unknown as CarItem[]
+    await syncCars(cars.filter((car) => ID.test(car.id)).map((car) => ({
+      ...car,
+      image: media(car.image, '/images/fleet-truck.png'),
+      images: (car.images || []).map((image) => media(image, car.image || '/images/fleet-truck.png')),
+      title: safeI18n(car.title),
+      description: safeI18n(car.description),
+    })))
+  }
+  if (scope === 'products') {
+    const products = objectArraySchema.max(2000).parse(data) as unknown as ProductItem[]
+    await syncProducts(products.filter((product) => ID.test(product.id) && ID.test(product.sku)).map((product) => ({
+      ...product,
+      image: media(product.image, '/images/part-brake-pads.png'),
+      images: (product.images || []).map((image) => media(image, product.image || '/images/part-brake-pads.png')),
+      name: safeI18n(product.name),
+      description: safeI18n(product.description),
+    })))
+  }
+  if (scope === 'blog') {
+    const posts = objectArraySchema.max(1000).parse(data) as unknown as BlogPostItem[]
+    await syncBlog(posts.filter((post) => ID.test(post.id) && ID.test(post.slug || post.id)).map((post) => ({
+      ...post,
+      coverImage: media(post.coverImage || post.image, '/images/blog-hero.png'),
+      image: media(post.image || post.coverImage, '/images/blog-hero.png'),
+      authorAvatar: media(post.authorAvatar, '/images/hero-avatars.png'),
+      title: safeI18n(post.title),
+      excerpt: safeI18n(post.excerpt),
+      content: post.content ? safeI18n(post.content, true) : undefined,
+    })))
+  }
+  if (scope === 'orders') await saveOrdersScope(data)
+  if (scope === 'customers') await saveCustomersScope(data)
+  if (scope === 'inquiries') await saveInquiriesScope(data)
+  if (scope === 'settings') await saveSettingsScope(data)
+
   const { error } = await createAdminClient().from('admin_audit_log').insert({
-    actor_id: session.userId, action: 'content.save', entity_type: 'site_content', entity_id: '1',
-    after_value: { role: session.role, cars: content.cars.length, products: content.products.length, blog: content.blog.length, orders: content.orders.length },
+    actor_id: session.userId,
+    action: `${scope}.save`,
+    entity_type: scope,
+    entity_id: null,
+    after_value: { role: session.role },
   })
   if (error) throw error
-  return content
+  return { scope, lastSaved: new Date().toISOString() }
 }

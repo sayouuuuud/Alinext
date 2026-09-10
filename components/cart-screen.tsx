@@ -5,13 +5,20 @@ import { useLanguage } from '@/lib/i18n/language-context'
 import { useSiteContent } from '@/lib/admin/site-content-context'
 import { PageHero } from '@/components/page-hero'
 import { CartView } from '@/components/cart-view'
+import type { CheckoutDefaults } from '@/lib/commerce/types'
 
 /**
  * Client shell for the cart page. The catalog arrives from the server so the
  * hero copy can stay localized here while prices come from a fresh read
  * rather than whatever the browser cached.
  */
-export function CartScreen({ catalog }: { catalog: PartSummary[] }) {
+export function CartScreen({
+  catalog,
+  checkoutDefaults,
+}: {
+  catalog: PartSummary[]
+  checkoutDefaults: CheckoutDefaults
+}) {
   const { t, locale } = useLanguage()
   const { content, tStr } = useSiteContent()
 
@@ -24,7 +31,7 @@ export function CartScreen({ catalog }: { catalog: PartSummary[] }) {
   return (
     <>
       <PageHero eyebrow={eyebrow} title={title} lead={lead} bannerImage={page?.bannerImage} />
-      <CartView catalog={catalog} />
+      <CartView catalog={catalog} checkoutDefaults={checkoutDefaults} />
     </>
   )
 }

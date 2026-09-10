@@ -2,18 +2,26 @@ import type { Metadata } from 'next'
 import { SiteHeader } from '@/components/site-header'
 import { SiteFooter } from '@/components/site-footer'
 import { PolicyScreen } from '@/components/policy-screen'
-import { getPrivacyPolicy } from '@/lib/content/policies'
+import { getPrivacyPolicy, getPolicyByLocale } from '@/lib/content/policies'
 import { isLocale } from '@/lib/i18n/config'
+import { getRequestLocale } from '@/lib/i18n/request-locale'
+import { getPublicMetadata } from '@/lib/content/metadata'
 
 export const revalidate = 600
 
-export const metadata: Metadata = {
-  title: 'Privacy Policy | سياسة الخصوصية | ALI FLEET',
-  description:
-    'Official privacy policy and data protection terms for ALI FLEET customers, visitors, and commercial vehicle clients.',
-  alternates: {
-    canonical: '/privacy-policy',
-  },
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await getRequestLocale()
+  const policy = await getPolicyByLocale('privacy', locale)
+  return getPublicMetadata({
+    entityType: 'policy',
+    entityId: 'privacy',
+    locale,
+    fallback: {
+      title: policy?.title || 'Privacy Policy | ALI FLEET',
+      description: 'Official privacy and data protection terms for ALI FLEET customers and visitors.',
+      path: '/privacy-policy',
+    },
+  })
 }
 
 type PageProps = {

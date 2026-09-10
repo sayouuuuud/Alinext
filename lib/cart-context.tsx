@@ -6,20 +6,22 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
+  useTransition,
 } from 'react'
+import { useAuth } from '@/lib/auth/auth-context'
+import { saveCartAction } from '@/lib/commerce/actions'
+import type { CartLine } from '@/lib/commerce/types'
 
-const CART_STORAGE_KEY = 'alifleet-cart'
-
-export type CartLine = {
-  slug: string
-  quantity: number
-}
+export type { CartLine } from '@/lib/commerce/types'
 
 type CartContextValue = {
   lines: CartLine[]
   count: number
   ready: boolean
+  syncing: boolean
+  syncError: boolean
   add: (slug: string, quantity?: number) => void
   setQuantity: (slug: string, quantity: number) => void
   remove: (slug: string) => void
@@ -29,66 +31,79 @@ type CartContextValue = {
 
 const CartContext = createContext<CartContextValue | null>(null)
 
-function parseStored(raw: string | null): CartLine[] {
-  if (!raw) return []
-  try {
-    const parsed = JSON.parse(raw)
-    if (!Array.isArray(parsed)) return []
-    return parsed
-      .filter(
-        (line): line is CartLine =>
-          typeof line?.slug === 'string' && Number.isFinite(line?.quantity)
-      )
-      .map((line) => ({
-        slug: line.slug,
-        quantity: Math.max(1, Math.min(99, Math.round(line.quantity))),
-      }))
-  } catch {
-    return []
+function normalizeLines(lines: CartLine[]) {
+  const quantities = new Map<string, number>()
+  for (const line of lines) {
+    if (!line.slug || !Number.isFinite(line.quantity)) continue
+    quantities.set(
+      line.slug,
+      Math.min(99, (quantities.get(line.slug) || 0) + Math.max(1, Math.round(line.quantity))),
+    )
   }
+  return [...quantities].map(([slug, quantity]) => ({ slug, quantity }))
 }
 
-export function CartProvider({ children }: { children: React.ReactNode }) {
-  const [lines, setLines] = useState<CartLine[]>([])
-  // `ready` prevents a hydration mismatch: the badge only renders once the
-  // client has read localStorage.
-  const [ready, setReady] = useState(false)
+function mergeLines(saved: CartLine[], guest: CartLine[]) {
+  return normalizeLines([...saved, ...guest])
+}
+
+export function CartProvider({
+  children,
+  initialLines = [],
+}: {
+  children: React.ReactNode
+  initialLines?: CartLine[]
+}) {
+  const { signedIn } = useAuth()
+  const normalizedInitial = useMemo(() => normalizeLines(initialLines), [initialLines])
+  const [lines, setLines] = useState<CartLine[]>(normalizedInitial)
+  const [syncError, setSyncError] = useState(false)
+  const [syncing, startSync] = useTransition()
+  const mounted = useRef(false)
+  const wasSignedIn = useRef(signedIn)
+  const lastSaved = useRef(JSON.stringify(normalizedInitial))
 
   useEffect(() => {
-    const stored = parseStored(window.localStorage.getItem(CART_STORAGE_KEY))
-    // Merge rather than replace. A click that lands before this effect runs
-    // would otherwise be thrown away by the stored snapshot, which is why an
-    // item added straight from the catalogue sometimes never appeared in the
-    // cart (QA-06).
-    setLines((pending) => {
-      if (pending.length === 0) return stored
-      const merged = [...stored]
-      for (const line of pending) {
-        const existing = merged.find((entry) => entry.slug === line.slug)
-        if (existing) {
-          existing.quantity = Math.min(99, existing.quantity + line.quantity)
-        } else {
-          merged.push(line)
-        }
+    if (!mounted.current) {
+      mounted.current = true
+      return
+    }
+
+    if (!signedIn) {
+      if (wasSignedIn.current) {
+        setLines([])
+        lastSaved.current = '[]'
       }
-      return merged
-    })
-    setReady(true)
-  }, [])
+      wasSignedIn.current = false
+      return
+    }
 
-  useEffect(() => {
-    if (!ready) return
-    window.localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(lines))
-  }, [lines, ready])
+    const nextLines = wasSignedIn.current ? lines : mergeLines(normalizedInitial, lines)
+    wasSignedIn.current = true
+    if (nextLines !== lines) setLines(nextLines)
+
+    const serialized = JSON.stringify(nextLines)
+    if (serialized === lastSaved.current) return
+    lastSaved.current = serialized
+    setSyncError(false)
+    startSync(async () => {
+      const result = await saveCartAction(nextLines)
+      if (result.status === 'error') {
+        lastSaved.current = ''
+        setSyncError(true)
+      }
+    })
+  }, [lines, normalizedInitial, signedIn])
 
   const add = useCallback((slug: string, quantity = 1) => {
     setLines((current) => {
+      const amount = Math.max(1, Math.round(quantity))
       const existing = current.find((line) => line.slug === slug)
-      if (!existing) return [...current, { slug, quantity }]
+      if (!existing) return [...current, { slug, quantity: Math.min(99, amount) }]
       return current.map((line) =>
         line.slug === slug
-          ? { ...line, quantity: Math.min(99, line.quantity + quantity) }
-          : line
+          ? { ...line, quantity: Math.min(99, line.quantity + amount) }
+          : line,
       )
     })
   }, [])
@@ -100,8 +115,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         : current.map((line) =>
             line.slug === slug
               ? { ...line, quantity: Math.min(99, Math.round(quantity)) }
-              : line
-          )
+              : line,
+          ),
     )
   }, [])
 
@@ -117,20 +132,22 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     return {
       lines,
       count: lines.reduce((total, line) => total + line.quantity, 0),
-      ready,
+      ready: true,
+      syncing,
+      syncError,
       add,
       setQuantity,
       remove,
       clear,
       quantityOf,
     }
-  }, [lines, ready, add, setQuantity, remove, clear])
+  }, [lines, syncing, syncError, add, setQuantity, remove, clear])
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>
 }
 
 export function useCart() {
-  const ctx = useContext(CartContext)
-  if (!ctx) throw new Error('useCart must be used inside a CartProvider')
-  return ctx
+  const context = useContext(CartContext)
+  if (!context) throw new Error('useCart must be used inside a CartProvider')
+  return context
 }

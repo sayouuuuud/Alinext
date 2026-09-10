@@ -9,11 +9,21 @@ import { ImportCustomCta } from '@/components/import-custom-cta'
 import { getVehicles } from '@/lib/content/vehicles'
 import { getSaleCars } from '@/lib/content/sale-cars'
 import { getCarsPageCopy } from '@/lib/content/page-content'
+import { getPublicMetadata } from '@/lib/content/metadata'
+import { getRequestLocale } from '@/lib/i18n/request-locale'
 
-export const metadata: Metadata = {
-  title: 'Cars | ALI FLEET',
-  description:
-    'Cars for sale from our own yard, plus vehicle import from Germany, the UAE, the USA, Japan, Korea and Belgium — sourcing, inspection, shipping and customs handled end to end.',
+export async function generateMetadata(): Promise<Metadata> {
+  return getPublicMetadata({
+    entityType: 'page',
+    entityId: 'cars',
+    locale: await getRequestLocale(),
+    fallback: {
+      title: 'Cars | ALI FLEET',
+      description: 'Cars for sale and managed vehicle import from sourcing through customs and delivery.',
+      path: '/cars',
+      image: '/images/import-luxury-suv.png',
+    },
+  })
 }
 
 /**

@@ -15,6 +15,7 @@ import { LanguageProvider } from '@/lib/i18n/language-context'
 import { CartProvider } from '@/lib/cart-context'
 import { AuthProvider } from '@/lib/auth/auth-context'
 import { loadViewer } from '@/lib/auth/queries'
+import { loadCartLines } from '@/lib/commerce/queries'
 import { StoreProvider } from '@/lib/store-context'
 import { siteUrl } from '@/lib/seo'
 import { serializeJsonLd } from '@/lib/json-ld'
@@ -120,10 +121,11 @@ export default async function RootLayout({
   const locale = await getRequestLocale()
   const meta = localeMeta[locale]
 
-  const [storeSettings, initialSiteContent, viewer] = await Promise.all([
+  const [storeSettings, initialSiteContent, viewer, initialCartLines] = await Promise.all([
     getStoreSettings(locale),
     getSiteContent(),
     loadViewer(),
+    loadCartLines(),
   ])
 
   return (
@@ -131,6 +133,7 @@ export default async function RootLayout({
       lang={meta.htmlLang}
       dir={meta.dir}
       className={`bg-background ${geistSans.variable} ${geistMono.variable} ${fraunces.variable} ${cairo.variable} ${notoHebrew.variable}`}
+      data-scroll-behavior="smooth"
     >
       <body className="antialiased">
         {/* Organization data comes from the same local content source as the site. */}
@@ -169,7 +172,7 @@ export default async function RootLayout({
           <SiteContentProvider initialContent={initialSiteContent}>
             <StoreProvider>
               <AuthProvider viewer={viewer} backendReady>
-                <CartProvider>{children}</CartProvider>
+                <CartProvider initialLines={initialCartLines}>{children}</CartProvider>
               </AuthProvider>
             </StoreProvider>
           </SiteContentProvider>

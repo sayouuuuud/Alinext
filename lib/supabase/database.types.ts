@@ -190,6 +190,33 @@ type AdminSessionRow = {
   created_at: string
 }
 
+type OrderStatusHistoryRow = {
+  id: string
+  order_id: string
+  from_status: Database['public']['Enums']['order_status'] | null
+  to_status: Database['public']['Enums']['order_status']
+  note: string | null
+  changed_by: string | null
+  created_at: string
+}
+
+type InquiryRow = {
+  id: string
+  user_id: string | null
+  kind: string
+  entity_id: string | null
+  name: string
+  email: string
+  phone: string | null
+  service: string | null
+  message: string
+  status: string
+  assigned_to: string | null
+  resolution_notes: string | null
+  created_at: string
+  updated_at: string
+}
+
 type GenericJsonRow = Record<string, Json | undefined>
 
 export type Database = {
@@ -218,9 +245,9 @@ export type Database = {
       cart_items: GeneratedTable<{ id: string; cart_id: string; product_id: string; quantity: number; created_at: string; updated_at: string }>
       orders: GeneratedTable<OrderRow>
       order_items: GeneratedTable<OrderItemRow>
-      order_status_history: GeneratedTable<GenericJsonRow>
+      order_status_history: GeneratedTable<OrderStatusHistoryRow>
       inventory_movements: GeneratedTable<GenericJsonRow>
-      inquiries: GeneratedTable<GenericJsonRow>
+      inquiries: GeneratedTable<InquiryRow>
       admin_audit_log: GeneratedTable<GenericJsonRow>
       seed_runs: GeneratedTable<GenericJsonRow>
     }

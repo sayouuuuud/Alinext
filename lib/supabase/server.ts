@@ -31,6 +31,13 @@ export async function createClient(): Promise<SupabaseClient<Database>> {
   })
 }
 
+export function createPublicClient(): SupabaseClient<Database> {
+  const { url, key } = publicConfig()
+  return createSupabaseClient<Database>(url, key, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  })
+}
+
 export function createAdminClient(): SupabaseClient<Database> {
   const { url } = publicConfig()
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
