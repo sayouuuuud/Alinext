@@ -8,6 +8,7 @@ import { CarsManagerTab } from '@/components/admin/tabs/cars-manager-tab'
 import { ProductsManagerTab } from '@/components/admin/tabs/products-manager-tab'
 import { BlogManagerTab } from '@/components/admin/tabs/blog-manager-tab'
 import { OrdersTab } from '@/components/admin/tabs/orders-tab'
+import { InquiriesTab } from '@/components/admin/tabs/inquiries-tab'
 import { CustomersTab } from '@/components/admin/tabs/customers-tab'
 import { SettingsTab } from '@/components/admin/tabs/settings-tab'
 
@@ -27,6 +28,8 @@ export default function AdminPage() {
       return <BlogManagerTab />
     case 'orders':
       return <OrdersTab />
+    case 'inquiries':
+      return <InquiriesTab />
     case 'customers':
       return <CustomersTab />
     case 'settings':

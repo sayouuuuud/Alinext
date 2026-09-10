@@ -150,11 +150,9 @@ export function AdminHeader() {
         {/* Lock / Logout Button */}
         <button
           type="button"
-          onClick={() => {
-            try {
-              window.sessionStorage.removeItem('alifleet_admin_auth')
-              window.location.reload()
-            } catch {}
+          onClick={async () => {
+            await fetch('/api/admin/session', { method: 'DELETE' })
+            window.location.reload()
           }}
           className="flex h-9 w-9 items-center justify-center rounded-full border border-border bg-card text-muted-foreground transition-colors hover:bg-destructive/10 hover:border-destructive/30 hover:text-destructive"
           title="قفل لوحة التحكم وتسجيل الخروج"

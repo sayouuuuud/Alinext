@@ -8,6 +8,7 @@ import {
   Package,
   FileText,
   ShoppingBag,
+  MessageSquareText,
   Users,
   Settings,
   ChevronLeft,
@@ -65,6 +66,13 @@ export function AdminSidebar() {
       icon: ShoppingBag,
       badge: pendingOrdersCount > 0 ? pendingOrdersCount : (content.orders?.length || 0),
       badgeColor: pendingOrdersCount > 0 ? 'bg-amber-500 text-white animate-pulse' : 'bg-muted text-muted-foreground',
+    },
+    {
+      id: 'inquiries',
+      label: t.tabs.inquiries,
+      icon: MessageSquareText,
+      badge: content.inquiries?.filter((inquiry) => inquiry.status === 'new').length || 0,
+      badgeColor: 'bg-muted text-muted-foreground',
     },
     {
       id: 'customers',

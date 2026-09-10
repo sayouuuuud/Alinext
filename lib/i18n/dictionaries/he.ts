@@ -319,7 +319,7 @@ export const he: Dictionary = {
   importDetail: {
     gallery: 'גלריה',
     overview: 'סקירה',
-    timeline: 'שלבי הייבוא של הרכב הזה',
+    timeline: 'שלבי הייבוא של הרכב הז��',
     reserveTitle: 'שריון הרכב',
     reserveLead: 'השאירו פרטים ומחלקת הייבוא תחזור אליכם תוך יום עסקים אחד.',
     similar: 'ייבוא דומה',
@@ -565,8 +565,10 @@ export const he: Dictionary = {
       invalid_credentials: 'שם המשתמש או הסיסמה אינם נכונים.',
       invalid_email: 'נא להזין כתובת אימייל תקינה.',
       email_exists: 'קיים כבר חשבון עם כתובת אימייל זו.',
-      username_exists: 'שם המשתמש הזה תפוס.',
+      email_unconfirmed: 'יש לאמת את כתובת האימייל לפני ההתחברות.',
+      username_exists: 'שם המשתמש אינו תקין או כבר תפוס.',
       weak_password: 'נא להשתמש בסיסמה של 8 תווים לפחות.',
+      rate_limited: 'יותר מדי ניסיונות בזמן קצר. יש להמתין ולנסות שוב.',
       password_mismatch: 'שתי הסיסמאות אינן תואמות.',
       registration_disabled:
         'ההרשמה הציבורית כרגע מושבתת בחנות. צרו איתנו קשר ונפתח לכם חשבון.',

@@ -61,7 +61,7 @@ export function pageImagesFromContent(content: SiteFullContent): PageImages {
 }
 
 export async function getPageImages(): Promise<PageImages> {
-  return pageImagesFromContent(getSiteContent())
+  return pageImagesFromContent(await getSiteContent())
 }
 
 export function carsPageCopyFromContent(content: SiteFullContent): CarsPageCopy {
@@ -89,5 +89,5 @@ export function carsPageCopyFromContent(content: SiteFullContent): CarsPageCopy 
 }
 
 export async function getCarsPageCopy(): Promise<CarsPageCopy> {
-  return carsPageCopyFromContent(getSiteContent())
+  return carsPageCopyFromContent(await getSiteContent())
 }

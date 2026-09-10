@@ -2,24 +2,19 @@
 
 import { createBrowserClient } from '@supabase/ssr'
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { getSupabaseAnonKey, getSupabaseUrl } from './config'
+import type { Database } from './database.types'
 
-/**
- * Browser-side Supabase client (singleton).
- *
- * Returns null while Supabase env vars are absent so components can feature
- * flag on `isSupabaseConfigured()` without the app crashing in the current
- * file-backed setup.
- */
-let browserClient: SupabaseClient | null = null
+let browserClient: SupabaseClient<Database> | undefined
 
-export function getSupabaseBrowserClient(): SupabaseClient | null {
-  const url = getSupabaseUrl()
-  const anonKey = getSupabaseAnonKey()
-  if (!url || !anonKey) return null
+export function createClient(): SupabaseClient<Database> {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  if (!url || !key) throw new Error('Supabase public configuration is missing')
 
-  if (!browserClient) {
-    browserClient = createBrowserClient(url, anonKey)
-  }
+  browserClient ??= createBrowserClient<Database>(url, key, {
+    cookieOptions: { secure: process.env.NODE_ENV === 'production' },
+  })
   return browserClient
 }
+
+export const getSupabaseBrowserClient = createClient

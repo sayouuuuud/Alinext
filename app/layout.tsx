@@ -14,6 +14,7 @@ import { SiteLoader } from '@/components/site-loader'
 import { LanguageProvider } from '@/lib/i18n/language-context'
 import { CartProvider } from '@/lib/cart-context'
 import { AuthProvider } from '@/lib/auth/auth-context'
+import { loadViewer } from '@/lib/auth/queries'
 import { StoreProvider } from '@/lib/store-context'
 import { siteUrl } from '@/lib/seo'
 import { serializeJsonLd } from '@/lib/json-ld'
@@ -119,11 +120,11 @@ export default async function RootLayout({
   const locale = await getRequestLocale()
   const meta = localeMeta[locale]
 
-  const storeSettings = await getStoreSettings(locale)
-  // Read the shared content file on the server and hand it to the client
-  // provider so the first client render matches the server HTML (no hydration
-  // mismatch) and real content paints immediately instead of defaults.
-  const initialSiteContent = getSiteContent()
+  const [storeSettings, initialSiteContent, viewer] = await Promise.all([
+    getStoreSettings(locale),
+    getSiteContent(),
+    loadViewer(),
+  ])
 
   return (
     <html
@@ -167,7 +168,7 @@ export default async function RootLayout({
         <LanguageProvider initialLocale={locale}>
           <SiteContentProvider initialContent={initialSiteContent}>
             <StoreProvider>
-              <AuthProvider viewer={null} backendReady={false}>
+              <AuthProvider viewer={viewer} backendReady>
                 <CartProvider>{children}</CartProvider>
               </AuthProvider>
             </StoreProvider>

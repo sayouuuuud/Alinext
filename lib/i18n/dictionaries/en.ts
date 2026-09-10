@@ -573,8 +573,10 @@ export const en = {
       invalid_credentials: 'That username or password is not correct.',
       invalid_email: 'Please enter a valid email address.',
       email_exists: 'An account already exists with that email address.',
-      username_exists: 'That username is already taken.',
+      email_unconfirmed: 'Please confirm your email address before signing in.',
+      username_exists: 'That username is invalid or already taken.',
       weak_password: 'Please use a password of at least 8 characters.',
+      rate_limited: 'Too many attempts in a short time. Wait a moment and try again.',
       password_mismatch: 'The two passwords do not match.',
       registration_disabled:
         'Public sign-up is currently switched off on the store. Please contact us and we will create your account.',

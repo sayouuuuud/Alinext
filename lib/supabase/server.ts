@@ -1,62 +1,45 @@
 import 'server-only'
 
 import { createServerClient } from '@supabase/ssr'
-import { createClient, type SupabaseClient } from '@supabase/supabase-js'
+import { createClient as createSupabaseClient, type SupabaseClient } from '@supabase/supabase-js'
 import { cookies } from 'next/headers'
-import {
-  getSupabaseAnonKey,
-  getSupabaseServiceRoleKey,
-  getSupabaseUrl,
-} from './config'
+import type { Database } from './database.types'
 
-/**
- * Server-side Supabase client bound to the request's cookies.
- *
- * Use this from Server Components and Route Handlers when user sessions
- * matter. Returns null while Supabase env vars are absent so the current
- * file-backed content store keeps working untouched.
- */
-export async function getSupabaseServerClient(): Promise<SupabaseClient | null> {
-  const url = getSupabaseUrl()
-  const anonKey = getSupabaseAnonKey()
-  if (!url || !anonKey) return null
+function publicConfig() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  if (!url || !key) throw new Error('Supabase public configuration is missing')
+  return { url, key }
+}
 
+export async function createClient(): Promise<SupabaseClient<Database>> {
+  const { url, key } = publicConfig()
   const cookieStore = await cookies()
 
-  return createServerClient(url, anonKey, {
+  return createServerClient<Database>(url, key, {
+    cookieOptions: { secure: process.env.NODE_ENV === 'production' },
     cookies: {
-      getAll() {
-        return cookieStore.getAll()
-      },
+      getAll: () => cookieStore.getAll(),
       setAll(cookiesToSet) {
         try {
-          cookiesToSet.forEach(({ name, value, options }) =>
-            cookieStore.set(name, value, options)
-          )
+          cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options))
         } catch {
-          // Called from a Server Component — safe to ignore once middleware
-          // refreshes sessions (wired up when Supabase is activated).
+          // Server Components cannot write cookies; the root proxy refreshes them.
         }
       },
     },
   })
 }
 
-/**
- * Privileged server client using the service-role key.
- *
- * Bypasses Row Level Security — only ever use this in trusted server code
- * (e.g. the admin content API) and never expose it to the browser.
- */
-export function getSupabaseAdminClient(): SupabaseClient | null {
-  const url = getSupabaseUrl()
-  const serviceRoleKey = getSupabaseServiceRoleKey()
-  if (!url || !serviceRoleKey) return null
+export function createAdminClient(): SupabaseClient<Database> {
+  const { url } = publicConfig()
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+  if (!serviceRoleKey) throw new Error('SUPABASE_SERVICE_ROLE_KEY is missing')
 
-  return createClient(url, serviceRoleKey, {
-    auth: {
-      persistSession: false,
-      autoRefreshToken: false,
-    },
+  return createSupabaseClient<Database>(url, serviceRoleKey, {
+    auth: { persistSession: false, autoRefreshToken: false },
   })
 }
+
+export const getSupabaseServerClient = createClient
+export const getSupabaseAdminClient = createAdminClient

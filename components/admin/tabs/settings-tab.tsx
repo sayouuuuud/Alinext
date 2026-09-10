@@ -112,7 +112,7 @@ export function SettingsTab() {
     allowedIps: '127.0.0.1',
   }
 
-  const handlePasswordSubmit = (e: React.FormEvent) => {
+  const handlePasswordSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setPassError('')
 
@@ -122,7 +122,7 @@ export function SettingsTab() {
       return
     }
 
-    const success = changePassword(currentPass, newPass)
+    const success = await changePassword(currentPass, newPass)
     if (success) {
       setCurrentPass('')
       setNewPass('')
@@ -817,7 +817,7 @@ export function SettingsTab() {
               <div>
                 <div className="text-sm font-bold">
                   {maintenance.enabled
-                    ? 'وضع الصيانة مُفعّل: الموقع متوقف أمام كافة الزوار'
+                    ? 'وضع الصيانة مُفعّل: الموقع متوقف أمام كافة الزوا��'
                     : 'الموقع مفتوح ونشط: متاح لكافة الزوار والعملاء الآن'}
                 </div>
                 <div className="text-xs opacity-80 mt-0.5">

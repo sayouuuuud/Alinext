@@ -69,11 +69,8 @@ create table public.addresses (
   kind text not null default 'shipping' check (kind in ('shipping', 'billing')),
   full_name text not null,
   phone text not null,
-  company text,
   street text not null,
-  address_line_2 text,
   city text not null,
-  state text,
   country text not null default 'Israel',
   postal_code text,
   is_default boolean not null default false,
@@ -154,7 +151,7 @@ create table public.policy_pages (
 create table public.seo_entries (
   id uuid primary key default gen_random_uuid(),
   entity_type text not null check (entity_type in ('page', 'car', 'product', 'blog', 'policy')),
-  entity_id text not null default '',
+  entity_id text,
   locale text not null check (locale in ('ar', 'en', 'he')),
   title text not null,
   description text not null,
@@ -167,7 +164,7 @@ create table public.seo_entries (
   follow boolean not null default true,
   updated_at timestamptz not null default now()
 );
-create unique index seo_entries_entity_idx on public.seo_entries(entity_type, entity_id, locale);
+create unique index seo_entries_entity_idx on public.seo_entries(entity_type, coalesce(entity_id, ''), locale);
 
 create table public.cars (
   id text primary key,
@@ -419,12 +416,11 @@ security definer
 set search_path = ''
 as $$
 begin
-  insert into public.profiles(id, email, display_name, username, phone, preferred_locale)
+  insert into public.profiles(id, email, display_name, phone, preferred_locale)
   values (
     new.id,
     coalesce(new.email, ''),
     left(coalesce(new.raw_user_meta_data ->> 'display_name', new.raw_user_meta_data ->> 'full_name', ''), 120),
-    nullif(left(lower(regexp_replace(coalesce(new.raw_user_meta_data ->> 'username', ''), '[^a-zA-Z0-9_.-]', '', 'g')), 40), ''),
     nullif(left(coalesce(new.raw_user_meta_data ->> 'phone', ''), 40), ''),
     case when new.raw_user_meta_data ->> 'preferred_locale' in ('ar', 'en', 'he') then new.raw_user_meta_data ->> 'preferred_locale' else 'ar' end
   )
@@ -694,6 +690,4 @@ grant usage, select on sequence public.order_number_seq to service_role;
 grant usage on schema public to anon, authenticated;
 revoke all on all functions in schema private from public, anon, authenticated;
 revoke all on all functions in schema public from public, anon, authenticated;
-grant usage on schema private to service_role;
-grant execute on function private.valid_i18n(jsonb) to service_role;
 grant execute on function public.create_order(jsonb, jsonb, text, text, text) to authenticated;

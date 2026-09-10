@@ -5,5 +5,5 @@ import type { Locale } from '@/lib/i18n/config'
 import { getSiteContent } from './repository'
 
 export async function getStoreSettings(locale?: Locale): Promise<StoreSettings> {
-  return contentToStoreSettings(getSiteContent(), locale)
+  return contentToStoreSettings(await getSiteContent(), locale)
 }
