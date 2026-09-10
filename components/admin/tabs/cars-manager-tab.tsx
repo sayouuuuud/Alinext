@@ -41,21 +41,21 @@ export function CarsManagerTab() {
     make: '',
     model: '',
     year: new Date().getFullYear(),
-    price: 500000,
+    price: 0,
     currency: '₪',
-    mileage: '0 km',
-    fuel: 'Petrol',
-    transmission: 'Automatic',
-    image: 'https://images.unsplash.com/photo-1617814076367-b759c7d7e738?auto=format&fit=crop&w=1200&q=80',
+    mileage: '',
+    fuel: '',
+    transmission: '',
+    image: '',
     status: 'available',
     featured: false,
     specs: {
-      engine: '4.0L V8',
-      horsepower: '500 HP',
-      acceleration: '4.5s',
-      topSpeed: '250 km/h',
-      bodyType: 'Sedan',
-      color: 'Black',
+      engine: '',
+      horsepower: '',
+      acceleration: '',
+      topSpeed: '',
+      bodyType: '',
+      color: '',
     },
     description: { ar: '', en: '', he: '' },
   }
@@ -391,8 +391,9 @@ export function CarsManagerTab() {
                   </label>
                   <input
                     type="number"
-                    value={formData.price}
-                    onChange={(e) => setFormData({ ...formData, price: Number(e.target.value) })}
+                    value={formData.price ? formData.price : ''}
+                    onChange={(e) => setFormData({ ...formData, price: e.target.value === '' ? 0 : Number(e.target.value) })}
+                    placeholder="0"
                     className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-xs font-bold text-foreground focus:border-primary focus:outline-hidden"
                   />
                 </div>
@@ -407,7 +408,7 @@ export function CarsManagerTab() {
                     type="text"
                     value={formData.make}
                     onChange={(e) => setFormData({ ...formData, make: e.target.value })}
-                    placeholder="Mercedes-Benz"
+                    placeholder="مثال: Mercedes-Benz"
                     className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-xs text-foreground focus:border-primary focus:outline-hidden"
                   />
                 </div>
@@ -420,7 +421,7 @@ export function CarsManagerTab() {
                     type="text"
                     value={formData.model}
                     onChange={(e) => setFormData({ ...formData, model: e.target.value })}
-                    placeholder="Maybach S 680"
+                    placeholder="مثال: Maybach S 680"
                     className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-xs text-foreground focus:border-primary focus:outline-hidden"
                   />
                 </div>
@@ -431,8 +432,9 @@ export function CarsManagerTab() {
                   </label>
                   <input
                     type="number"
-                    value={formData.year}
-                    onChange={(e) => setFormData({ ...formData, year: Number(e.target.value) })}
+                    value={formData.year || ''}
+                    onChange={(e) => setFormData({ ...formData, year: e.target.value === '' ? new Date().getFullYear() : Number(e.target.value) })}
+                    placeholder={String(new Date().getFullYear())}
                     className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-xs text-foreground focus:border-primary focus:outline-hidden"
                   />
                 </div>
@@ -448,7 +450,7 @@ export function CarsManagerTab() {
                     type="text"
                     value={formData.fuel}
                     onChange={(e) => setFormData({ ...formData, fuel: e.target.value })}
-                    placeholder="Petrol V12"
+                    placeholder="مثال: Petrol V12 / Diesel"
                     className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-xs text-foreground focus:border-primary focus:outline-hidden"
                   />
                 </div>
@@ -461,7 +463,7 @@ export function CarsManagerTab() {
                     type="text"
                     value={formData.mileage}
                     onChange={(e) => setFormData({ ...formData, mileage: e.target.value })}
-                    placeholder="1,200 km"
+                    placeholder="مثال: 0 كم"
                     className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-xs text-foreground focus:border-primary focus:outline-hidden"
                   />
                 </div>
@@ -474,7 +476,7 @@ export function CarsManagerTab() {
                     type="text"
                     value={formData.transmission}
                     onChange={(e) => setFormData({ ...formData, transmission: e.target.value })}
-                    placeholder="Automatic 9G-TRONIC"
+                    placeholder="مثال: Automatic 9G-TRONIC"
                     className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-xs text-foreground focus:border-primary focus:outline-hidden"
                   />
                 </div>

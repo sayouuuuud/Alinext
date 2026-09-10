@@ -38,9 +38,9 @@ export function BlogManagerTab() {
     content: { ar: '', en: '', he: '' },
     author: 'علي فليت',
     date: new Date().toISOString().slice(0, 10),
-    readTime: '6 min',
-    coverImage: '/images/fleet-truck.png',
-    tags: ['شاحنات', 'أسطول', 'استيراد'],
+    readTime: '',
+    coverImage: '',
+    tags: [],
   }
 
   const [formData, setFormData] = useState<BlogPostItem>(emptyPost)
@@ -68,7 +68,7 @@ export function BlogManagerTab() {
       ...emptyPost,
       id: `post-${Date.now()}`,
     })
-    setTagsInput('سيارات فاخرة, استيراد')
+    setTagsInput('')
     setIsModalOpen(true)
   }
 
@@ -317,7 +317,7 @@ export function BlogManagerTab() {
                     type="text"
                     value={formData.readTime}
                     onChange={(e) => setFormData({ ...formData, readTime: e.target.value })}
-                    placeholder="5 min"
+                    placeholder="مثال: 5 دقائق"
                     className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-xs text-foreground focus:border-primary focus:outline-hidden"
                   />
                 </div>
@@ -339,7 +339,7 @@ export function BlogManagerTab() {
                   type="text"
                   value={tagsInput}
                   onChange={(e) => setTagsInput(e.target.value)}
-                  placeholder="استيراد, مايباخ, نصائح"
+                  placeholder="مثال: شاحنات، استيراد، قطع غيار"
                   className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-xs text-foreground focus:border-primary focus:outline-hidden"
                 />
               </div>

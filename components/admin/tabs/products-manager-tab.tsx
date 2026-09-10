@@ -33,11 +33,11 @@ export function ProductsManagerTab() {
     id: '',
     name: { ar: '', en: '', he: '' },
     sku: '',
-    category: 'brakes',
-    price: 650,
+    category: '',
+    price: 0,
     inStock: true,
-    compatibility: 'Mercedes-Benz Commercial Fleet',
-    image: '/images/part-brake-pads.png',
+    compatibility: '',
+    image: '',
     description: { ar: '', en: '', he: '' },
   }
 
@@ -301,7 +301,7 @@ export function ProductsManagerTab() {
                     type="text"
                     value={formData.sku}
                     onChange={(e) => setFormData({ ...formData, sku: e.target.value })}
-                    placeholder="BRM-001"
+                    placeholder="مثال: PRD-001"
                     className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-xs font-mono text-foreground focus:border-primary focus:outline-hidden"
                   />
                 </div>
@@ -314,7 +314,7 @@ export function ProductsManagerTab() {
                     type="text"
                     value={formData.category}
                     onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                    placeholder="Brakes, Wheels, Aero"
+                    placeholder="مثال: محركات، فرامل، إطارات"
                     className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-xs text-foreground focus:border-primary focus:outline-hidden"
                   />
                 </div>
@@ -325,8 +325,9 @@ export function ProductsManagerTab() {
                   </label>
                   <input
                     type="number"
-                    value={formData.price}
-                    onChange={(e) => setFormData({ ...formData, price: Number(e.target.value) })}
+                    value={formData.price ? formData.price : ''}
+                    onChange={(e) => setFormData({ ...formData, price: e.target.value === '' ? 0 : Number(e.target.value) })}
+                    placeholder="0"
                     className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-xs font-bold text-foreground focus:border-primary focus:outline-hidden"
                   />
                 </div>
@@ -340,7 +341,7 @@ export function ProductsManagerTab() {
                   type="text"
                   value={formData.compatibility}
                   onChange={(e) => setFormData({ ...formData, compatibility: e.target.value })}
-                  placeholder="Mercedes S-Class, Maybach, Escalade"
+                  placeholder="مثال: Mercedes S-Class, Maybach, Actros"
                   className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-xs text-foreground focus:border-primary focus:outline-hidden"
                 />
               </div>
