@@ -45,6 +45,10 @@ const nextConfig = {
     // Declaring `localPatterns` at all opts every other local path out of
     // optimization, so the bundled artwork under /images is listed explicitly.
     localPatterns: [{ pathname: '/images/**' }],
+    remotePatterns: [
+      { protocol: 'https', hostname: '**' },
+      { protocol: 'http', hostname: '**' },
+    ],
     minimumCacheTTL: 604800,
   },
   async headers() {

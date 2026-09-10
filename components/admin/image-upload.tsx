@@ -10,6 +10,7 @@ import {
   AlertCircle,
   Eye,
   RefreshCw,
+  Loader2,
 } from 'lucide-react'
 import { useAdmin } from '@/lib/admin/admin-context'
 
@@ -35,31 +36,57 @@ export function ImageUpload({
   const [urlDraft, setUrlDraft] = useState('')
   const [previewError, setPreviewError] = useState(false)
   const [uploadSuccess, setUploadSuccess] = useState(false)
+  const [isUploading, setIsUploading] = useState(false)
 
   const isBase64 = value?.startsWith('data:image/')
 
-  const handleFile = (file: File) => {
+  const handleFile = async (file: File) => {
     if (!file.type.startsWith('image/')) {
       alert('يرجى اختيار ملف صورة صالح (PNG, JPG, WEBP, SVG)')
       return
     }
 
-    if (file.size > 8 * 1024 * 1024) {
-      alert('حجم الصورة كبير جداً (أقصى حد 8 ميجابايت)')
+    if (file.size > 10 * 1024 * 1024) {
+      alert('حجم الصورة كبير جداً (أقصى حد 10 ميجابايت)')
       return
     }
 
-    const reader = new FileReader()
-    reader.onload = (e) => {
-      const result = e.target?.result as string
-      if (result) {
-        setPreviewError(false)
-        onChange(result)
+    setIsUploading(true)
+    setPreviewError(false)
+
+    // Immediate local preview so UI updates instantly
+    const localUrl = URL.createObjectURL(file)
+    onChange(localUrl)
+
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+      const res = await fetch('/api/admin/upload', {
+        method: 'POST',
+        body: formData,
+      })
+      if (!res.ok) throw new Error('Upload failed')
+      const data = await res.json()
+      if (data.url) {
+        onChange(data.url)
         setUploadSuccess(true)
         setTimeout(() => setUploadSuccess(false), 3000)
       }
+    } catch (err) {
+      console.warn('Direct upload to storage failed, falling back to base64 DataURL:', err)
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        const result = e.target?.result as string
+        if (result) {
+          onChange(result)
+          setUploadSuccess(true)
+          setTimeout(() => setUploadSuccess(false), 3000)
+        }
+      }
+      reader.readAsDataURL(file)
+    } finally {
+      setIsUploading(false)
     }
-    reader.readAsDataURL(file)
   }
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -150,17 +177,29 @@ export function ImageUpload({
             )}
 
             {/* Badges */}
-            <div className="absolute top-2 start-2 flex items-center gap-1.5">
+            <div className="absolute top-2 start-2 flex items-center gap-1.5 z-20">
               <span className="rounded-full bg-background/90 px-2 py-0.5 text-[10px] font-medium backdrop-blur-xs text-foreground shadow-xs border border-border/60">
-                {isBase64 ? 'ملف مرفوع من جهازك' : 'رابط ويب خارجي'}
+                {value.includes('supabase.co/storage')
+                  ? 'سحابي (Supabase Storage)'
+                  : isBase64
+                  ? 'ملف مرفوع من جهازك'
+                  : 'رابط ويب خارجي'}
               </span>
               {uploadSuccess && (
                 <span className="flex items-center gap-1 rounded-full bg-emerald-500/90 text-white px-2 py-0.5 text-[10px] font-semibold backdrop-blur-xs shadow-xs animate-in fade-in">
                   <CheckCircle2 className="size-3" />
-                  تم الرفع
+                  تم الرفع بنجاح
                 </span>
               )}
             </div>
+
+            {/* Uploading overlay */}
+            {isUploading && (
+              <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-2 bg-background/80 backdrop-blur-xs">
+                <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                <span className="text-xs font-semibold text-foreground">جاري الرفع إلى التخزين السحابي...</span>
+              </div>
+            )}
 
             {/* Hover overlay actions */}
             <div className="absolute inset-0 flex items-center justify-center gap-2 bg-background/70 opacity-0 backdrop-blur-xs transition-opacity group-hover:opacity-100">

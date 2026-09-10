@@ -12,7 +12,47 @@ const ID = /^[a-zA-Z0-9][a-zA-Z0-9_-]{0,119}$/
 function media(value: string | undefined, fallback: string) {
   if (!value) return fallback
   const clean = value.trim()
-  return clean.startsWith('/images/') || clean.startsWith('/icon') || clean.startsWith('https://') ? clean : fallback
+  if (!clean) return fallback
+  if (
+    clean.startsWith('/images/') ||
+    clean.startsWith('/icon') ||
+    clean.startsWith('https://') ||
+    clean.startsWith('http://') ||
+    clean.startsWith('data:image/') ||
+    clean.startsWith('blob:') ||
+    clean.startsWith('/')
+  ) {
+    return clean
+  }
+  return fallback
+}
+
+async function ensureHostedMedia(url: string | undefined, fallback: string, folder = 'uploads'): Promise<string> {
+  const clean = media(url, fallback)
+  if (!clean.startsWith('data:image/')) {
+    return clean
+  }
+  try {
+    const match = clean.match(/^data:(image\/[a-zA-Z0-9+.-]+);base64,(.+)$/)
+    if (!match) return clean
+    const mimeType = match[1]
+    const buffer = Buffer.from(match[2], 'base64')
+    const ext = mimeType.split('/')[1]?.replace('jpeg', 'jpg') || 'jpg'
+    const filePath = `${folder}/${Date.now()}-${crypto.randomUUID().slice(0, 8)}.${ext}`
+    const admin = createAdminClient()
+    const { error } = await admin.storage
+      .from('alifleet-media')
+      .upload(filePath, buffer, { contentType: mimeType, upsert: true })
+    if (error) {
+      console.error('Failed to host base64 media:', error)
+      return clean
+    }
+    const { data } = admin.storage.from('alifleet-media').getPublicUrl(filePath)
+    return data.publicUrl
+  } catch (err) {
+    console.error('ensureHostedMedia error:', err)
+    return clean
+  }
 }
 
 function safeI18n(value?: MultiLangString | null, html = false): MultiLangString {
@@ -348,40 +388,71 @@ export async function saveAdminSection(
   if (scope === 'pages') await savePagesScope(data)
   if (scope === 'cars') {
     const cars = objectArraySchema.max(500).parse(data) as unknown as CarItem[]
-    await syncCars(cars.filter((car) => car.id && typeof car.id === 'string' && car.id.trim().length > 0).map((car) => ({
-      ...car,
-      id: car.id.trim(),
-      image: media(car.image, '/images/fleet-truck.png'),
-      images: (car.images || []).map((image) => media(image, car.image || '/images/fleet-truck.png')),
-      title: safeI18n(car.title),
-      description: safeI18n(car.description),
-    })))
+    const processedCars = await Promise.all(
+      cars
+        .filter((car) => car.id && typeof car.id === 'string' && car.id.trim().length > 0)
+        .map(async (car) => {
+          const image = await ensureHostedMedia(car.image, '/images/fleet-truck.png', 'cars')
+          const images = await Promise.all(
+            (car.images || []).map((img) => ensureHostedMedia(img, image, 'cars'))
+          )
+          return {
+            ...car,
+            id: car.id.trim(),
+            image,
+            images,
+            title: safeI18n(car.title),
+            description: safeI18n(car.description),
+          }
+        })
+    )
+    await syncCars(processedCars)
   }
   if (scope === 'products') {
     const products = objectArraySchema.max(2000).parse(data) as unknown as ProductItem[]
-    await syncProducts(products.filter((product) => product.id && typeof product.id === 'string' && product.id.trim().length > 0 && typeof product.sku === 'string' && product.sku.trim().length > 0).map((product) => ({
-      ...product,
-      id: product.id.trim(),
-      sku: product.sku.trim(),
-      image: media(product.image, '/images/part-brake-pads.png'),
-      images: (product.images || []).map((image) => media(image, product.image || '/images/part-brake-pads.png')),
-      name: safeI18n(product.name),
-      description: safeI18n(product.description),
-    })))
+    const processedProducts = await Promise.all(
+      products
+        .filter((product) => product.id && typeof product.id === 'string' && product.id.trim().length > 0 && typeof product.sku === 'string' && product.sku.trim().length > 0)
+        .map(async (product) => {
+          const image = await ensureHostedMedia(product.image, '/images/part-brake-pads.png', 'products')
+          const images = await Promise.all(
+            (product.images || []).map((img) => ensureHostedMedia(img, image, 'products'))
+          )
+          return {
+            ...product,
+            id: product.id.trim(),
+            sku: product.sku.trim(),
+            image,
+            images,
+            name: safeI18n(product.name),
+            description: safeI18n(product.description),
+          }
+        })
+    )
+    await syncProducts(processedProducts)
   }
   if (scope === 'blog') {
     const posts = objectArraySchema.max(1000).parse(data) as unknown as BlogPostItem[]
-    await syncBlog(posts.filter((post) => post.id && typeof post.id === 'string' && post.id.trim().length > 0).map((post) => ({
-      ...post,
-      id: post.id.trim(),
-      slug: (post.slug && post.slug.trim().length > 0 ? post.slug.trim() : post.id.trim()).replace(/\s+/g, '-'),
-      coverImage: media(post.coverImage || post.image, '/images/blog-hero.png'),
-      image: media(post.image || post.coverImage, '/images/blog-hero.png'),
-      authorAvatar: media(post.authorAvatar, '/images/hero-avatars.png'),
-      title: safeI18n(post.title),
-      excerpt: safeI18n(post.excerpt),
-      content: post.content ? safeI18n(post.content, true) : undefined,
-    })))
+    const processedPosts = await Promise.all(
+      posts
+        .filter((post) => post.id && typeof post.id === 'string' && post.id.trim().length > 0)
+        .map(async (post) => {
+          const coverImage = await ensureHostedMedia(post.coverImage || post.image, '/images/blog-hero.png', 'blog')
+          const authorAvatar = await ensureHostedMedia(post.authorAvatar, '/images/hero-avatars.png', 'authors')
+          return {
+            ...post,
+            id: post.id.trim(),
+            slug: (post.slug && post.slug.trim().length > 0 ? post.slug.trim() : post.id.trim()).replace(/\s+/g, '-'),
+            coverImage,
+            image: coverImage,
+            authorAvatar,
+            title: safeI18n(post.title),
+            excerpt: safeI18n(post.excerpt),
+            content: post.content ? safeI18n(post.content, true) : undefined,
+          }
+        })
+    )
+    await syncBlog(processedPosts)
   }
   if (scope === 'orders') await saveOrdersScope(data)
   if (scope === 'customers') await saveCustomersScope(data)
