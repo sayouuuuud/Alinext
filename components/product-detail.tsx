@@ -63,7 +63,7 @@ export function ProductDetail({
             {/* Summary */}
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.24em] text-accent">
-                {t.products.categories[part.category]}
+                {part.subcategoryName?.[locale] || part.categoryName[locale]}
               </p>
               <h1
                 className="mt-3 text-balance font-serif text-3xl leading-tight text-foreground md:text-5xl"

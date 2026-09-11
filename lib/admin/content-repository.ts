@@ -111,8 +111,8 @@ async function syncProducts(products: ProductItem[]) {
   const rows = products.map((product) => {
     const current = byId.get(product.id)
     return {
-      id: product.id, slug: product.id, sku: product.sku, name: product.name, category: product.category || 'other',
-      category_id: product.categoryId || product.category || null,
+      id: product.id, slug: product.id, sku: product.sku, name: product.name, category: product.category,
+      category_id: product.categoryId || null,
       subcategory_id: product.subcategoryId || null,
       brand: product.brand || null, price_minor: Math.round(Number(product.price || 0) * 100), currency: 'ILS',
       stock_quantity: product.inStock ? Math.max(1, current?.stock_quantity || 25) : 0,
@@ -148,41 +148,94 @@ async function syncProducts(products: ProductItem[]) {
 }
 
 async function syncCategories(categories: CategoryItem[]) {
+  validateCategoryHierarchy(categories)
   const admin = createAdminClient()
-  const rows = categories.map((cat) => ({
-    id: cat.id,
-    slug: cat.slug || cat.id,
-    name: safeI18n(cat.name),
-    description: cat.description ? safeI18n(cat.description) : null,
-    parent_id: cat.parentId || null,
-    icon: cat.icon || null,
-    image: cat.image ? media(cat.image, '') : null,
-    sort_order: Number(cat.sortOrder) || 0,
-    is_active: cat.isActive !== false,
+  const rows = categories.map((category) => ({
+    id: category.id,
+    slug: category.slug,
+    name: safeI18n(category.name),
+    description: category.description ? safeI18n(category.description) : null,
+    parent_id: category.parentId || null,
+    icon: category.icon || null,
+    image: category.image ? media(category.image, '') : null,
+    sort_order: Number(category.sortOrder) || 0,
+    is_active: category.isActive !== false,
   }))
 
-  const { data: existing, error: existingError } = await admin.from('categories').select('id')
-  if (existingError) throw existingError
+  const [existingResult, linkedProductsResult] = await Promise.all([
+    admin.from('categories').select('id,parent_id'),
+    admin.from('products').select('id,category_id,subcategory_id'),
+  ])
+  if (existingResult.error) throw existingResult.error
+  if (linkedProductsResult.error) throw linkedProductsResult.error
 
-  const activeIds = new Set(rows.map((r) => r.id))
-  const removed = (existing || []).map((r) => r.id).filter((id) => !activeIds.has(id))
-  if (removed.length) {
-    const { error } = await admin.from('categories').delete().in('id', removed)
+  const byId = new Map(rows.map((category) => [category.id, category]))
+  const activeIds = new Set(rows.map((category) => category.id))
+  const existing = existingResult.data || []
+  const removedRows = existing.filter((category) => !activeIds.has(category.id))
+  const removedIds = new Set(removedRows.map((category) => category.id))
+
+  for (const category of existing) {
+    if (category.parent_id && removedIds.has(category.parent_id)) {
+      throw new AdminContentError('category_has_children')
+    }
+  }
+
+  for (const product of linkedProductsResult.data || []) {
+    if (product.category_id) {
+      const mainCategory = byId.get(product.category_id)
+      if (!mainCategory) throw new AdminContentError('category_in_use')
+      if (mainCategory.parent_id) {
+        throw new AdminContentError('linked_main_category_cannot_be_nested')
+      }
+    }
+    if (product.subcategory_id) {
+      const subcategory = byId.get(product.subcategory_id)
+      if (!subcategory) throw new AdminContentError('category_in_use')
+      if (!product.category_id || subcategory.parent_id !== product.category_id) {
+        throw new AdminContentError('linked_subcategory_parent_mismatch')
+      }
+    }
+  }
+
+  const mainCategories = rows.filter((category) => !category.parent_id)
+  const subcategories = rows.filter((category) => category.parent_id)
+  if (mainCategories.length) {
+    const { error } = await admin.from('categories').upsert(mainCategories)
+    if (error) throw error
+  }
+  if (subcategories.length) {
+    const { error } = await admin.from('categories').upsert(subcategories)
     if (error) throw error
   }
 
-  if (rows.length) {
-    const mainCategories = rows.filter((r) => !r.parent_id)
-    const subCategories = rows.filter((r) => !!r.parent_id)
+  for (const category of mainCategories) {
+    const { error } = await admin
+      .from('products')
+      .update({ category: category.slug })
+      .eq('category_id', category.id)
+    if (error) throw error
+  }
 
-    if (mainCategories.length) {
-      const { error: mainError } = await admin.from('categories').upsert(mainCategories)
-      if (mainError) throw mainError
-    }
-    if (subCategories.length) {
-      const { error: subError } = await admin.from('categories').upsert(subCategories)
-      if (subError) throw subError
-    }
+  const removedSubcategoryIds = removedRows
+    .filter((category) => category.parent_id)
+    .map((category) => category.id)
+  const removedMainCategoryIds = removedRows
+    .filter((category) => !category.parent_id)
+    .map((category) => category.id)
+  if (removedSubcategoryIds.length) {
+    const { error } = await admin
+      .from('categories')
+      .delete()
+      .in('id', removedSubcategoryIds)
+    if (error) throw error
+  }
+  if (removedMainCategoryIds.length) {
+    const { error } = await admin
+      .from('categories')
+      .delete()
+      .in('id', removedMainCategoryIds)
+    if (error) throw error
   }
 }
 
@@ -231,16 +284,134 @@ const saveScopeSchema = z.enum([
   'settings',
 ])
 const objectArraySchema = z.array(z.record(z.string(), z.unknown())).max(5000)
+const entityIdSchema = z.string().trim().regex(ID, 'invalid_entity_id')
+const slugSchema = z
+  .string()
+  .trim()
+  .min(1)
+  .max(120)
+  .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'invalid_slug')
+const i18nSchema = z.object({
+  ar: z.string().max(50_000),
+  en: z.string().max(50_000),
+  he: z.string().max(50_000),
+})
+const requiredI18nSchema = i18nSchema.refine(
+  (value) => Object.values(value).some((text) => text.trim().length > 0),
+  'translation_required',
+)
+const categorySchema = z.object({
+  id: entityIdSchema,
+  slug: slugSchema,
+  name: requiredI18nSchema,
+  description: i18nSchema.optional(),
+  parentId: entityIdSchema.nullable().optional(),
+  icon: z.string().trim().max(80).optional(),
+  image: z.string().max(5_000).optional(),
+  sortOrder: z.coerce.number().int().min(0).max(1_000_000),
+  isActive: z.boolean(),
+})
+const productSpecSchema = z.object({
+  label: z.union([i18nSchema, z.string().max(2_000)]),
+  value: z.union([i18nSchema, z.string().max(2_000)]),
+})
+const productSchema = z.object({
+  id: entityIdSchema,
+  name: requiredI18nSchema,
+  sku: z.string().trim().min(1).max(120),
+  category: z.string().trim().min(1).max(120),
+  categoryId: entityIdSchema.optional().or(z.literal('')),
+  subcategoryId: entityIdSchema.optional().or(z.literal('')),
+  brand: z.string().trim().max(200).optional(),
+  price: z.coerce.number().finite().min(0).max(1_000_000_000),
+  inStock: z.boolean(),
+  featured: z.boolean().optional(),
+  compatibility: z.string().max(20_000),
+  image: z.string().max(5_000),
+  images: z.array(z.string().max(5_000)).max(100).optional(),
+  specs: z.array(productSpecSchema).max(200).optional(),
+  description: i18nSchema,
+})
+
+export class AdminContentError extends Error {
+  constructor(public code: string) {
+    super(code)
+  }
+}
+
+function validateCategoryHierarchy(categories: CategoryItem[]) {
+  const ids = new Set<string>()
+  const slugs = new Set<string>()
+  for (const category of categories) {
+    if (ids.has(category.id)) throw new AdminContentError('duplicate_category_id')
+    if (slugs.has(category.slug)) throw new AdminContentError('duplicate_category_slug')
+    ids.add(category.id)
+    slugs.add(category.slug)
+  }
+
+  const byId = new Map(categories.map((category) => [category.id, category]))
+  for (const category of categories) {
+    if (!category.parentId) continue
+    if (category.parentId === category.id) {
+      throw new AdminContentError('category_cannot_parent_itself')
+    }
+    const parent = byId.get(category.parentId)
+    if (!parent) throw new AdminContentError('category_parent_missing')
+    if (parent.parentId) throw new AdminContentError('category_depth_exceeded')
+  }
+}
+
+async function normalizeProductCategoryLinks(products: ProductItem[]) {
+  const admin = createAdminClient()
+  const { data, error } = await admin
+    .from('categories')
+    .select('id,slug,parent_id')
+  if (error) throw error
+
+  const categories = data || []
+  const byId = new Map(categories.map((category) => [category.id, category]))
+  const mainBySlug = new Map(
+    categories
+      .filter((category) => !category.parent_id)
+      .map((category) => [category.slug, category]),
+  )
+
+  return products.map((product) => {
+    const requestedMain = product.categoryId
+      ? byId.get(product.categoryId)
+      : mainBySlug.get(product.category)
+    if (!requestedMain || requestedMain.parent_id) {
+      throw new AdminContentError('product_main_category_invalid')
+    }
+
+    const requestedSubcategory = product.subcategoryId
+      ? byId.get(product.subcategoryId)
+      : undefined
+    if (
+      product.subcategoryId &&
+      (!requestedSubcategory || requestedSubcategory.parent_id !== requestedMain.id)
+    ) {
+      throw new AdminContentError('product_subcategory_invalid')
+    }
+
+    return {
+      ...product,
+      category: requestedMain.slug,
+      categoryId: requestedMain.id,
+      subcategoryId: requestedSubcategory?.id,
+    }
+  })
+}
 
 function requireContentRole(session: ValidAdminSession) {
   if (session.role !== 'owner' && session.role !== 'content_editor') {
-    throw new Error('insufficient_role')
+    throw new AdminContentError('insufficient_role')
   }
 }
 
 function requireOperationsRole(session: ValidAdminSession) {
   if (session.role !== 'owner' && session.role !== 'operations') {
-    throw new Error('insufficient_role')
+    throw new AdminContentError('insufficient_role')
   }
 }
 
@@ -422,7 +593,7 @@ export async function saveAdminSection(
   session: ValidAdminSession,
 ) {
   const scope = saveScopeSchema.parse(rawScope)
-  if (['pages', 'cars', 'products', 'blog', 'settings'].includes(scope)) {
+  if (['pages', 'cars', 'products', 'categories', 'blog', 'settings'].includes(scope)) {
     requireContentRole(session)
   } else {
     requireOperationsRole(session)
@@ -452,44 +623,42 @@ export async function saveAdminSection(
     await syncCars(processedCars)
   }
   if (scope === 'products') {
-    const products = objectArraySchema.max(2000).parse(data) as unknown as ProductItem[]
+    const products = z.array(productSchema).max(2000).parse(data) as unknown as ProductItem[]
+    const normalizedProducts = await normalizeProductCategoryLinks(products)
     const processedProducts = await Promise.all(
-      products
-        .filter((product) => product.id && typeof product.id === 'string' && product.id.trim().length > 0 && typeof product.sku === 'string' && product.sku.trim().length > 0)
-        .map(async (product) => {
-          const image = await ensureHostedMedia(product.image, '/images/part-brake-pads.png', 'products')
-          const images = await Promise.all(
-            (product.images || []).map((img) => ensureHostedMedia(img, image, 'products'))
-          )
-          return {
-            ...product,
-            id: product.id.trim(),
-            sku: product.sku.trim(),
-            image,
-            images,
-            name: safeI18n(product.name),
-            description: safeI18n(product.description),
-          }
-        })
+      normalizedProducts.map(async (product) => {
+        const image = await ensureHostedMedia(product.image, '/images/part-brake-pads.png', 'products')
+        const images = await Promise.all(
+          (product.images || []).map((item) => ensureHostedMedia(item, image, 'products')),
+        )
+        return {
+          ...product,
+          image,
+          images,
+          name: safeI18n(product.name),
+          description: safeI18n(product.description),
+        }
+      }),
     )
     await syncProducts(processedProducts)
   }
   if (scope === 'categories') {
-    const categories = objectArraySchema.max(1000).parse(data) as unknown as CategoryItem[]
+    const categories = z.array(categorySchema).max(1000).parse(data) as CategoryItem[]
+    validateCategoryHierarchy(categories)
     const processedCategories = await Promise.all(
-      categories
-        .filter((cat) => cat.id && typeof cat.id === 'string' && cat.id.trim().length > 0)
-        .map(async (cat) => {
-          const image = cat.image ? await ensureHostedMedia(cat.image, '', 'categories') : undefined
-          return {
-            ...cat,
-            id: cat.id.trim(),
-            slug: (cat.slug && cat.slug.trim().length > 0 ? cat.slug.trim() : cat.id.trim()).replace(/\s+/g, '-'),
-            image,
-            name: safeI18n(cat.name),
-            description: cat.description ? safeI18n(cat.description) : undefined,
-          }
-        })
+      categories.map(async (category) => {
+        const image = category.image
+          ? await ensureHostedMedia(category.image, '', 'categories')
+          : undefined
+        return {
+          ...category,
+          image,
+          name: safeI18n(category.name),
+          description: category.description
+            ? safeI18n(category.description)
+            : undefined,
+        }
+      }),
     )
     await syncCategories(processedCategories)
   }

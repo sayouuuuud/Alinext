@@ -185,7 +185,7 @@ export function CartView({
 
                 <div className="min-w-0 flex-1">
                   <p className="text-sm font-semibold text-muted-foreground">
-                    {part.brand} · {t.products.categories[part.category]}
+                    {part.brand} · {part.subcategoryName?.[locale] || part.categoryName[locale]}
                   </p>
                   <h3 className="mt-1.5 text-pretty text-base font-semibold leading-snug text-foreground">
                     <LocaleLink href={`/products/${part.slug}`} className="hover:text-accent">

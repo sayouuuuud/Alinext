@@ -46,7 +46,7 @@ export function ProductCard({ part }: { part: PartSummary }) {
       <div className="flex flex-1 flex-col p-5">
         <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
           {part.brand ? `${part.brand} · ` : ''}
-          {t.products.categories[part.category]}
+          {part.subcategoryName?.[locale] || part.categoryName[locale]}
         </p>
         <h3
           className="mt-2 text-pretty text-base font-semibold leading-snug text-foreground"

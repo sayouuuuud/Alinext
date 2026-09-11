@@ -1,11 +1,12 @@
 import { revalidatePath, revalidateTag } from 'next/cache'
 import { NextResponse } from 'next/server'
 import { getAdminSiteContent, SITE_CONTENT_TAG } from '@/lib/content/repository'
-import { saveAdminSection } from '@/lib/admin/content-repository'
+import { AdminContentError, saveAdminSection } from '@/lib/admin/content-repository'
 import { AdminSessionError, validateAdminSession } from '@/lib/admin/session-server'
 import {
   BLOG_TAG,
   CARS_TAG,
+  CATEGORIES_TAG,
   PAGES_TAG,
   POLICIES_TAG,
   PRODUCTS_TAG,
@@ -42,7 +43,7 @@ export async function PATCH(request: Request) {
       pages: PAGES_TAG,
       cars: CARS_TAG,
       products: PRODUCTS_TAG,
-      categories: PRODUCTS_TAG,
+      categories: CATEGORIES_TAG,
       blog: BLOG_TAG,
       settings: SETTINGS_TAG,
       orders: SITE_CONTENT_TAG,

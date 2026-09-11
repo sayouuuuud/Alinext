@@ -5,8 +5,8 @@ import type {
   ProductItem,
 } from '@/lib/admin/types'
 import {
-  isPartCategory,
   toSummary,
+  type CatalogCategory,
   type Part,
   type PartSummary,
 } from '@/lib/data/parts'
@@ -71,9 +71,22 @@ function gallery(car: CarItem) {
   }))
 }
 
-export function productToPart(product: ProductItem): Part {
+export function productToPart(
+  product: ProductItem,
+  categories: CatalogCategory[] = [],
+): Part {
   const name = localized(product.name, product.sku)
-  const category = isPartCategory(product.category) ? product.category : 'other'
+  const mainCategory = categories.find(
+    (category) =>
+      !category.parentId &&
+      (category.id === product.categoryId || category.slug === product.category),
+  )
+  const subcategory = categories.find(
+    (category) =>
+      category.id === product.subcategoryId &&
+      category.parentId === mainCategory?.id,
+  )
+  const categoryId = mainCategory?.id || product.categoryId || product.category || 'other'
   const compatibility = product.compatibility
     .split(',')
     .map((item) => item.trim())
@@ -83,7 +96,13 @@ export function productToPart(product: ProductItem): Part {
     slug: product.id,
     productId: product.id,
     sku: product.sku,
-    category,
+    category: mainCategory?.slug || product.category || 'other',
+    categoryId,
+    subcategoryId: subcategory?.id || product.subcategoryId,
+    categoryName: localized(mainCategory?.name, product.category || 'Other'),
+    subcategoryName: subcategory
+      ? localized(subcategory.name, subcategory.slug)
+      : undefined,
     brand: product.brand || 'ALI FLEET Genuine',
     price: product.price,
     inStock: product.inStock,
@@ -100,8 +119,11 @@ export function productToPart(product: ProductItem): Part {
   }
 }
 
-export function productToSummary(product: ProductItem): PartSummary {
-  return toSummary(productToPart(product))
+export function productToSummary(
+  product: ProductItem,
+  categories: CatalogCategory[] = [],
+): PartSummary {
+  return toSummary(productToPart(product, categories))
 }
 
 export function carToImport(car: CarItem): ImportCar {
