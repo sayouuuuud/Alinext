@@ -1,7 +1,9 @@
 import { revalidatePath, revalidateTag } from 'next/cache'
 import { NextResponse } from 'next/server'
+import { ZodError } from 'zod'
 import { getAdminSiteContent, SITE_CONTENT_TAG } from '@/lib/content/repository'
 import { AdminContentError, saveAdminSection } from '@/lib/admin/content-repository'
+import { AdminResourceError, deleteAdminResource } from '@/lib/admin/resource-actions'
 import { AdminSessionError, validateAdminSession } from '@/lib/admin/session-server'
 import {
   BLOG_TAG,
@@ -27,7 +29,7 @@ export async function GET() {
   } catch (error) {
     return json(
       { error: error instanceof AdminSessionError ? error.code : 'content_unavailable' },
-      error instanceof AdminSessionError ? 401 : 500,
+      error instanceof AdminSessionError ? (error.code === 'not_authorized' || error.code === 'mfa_required' ? 403 : 401) : 500,
     )
   }
 }
@@ -63,10 +65,32 @@ export async function PATCH(request: Request) {
 
     return json({ success: true, scope: saved.scope, lastSaved: saved.lastSaved })
   } catch (error) {
-    const unauthorized = error instanceof AdminSessionError
-    return json(
-      { error: unauthorized ? error.code : 'save_failed' },
-      unauthorized ? 401 : 400,
-    )
+    if (error instanceof AdminSessionError) {
+      return json({ error: error.code }, error.code === 'not_authorized' || error.code === 'mfa_required' ? 403 : 401)
+    }
+    if (error instanceof AdminContentError) return json({ error: error.code }, 422)
+    if (error instanceof ZodError) {
+      return json({ error: 'validation_failed', fields: error.issues.map((issue) => issue.path.join('.')).filter(Boolean) }, 422)
+    }
+    if (error instanceof SyntaxError) return json({ error: 'invalid_json' }, 422)
+    return json({ error: 'save_failed' }, 500)
+  }
+}
+
+export async function DELETE(request: Request) {
+  try {
+    const payload = await request.json() as { resource?: unknown; id?: unknown }
+    const result = await deleteAdminResource(payload.resource, payload.id)
+    revalidateTag(SITE_CONTENT_TAG, { expire: 0 })
+    revalidatePath('/', 'layout')
+    return json({ success: true, ...result })
+  } catch (error) {
+    if (error instanceof AdminSessionError) {
+      return json({ error: error.code }, error.code === 'not_authorized' || error.code === 'mfa_required' ? 403 : 401)
+    }
+    if (error instanceof AdminResourceError) return json({ error: error.code }, error.status)
+    if (error instanceof ZodError) return json({ error: 'validation_failed' }, 422)
+    if (error instanceof SyntaxError) return json({ error: 'invalid_json' }, 422)
+    return json({ error: 'delete_failed' }, 500)
   }
 }

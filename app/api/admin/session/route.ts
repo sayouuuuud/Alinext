@@ -10,7 +10,7 @@ function response(body: object, status = 200) {
 
 function sessionError(error: unknown) {
   if (!(error instanceof AdminSessionError)) return response({ ok: false, code: 'unexpected' }, 500)
-  const status = error.code === 'not_authorized' ? 403 : error.code === 'mfa_required' ? 428 : 401
+  const status = error.code === 'not_authorized' ? 403 : error.code === 'mfa_required' ? 403 : 401
   return response({ ok: false, code: error.code }, status)
 }
 

@@ -66,7 +66,7 @@ const emptyCategoryForm: CategoryItem = {
 }
 
 export function CategoriesManagerTab() {
-  const { content, updateContent, persist, showToast, locale } = useAdmin()
+  const { content, updateContent, persist, deleteResource, showToast, locale } = useAdmin()
 
   const categories = content.categories || []
   const products = content.products || []
@@ -251,16 +251,20 @@ export function CategoriesManagerTab() {
     }
 
     setIsDeleting(true)
-    const nextCategories = categories.filter((c) => c.id !== id)
-    const success = await persist('categories', nextCategories)
+    const result = await deleteResource('category', id)
     setIsDeleting(false)
 
-    if (success) {
-      updateContent((prev) => ({ ...prev, categories: nextCategories }))
+    if (result.ok) {
+      updateContent((prev) => ({ ...prev, categories: (prev.categories || []).filter((category) => category.id !== id) }))
       setDeleteConfirmCategory(null)
-      showToast('تم حذف التصنيف بنجاح وتحديث المتجر')
+      showToast('تم حذف التصنيف بعد التحقق من عدم وجود ارتباطات')
     } else {
-      showToast('تعذر حذف التصنيف من قاعدة البيانات', 'error')
+      const message = result.error === 'category_has_products'
+        ? 'لا يمكن حذف التصنيف لأنه مرتبط بمنتجات نشطة'
+        : result.error === 'category_has_children'
+          ? 'لا يمكن حذف التصنيف لأنه يحتوي على تصنيفات فرعية'
+          : 'تعذر حذف التصنيف. تحقق من الصلاحية ثم حاول مجددًا'
+      showToast(message, 'error')
     }
   }
 

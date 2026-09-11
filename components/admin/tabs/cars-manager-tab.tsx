@@ -23,7 +23,7 @@ import { ImageUpload } from '@/components/admin/image-upload'
 import type { CarItem, MultiLangString } from '@/lib/admin/types'
 
 export function CarsManagerTab() {
-  const { t, content, updateContent, locale, showToast, persist, isSaving } = useAdmin()
+  const { t, content, updateContent, locale, showToast, persist, deleteResource, isSaving } = useAdmin()
 
   const [search, setSearch] = useState('')
   const [typeFilter, setTypeFilter] = useState<'all' | 'sale' | 'import'>('all')
@@ -120,16 +120,15 @@ export function CarsManagerTab() {
 
   const handleDeleteCar = async (id: string) => {
     setIsDeleting(true)
-    const nextCars = cars.filter((c) => c.id !== id)
-    const success = await persist('cars', nextCars)
+    const result = await deleteResource('car', id)
     setIsDeleting(false)
 
-    if (success) {
-      updateContent((prev) => ({ ...prev, cars: nextCars }))
+    if (result.ok) {
+      updateContent((prev) => ({ ...prev, cars: (prev.cars || []).filter((car) => car.id !== id) }))
       setDeleteConfirmId(null)
-      showToast('تم حذف السيارة وتحديث قاعدة البيانات بنجاح')
+      showToast('تمت أرشفة السيارة وإخفاؤها مع الاحتفاظ بسجلها')
     } else {
-      showToast('تعذر حذف السيارة من قاعدة البيانات', 'error')
+      showToast('تعذرت أرشفة السيارة. تحقق من الصلاحية ثم حاول مجددًا', 'error')
     }
   }
 
@@ -338,7 +337,7 @@ export function CarsManagerTab() {
             <form onSubmit={handleSaveCar} className="mt-4 space-y-4 max-h-[75vh] overflow-y-auto pe-1">
               {/* Multi-language Title */}
               <MultiLangInput
-                label="اسم وطراز السيارة (Title)"
+                label="اسم و��راز السيارة (Title)"
                 value={formData.title}
                 onChange={(v) => setFormData({ ...formData, title: v })}
                 required

@@ -28,7 +28,7 @@ import {
 import { useAdmin } from '@/lib/admin/admin-context'
 
 export function DashboardTab() {
-  const { t, content, setActiveTab, updateContent, persist, showToast, locale } = useAdmin()
+  const { t, content, summary, setActiveTab, updateContent, persist, showToast, locale } = useAdmin()
 
   const cars = content.cars || []
   const products = content.products || []
@@ -43,21 +43,23 @@ export function DashboardTab() {
 
   // 1. Calculations: Financials & Orders
   const validOrders = orders.filter((o) => o.status !== 'cancelled')
-  const totalRevenue = useMemo(() => {
+  const calculatedRevenue = useMemo(() => {
     return validOrders.reduce((sum, o) => sum + (Number(o.total) || 0), 0)
   }, [validOrders])
+  const totalRevenue = summary?.orders.revenue ?? calculatedRevenue
 
   const pendingOrders = orders.filter((o) => o.status === 'pending')
   const processingOrders = orders.filter((o) => o.status === 'processing')
   const completedOrders = orders.filter((o) => o.status === 'completed' || o.status === 'delivered')
   const cancelledOrders = orders.filter((o) => o.status === 'cancelled')
 
-  const aov = validOrders.length > 0 ? Math.round(totalRevenue / validOrders.length) : 0
+  const aov = summary?.orders.average ?? (validOrders.length > 0 ? Math.round(calculatedRevenue / validOrders.length) : 0)
 
   // 2. Calculations: Fleet & Showroom
-  const totalFleetValue = useMemo(() => {
+  const calculatedFleetValue = useMemo(() => {
     return cars.reduce((sum, c) => sum + (Number(c.price) || 0), 0)
   }, [cars])
+  const totalFleetValue = summary?.cars.value ?? calculatedFleetValue
 
   const availableCars = cars.filter((c) => c.status === 'available')
   const reservedCars = cars.filter((c) => c.status === 'reserved')
@@ -190,7 +192,7 @@ export function DashboardTab() {
                 className="inline-flex items-center gap-1.5 rounded-xl border border-border bg-background px-3.5 py-2 text-xs font-semibold text-foreground hover:bg-muted transition-all"
               >
                 <ShoppingBag className="h-3.5 w-3.5 text-emerald-500" />
-                <span>الطلبات والشحن ({pendingOrders.length} جديدة)</span>
+                <span>الطلبات والشحن ({summary?.orders.pending ?? pendingOrders.length} جديدة)</span>
               </button>
             </div>
           </div>
@@ -245,9 +247,9 @@ export function DashboardTab() {
             </div>
           </div>
           <div className="mt-3">
-            <span className="text-2xl font-black text-foreground">{orders.length}</span>
-            <p className="mt-1 text-[11px] text-muted-foreground">
-              {pendingOrders.length} معلق • {processingOrders.length} تجهيز
+<span className="text-2xl font-black text-foreground">{summary?.orders.total ?? orders.length}</span>
+              <p className="mt-1 text-[11px] text-muted-foreground">
+                {summary?.orders.pending ?? pendingOrders.length} معلق • {summary?.orders.processing ?? processingOrders.length} تجهيز
             </p>
           </div>
         </div>
@@ -264,7 +266,7 @@ export function DashboardTab() {
             </div>
           </div>
           <div className="mt-3">
-            <span className="text-2xl font-black text-foreground">{cars.length}</span>
+            <span className="text-2xl font-black text-foreground">{summary?.cars.total ?? cars.length}</span>
             <p className="mt-1 text-[11px] text-muted-foreground">
               قيمة المعرض: {(totalFleetValue / 1000).toFixed(0)} ألف ₪
             </p>
@@ -283,9 +285,9 @@ export function DashboardTab() {
             </div>
           </div>
           <div className="mt-3">
-            <span className="text-2xl font-black text-foreground">{products.length}</span>
-            <p className="mt-1 text-[11px] text-muted-foreground">
-              {inStockProducts.length} متوفر • {outOfStockProducts.length} نفد
+<span className="text-2xl font-black text-foreground">{summary?.products.total ?? products.length}</span>
+              <p className="mt-1 text-[11px] text-muted-foreground">
+                {summary?.products.inStock ?? inStockProducts.length} متوفر • {summary?.products.outOfStock ?? outOfStockProducts.length} نفد
             </p>
           </div>
         </div>
@@ -302,9 +304,9 @@ export function DashboardTab() {
             </div>
           </div>
           <div className="mt-3">
-            <span className="text-2xl font-black text-foreground">{categories.length}</span>
-            <p className="mt-1 text-[11px] text-muted-foreground">
-              {mainCategories.length} رئيسي • {subCategories.length} فرعي
+<span className="text-2xl font-black text-foreground">{summary?.categories.total ?? categories.length}</span>
+              <p className="mt-1 text-[11px] text-muted-foreground">
+                {summary?.categories.main ?? mainCategories.length} رئيسي • {summary?.categories.sub ?? subCategories.length} فرعي
             </p>
           </div>
         </div>
@@ -321,9 +323,9 @@ export function DashboardTab() {
             </div>
           </div>
           <div className="mt-3">
-            <span className="text-2xl font-black text-foreground">{customers.length}</span>
-            <p className="mt-1 text-[11px] text-muted-foreground">
-              {newInquiries.length} استفسار جديد بانتظار الرد
+<span className="text-2xl font-black text-foreground">{summary?.customers ?? customers.length}</span>
+              <p className="mt-1 text-[11px] text-muted-foreground">
+                {summary?.inquiries.new ?? newInquiries.length} استفسار جديد بانتظار الرد
             </p>
           </div>
         </div>
@@ -484,25 +486,25 @@ export function DashboardTab() {
               <div className="rounded-xl border border-border bg-background p-2.5 text-center">
                 <span className="text-[10px] text-muted-foreground block">متوفر</span>
                 <span className="text-base font-extrabold text-emerald-600 dark:text-emerald-400">
-                  {availableCars.length}
+                  {summary?.cars.available ?? availableCars.length}
                 </span>
               </div>
               <div className="rounded-xl border border-border bg-background p-2.5 text-center">
                 <span className="text-[10px] text-muted-foreground block">محجوز</span>
                 <span className="text-base font-extrabold text-amber-600 dark:text-amber-400">
-                  {reservedCars.length}
+                  {summary?.cars.reserved ?? reservedCars.length}
                 </span>
               </div>
               <div className="rounded-xl border border-border bg-background p-2.5 text-center">
                 <span className="text-[10px] text-muted-foreground block">تم البيع</span>
                 <span className="text-base font-extrabold text-muted-foreground">
-                  {soldCars.length}
+                  {summary?.cars.sold ?? soldCars.length}
                 </span>
               </div>
               <div className="rounded-xl border border-border bg-background p-2.5 text-center">
                 <span className="text-[10px] text-muted-foreground block">قيد الاستيراد</span>
                 <span className="text-base font-extrabold text-blue-600 dark:text-blue-400">
-                  {incomingCars.length}
+                  {summary?.cars.incoming ?? incomingCars.length}
                 </span>
               </div>
             </div>

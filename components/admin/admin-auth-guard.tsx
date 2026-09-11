@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import Link from 'next/link'
 import { AlertCircle, ArrowRight, Eye, EyeOff, KeyRound, Loader2, Lock, ShieldCheck } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useAdmin } from '@/lib/admin/admin-context'
@@ -10,7 +11,7 @@ type Step = 'checking' | 'login' | 'enroll' | 'challenge' | 'ready'
 export function AdminAuthGuard({ children }: { children: React.ReactNode }) {
   const { locale } = useAdmin()
   const [step, setStep] = useState<Step>('checking')
-  const [email, setEmail] = useState('admin@test.com')
+  const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [code, setCode] = useState('')
@@ -187,7 +188,7 @@ export function AdminAuthGuard({ children }: { children: React.ReactNode }) {
           </form>
         )}
 
-        <a href="/" className="mt-6 block text-center text-sm text-muted-foreground underline-offset-4 hover:underline">{locale === 'ar' ? 'العودة إلى الموقع' : 'Return to storefront'}</a>
+        <Link href="/" className="mt-6 block text-center text-sm text-muted-foreground underline-offset-4 hover:underline">{locale === 'ar' ? 'العودة إلى الموقع' : 'Return to storefront'}</Link>
       </section>
     </main>
   )

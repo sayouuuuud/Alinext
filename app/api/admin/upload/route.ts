@@ -1,12 +1,12 @@
 import { NextResponse } from 'next/server'
-import { validateAdminSession, AdminSessionError } from '@/lib/admin/session-server'
+import { requireAdminPermission, AdminSessionError } from '@/lib/admin/session-server'
 import { createAdminClient } from '@/lib/supabase/server'
 
 export const dynamic = 'force-dynamic'
 
 export async function POST(request: Request) {
   try {
-    await validateAdminSession()
+    await requireAdminPermission('media.write')
     const contentType = request.headers.get('content-type') || ''
 
     let buffer: Buffer
@@ -37,6 +37,14 @@ export async function POST(request: Request) {
       originalName = body.fileName || 'upload.jpg'
     }
 
+    const allowedMimeTypes = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/avif'])
+    if (!allowedMimeTypes.has(mimeType)) {
+      return NextResponse.json({ error: 'unsupported_file_type' }, { status: 415 })
+    }
+    if (buffer.byteLength > 5 * 1024 * 1024) {
+      return NextResponse.json({ error: 'file_too_large' }, { status: 413 })
+    }
+
     const ext = mimeType.split('/')[1]?.replace('jpeg', 'jpg') || 'jpg'
     const safeName = originalName.replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 30)
     const filePath = `uploads/${Date.now()}-${safeName}.${ext}`
@@ -51,7 +59,7 @@ export async function POST(request: Request) {
 
     if (uploadError) {
       console.error('Supabase storage upload error:', uploadError)
-      return NextResponse.json({ error: 'upload_failed', details: uploadError.message }, { status: 500 })
+      return NextResponse.json({ error: 'upload_failed' }, { status: 500 })
     }
 
     const { data: publicUrlData } = admin.storage
@@ -64,7 +72,10 @@ export async function POST(request: Request) {
     })
   } catch (error) {
     if (error instanceof AdminSessionError) {
-      return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
+      return NextResponse.json(
+        { error: error.code },
+        { status: error.code === 'not_authorized' || error.code === 'mfa_required' ? 403 : 401 },
+      )
     }
     console.error('Upload handler error:', error)
     return NextResponse.json({ error: 'server_error' }, { status: 500 })

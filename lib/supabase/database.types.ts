@@ -233,6 +233,44 @@ type InquiryRow = {
   updated_at: string
 }
 
+type NotificationRow = {
+  id: string
+  user_id: string
+  order_id: string | null
+  event_type: string
+  payload: Json
+  read_at: string | null
+  created_at: string
+}
+
+type NotificationEmailOutboxRow = {
+  id: string
+  notification_id: string
+  recipient: string
+  status: string
+  attempt_count: number
+  next_attempt_at: string
+  provider_message_id: string | null
+  last_error_code: string | null
+  sent_at: string | null
+  created_at: string
+  updated_at: string
+}
+
+type PaymentEventRow = {
+  id: string
+  order_id: string
+  user_id: string
+  from_status: Database['public']['Enums']['payment_status'] | null
+  to_status: Database['public']['Enums']['payment_status']
+  amount_minor: number
+  currency: string
+  payment_method: string | null
+  changed_by: string | null
+  note: string | null
+  created_at: string
+}
+
 type GenericJsonRow = Record<string, Json | undefined>
 
 export type Database = {
@@ -263,6 +301,9 @@ export type Database = {
       orders: GeneratedTable<OrderRow>
       order_items: GeneratedTable<OrderItemRow>
       order_status_history: GeneratedTable<OrderStatusHistoryRow>
+      notifications: GeneratedTable<NotificationRow>
+      notification_email_outbox: GeneratedTable<NotificationEmailOutboxRow>
+      payment_events: GeneratedTable<PaymentEventRow>
       inventory_movements: GeneratedTable<GenericJsonRow>
       inquiries: GeneratedTable<InquiryRow>
       admin_audit_log: GeneratedTable<GenericJsonRow>
@@ -277,6 +318,32 @@ export type Database = {
           p_idempotency_key: string
           p_customer_notes?: string
           p_payment_method?: string
+        }
+        Returns: Json
+      }
+      cancel_order: {
+        Args: { p_order_id: string; p_reason: string }
+        Returns: Json
+      }
+      confirm_order_received: {
+        Args: { p_order_id: string }
+        Returns: Json
+      }
+      mark_notifications_read: {
+        Args: { p_notification_id?: string }
+        Returns: number
+      }
+      admin_update_order: {
+        Args: {
+          p_order_id: string
+          p_status?: Database['public']['Enums']['order_status']
+          p_payment_status?: Database['public']['Enums']['payment_status']
+          p_carrier?: string | null
+          p_tracking_number?: string | null
+          p_estimated_delivery?: string | null
+          p_admin_notes?: string | null
+          p_note?: string | null
+          p_changed_by?: string | null
         }
         Returns: Json
       }
