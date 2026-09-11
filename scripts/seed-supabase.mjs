@@ -29,7 +29,7 @@ function allowedMedia(value, fallback) {
 
 const content = structuredClone(source)
 delete content.security?.passwordHash
-content.version = 5
+content.version = 6
 content.lastSaved = new Date().toISOString()
 content.commerce = {
   ...content.commerce,
@@ -190,12 +190,34 @@ const carHighlights = content.cars.flatMap((car) =>
 if (carMedia.length) await assertResult('car_media', await supabase.from('car_media').insert(carMedia))
 if (carHighlights.length) await assertResult('car_highlights', await supabase.from('car_highlights').insert(carHighlights))
 
+const categoryRows = (content.categories || []).map((category) => ({
+  id: category.id,
+  slug: category.slug,
+  name: category.name,
+  description: category.description || null,
+  parent_id: category.parentId || null,
+  icon: category.icon || null,
+  image: category.image || null,
+  sort_order: Number(category.sortOrder || 0),
+  is_active: category.isActive !== false,
+}))
+const mainCategoryRows = categoryRows.filter((category) => !category.parent_id)
+const subcategoryRows = categoryRows.filter((category) => category.parent_id)
+if (mainCategoryRows.length) {
+  await assertResult('main categories', await supabase.from('categories').upsert(mainCategoryRows))
+}
+if (subcategoryRows.length) {
+  await assertResult('subcategories', await supabase.from('categories').upsert(subcategoryRows))
+}
+
 const productRows = content.products.map((product) => ({
   id: product.id,
   slug: product.id,
   sku: product.sku || `ALI-${product.id}`,
   name: product.name,
   category: product.category || 'other',
+  category_id: product.categoryId || null,
+  subcategory_id: product.subcategoryId || null,
   brand: product.brand || 'ALI FLEET Genuine',
   price_minor: Math.round(Number(product.price || 0) * 100),
   currency: 'ILS',
@@ -388,10 +410,11 @@ if (!existingInquiry) {
 await assertResult(
   'seed_runs',
   await supabase.from('seed_runs').upsert({
-    version: '2026-09-10-v1',
+    version: '2026-09-11-taxonomy-v2',
     details: {
       source: 'data/site-content.json',
       cars: carRows.length,
+      categories: categoryRows.length,
       products: productRows.length,
       blogPosts: blogRows.length,
       safeDemoData: true,

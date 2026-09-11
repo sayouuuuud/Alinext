@@ -2,7 +2,7 @@
 
 import { PackageX } from 'lucide-react'
 import LocaleLink from '@/components/locale-link'
-import type { PartSummary } from '@/lib/data/parts'
+import type { CatalogCategory, PartSummary } from '@/lib/data/parts'
 import type { CatalogStatus } from '@/lib/content/catalog'
 import { useLanguage } from '@/lib/i18n/language-context'
 import { PageHero } from '@/components/page-hero'
@@ -11,10 +11,12 @@ import { useSiteContent } from '@/lib/admin/site-content-context'
 
 export function ProductsScreen({
   parts,
+  categories,
   status,
   hasUntranslated,
 }: {
   parts: PartSummary[]
+  categories: CatalogCategory[]
   status: CatalogStatus
   hasUntranslated: boolean
 }) {
@@ -65,7 +67,7 @@ export function ProductsScreen({
               </p>
             </div>
           )}
-          <ProductsBrowser parts={parts} />
+          <ProductsBrowser parts={parts} categories={categories} />
         </>
       )}
     </>

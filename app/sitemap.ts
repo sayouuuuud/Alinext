@@ -38,7 +38,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date()
 
   const [catalog, posts, vehicles, saleCars] = await Promise.all([
-    safe(getCatalog, { parts: [], status: 'empty' as const, hasUntranslated: false }, 'catalog'),
+    safe(
+      getCatalog,
+      { parts: [], categories: [], status: 'empty' as const, hasUntranslated: false },
+      'catalog',
+    ),
     safe(getPosts, { posts: [], featured: null, status: 'empty' as const }, 'posts'),
     safe(getVehicles, { cars: [], status: 'empty' as const }, 'vehicles'),
     safe(getSaleCars, { cars: [], status: 'empty' as const }, 'sale cars'),

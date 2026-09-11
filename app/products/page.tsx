@@ -23,7 +23,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 /** The local catalog renders on the server for complete initial HTML and SEO. */
 export default async function ProductsPage() {
-  const { parts, status, hasUntranslated } = await getCatalogSummaries()
+  const { parts, categories, status, hasUntranslated } = await getCatalogSummaries()
 
   return (
     <>
@@ -31,6 +31,7 @@ export default async function ProductsPage() {
       <main>
         <ProductsScreen
           parts={parts}
+          categories={categories}
           status={status}
           hasUntranslated={hasUntranslated}
         />

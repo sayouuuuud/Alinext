@@ -3,34 +3,33 @@ import type { Localized, LocalizedOrPlain } from '@/lib/i18n/localized'
 /**
  * Shapes for the spare-parts catalog.
  *
- * Products are managed by the local ALI FLEET content system. The same stable
- * product id is used by listing pages, detail pages, the cart, and the admin
- * panel so every surface stays in sync.
+ * Products and their taxonomy are managed by the ALI FLEET content system.
+ * Stable ids are shared by the listing, detail pages, cart, and admin panel.
  */
 
-export type PartCategory =
-  | 'brakes'
-  | 'engine'
-  | 'lighting'
-  | 'wheels'
-  | 'transmission'
-  | 'filters'
-  | 'suspension'
-  | 'electrical'
-  /** Anything not filed under one of the eight above. */
-  | 'other'
+export type PartCategory = string
+
+export type CatalogCategory = {
+  id: string
+  slug: string
+  name: Localized
+  parentId: string | null
+  sortOrder: number
+}
 
 /**
  * The fields every product tile, search filter and cart line needs. Kept
- * separate from `Part` so a 165-product listing does not ship every long
- * description and spec table to the browser.
+ * separate from `Part` so listings do not ship long descriptions and specs.
  */
 export type PartSummary = {
   slug: string
-  /** Stable id from the local content catalog. */
   productId: string
   sku: string
   category: PartCategory
+  categoryId: string
+  subcategoryId?: string
+  categoryName: Localized
+  subcategoryName?: Localized
   brand: string
   price: number
   inStock: boolean
@@ -38,47 +37,26 @@ export type PartSummary = {
   image: string
   alt: Localized
   name: Localized
-  /**
-   * True when this product still only has its original Hebrew text, so the UI
-   * can mark it up with `lang="he"` instead of lying about the language.
-   */
+  /** Marks products that only have their original Hebrew text. */
   untranslated?: boolean
 }
 
-/** A full product, as needed by the detail page. */
 export type Part = PartSummary & {
   description: Localized
   specs: { label: Localized; value: LocalizedOrPlain }[]
   compatibility: string[]
 }
 
-/** Filter chips on the catalog page, in display order. */
-export const partCategories: PartCategory[] = [
-  'brakes',
-  'engine',
-  'lighting',
-  'wheels',
-  'transmission',
-  'filters',
-  'suspension',
-  'electrical',
-  'other',
-]
-
-export function isPartCategory(value: unknown): value is PartCategory {
-  return (
-    typeof value === 'string' &&
-    (partCategories as readonly string[]).includes(value)
-  )
-}
-
-/** Narrows a full product down to what the listing and cart actually render. */
 export function toSummary(part: Part): PartSummary {
   return {
     slug: part.slug,
     productId: part.productId,
     sku: part.sku,
     category: part.category,
+    categoryId: part.categoryId,
+    subcategoryId: part.subcategoryId,
+    categoryName: part.categoryName,
+    subcategoryName: part.subcategoryName,
     brand: part.brand,
     price: part.price,
     inStock: part.inStock,

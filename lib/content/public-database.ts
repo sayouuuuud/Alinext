@@ -3,6 +3,7 @@ import 'server-only'
 import { unstable_cache } from 'next/cache'
 import { createPublicClient } from '@/lib/supabase/server'
 import type { Json } from '@/lib/supabase/database.types'
+import type { CatalogCategory } from '@/lib/data/parts'
 import type {
   BlogPostItem,
   CarItem,
@@ -15,6 +16,7 @@ export const PUBLIC_CONTENT_TAG = 'site-content'
 export const SETTINGS_TAG = 'settings'
 export const PAGES_TAG = 'pages'
 export const PRODUCTS_TAG = 'products'
+export const CATEGORIES_TAG = 'categories'
 export const CARS_TAG = 'cars'
 export const BLOG_TAG = 'blog'
 export const POLICIES_TAG = 'policies'
@@ -149,6 +151,8 @@ const cachedProducts = unstable_cache(
         name: i18n(product.name, product.sku),
         sku: product.sku,
         category: product.category,
+        categoryId: product.category_id || undefined,
+        subcategoryId: product.subcategory_id || undefined,
         brand: product.brand || undefined,
         price: product.price_minor / 100,
         inStock: product.stock_quantity > 0,
@@ -163,8 +167,30 @@ const cachedProducts = unstable_cache(
       }
     })
   },
-  ['alifleet-public-products-v2'],
+  ['alifleet-public-products-v3'],
   { tags: [PUBLIC_CONTENT_TAG, PRODUCTS_TAG], revalidate: 300 },
+)
+
+const cachedCategories = unstable_cache(
+  async (): Promise<CatalogCategory[]> => {
+    const supabase = createPublicClient()
+    const { data, error } = await supabase
+      .from('categories')
+      .select('id,slug,name,parent_id,sort_order')
+      .eq('is_active', true)
+      .order('sort_order', { ascending: true })
+    if (error) throw new Error(`Public categories unavailable: ${error.message}`)
+
+    return (data || []).map((category) => ({
+      id: category.id,
+      slug: category.slug,
+      name: i18n(category.name, category.slug),
+      parentId: category.parent_id,
+      sortOrder: category.sort_order,
+    }))
+  },
+  ['alifleet-public-categories-v1'],
+  { tags: [PUBLIC_CONTENT_TAG, CATEGORIES_TAG], revalidate: 300 },
 )
 
 const cachedCars = unstable_cache(
@@ -252,6 +278,10 @@ export async function getPublicSiteContent() {
 
 export async function getPublicProducts() {
   return cachedProducts()
+}
+
+export async function getPublicCategories() {
+  return cachedCategories()
 }
 
 export async function getPublicCars() {
