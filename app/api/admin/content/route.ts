@@ -42,6 +42,7 @@ export async function PATCH(request: Request) {
       pages: PAGES_TAG,
       cars: CARS_TAG,
       products: PRODUCTS_TAG,
+      categories: PRODUCTS_TAG,
       blog: BLOG_TAG,
       settings: SETTINGS_TAG,
       orders: SITE_CONTENT_TAG,

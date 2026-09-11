@@ -34,6 +34,8 @@ export function ProductsManagerTab() {
     name: { ar: '', en: '', he: '' },
     sku: '',
     category: '',
+    categoryId: '',
+    subcategoryId: '',
     price: 0,
     inStock: true,
     compatibility: '',
@@ -44,6 +46,8 @@ export function ProductsManagerTab() {
   const [formData, setFormData] = useState<ProductItem>(emptyProduct)
 
   const products = content.products || []
+  const categories = content.categories || []
+  const mainCategories = categories.filter((c) => !c.parentId)
 
   const filteredProducts = products.filter((p) => {
     const nameMatch =
@@ -62,16 +66,23 @@ export function ProductsManagerTab() {
 
   const openAddModal = () => {
     setEditingProduct(null)
+    const firstMainCat = mainCategories[0]?.id || ''
     setFormData({
       ...emptyProduct,
       id: `prod-${Date.now()}`,
+      categoryId: firstMainCat,
+      category: firstMainCat,
     })
     setIsModalOpen(true)
   }
 
   const openEditModal = (p: ProductItem) => {
     setEditingProduct(p)
-    setFormData({ ...p })
+    setFormData({
+      ...p,
+      categoryId: p.categoryId || p.category || '',
+      subcategoryId: p.subcategoryId || '',
+    })
     setIsModalOpen(true)
   }
 
@@ -221,9 +232,35 @@ export function ProductsManagerTab() {
                       {p.sku}
                     </td>
                     <td className="px-4 py-3">
-                      <span className="rounded-md bg-muted px-2 py-0.5 text-[10px] font-semibold text-muted-foreground">
-                        {p.category}
-                      </span>
+                      {(() => {
+                        const targetCatId = p.categoryId || p.category
+                        const cat = categories.find((c) => c.id === targetCatId || c.slug === targetCatId)
+                        const subCat = p.subcategoryId ? categories.find((c) => c.id === p.subcategoryId || c.slug === p.subcategoryId) : null
+                        const mainCat = cat?.parentId ? categories.find((c) => c.id === cat.parentId) : cat
+
+                        if (!mainCat && !subCat) {
+                          return (
+                            <span className="rounded-md bg-muted px-2 py-0.5 text-[10px] font-semibold text-muted-foreground">
+                              {p.category}
+                            </span>
+                          )
+                        }
+
+                        return (
+                          <div className="flex flex-col gap-0.5">
+                            {mainCat && (
+                              <span className="rounded-md bg-primary/10 text-primary px-2 py-0.5 text-[10px] font-semibold w-fit">
+                                {mainCat.name?.[locale] || mainCat.name?.ar || mainCat.name?.en || mainCat.id}
+                              </span>
+                            )}
+                            {subCat && (
+                              <span className="text-[10px] text-muted-foreground font-medium ps-1">
+                                ↳ {subCat.name?.[locale] || subCat.name?.ar || subCat.name?.en || subCat.id}
+                              </span>
+                            )}
+                          </div>
+                        )
+                      })()}
                     </td>
                     <td className="px-4 py-3 font-bold text-primary">
                       {p.price.toLocaleString()} ₪
@@ -292,7 +329,7 @@ export function ProductsManagerTab() {
                 required
               />
 
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <div>
                   <label className="text-xs font-semibold text-foreground">
                     {t.productsManager.skuLabel}
@@ -308,19 +345,6 @@ export function ProductsManagerTab() {
 
                 <div>
                   <label className="text-xs font-semibold text-foreground">
-                    {t.productsManager.categoryLabel}
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.category}
-                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                    placeholder="مثال: محركات، فرامل، إطارات"
-                    className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-xs text-foreground focus:border-primary focus:outline-hidden"
-                  />
-                </div>
-
-                <div>
-                  <label className="text-xs font-semibold text-foreground">
                     {t.productsManager.priceLabel} (₪)
                   </label>
                   <input
@@ -330,6 +354,61 @@ export function ProductsManagerTab() {
                     placeholder="0"
                     className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-xs font-bold text-foreground focus:border-primary focus:outline-hidden"
                   />
+                </div>
+              </div>
+
+              {/* Hierarchical Categories Selection */}
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 rounded-xl border border-border bg-muted/20 p-3">
+                <div>
+                  <label className="text-xs font-semibold text-foreground">
+                    التصنيف الرئيسي (Main Category)
+                  </label>
+                  <select
+                    value={formData.categoryId || formData.category || ''}
+                    onChange={(e) => {
+                      const val = e.target.value
+                      const selected = categories.find((c) => c.id === val || c.slug === val)
+                      setFormData({
+                        ...formData,
+                        categoryId: val,
+                        category: selected?.slug || val,
+                        subcategoryId: '',
+                      })
+                    }}
+                    className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-xs text-foreground focus:border-primary focus:outline-hidden"
+                  >
+                    <option value="">اختر التصنيف الرئيسي…</option>
+                    {mainCategories.map((main) => (
+                      <option key={main.id} value={main.id}>
+                        {main.name?.[locale] || main.name?.ar || main.name?.en || main.id}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="text-xs font-semibold text-foreground">
+                    التصنيف الفرعي (Subcategory - اختياري)
+                  </label>
+                  <select
+                    value={formData.subcategoryId || ''}
+                    onChange={(e) => setFormData({ ...formData, subcategoryId: e.target.value })}
+                    className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-xs text-foreground focus:border-primary focus:outline-hidden"
+                    disabled={!formData.categoryId && !formData.category}
+                  >
+                    <option value="">(بدون تصنيف فرعي)</option>
+                    {categories
+                      .filter(
+                        (c) =>
+                          c.parentId &&
+                          (c.parentId === formData.categoryId || c.parentId === formData.category),
+                      )
+                      .map((sub) => (
+                        <option key={sub.id} value={sub.id}>
+                          {sub.name?.[locale] || sub.name?.ar || sub.name?.en || sub.id}
+                        </option>
+                      ))}
+                  </select>
                 </div>
               </div>
 

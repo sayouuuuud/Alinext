@@ -10,6 +10,7 @@ export type AdminDictionary = {
     pages: string
     cars: string
     products: string
+    categories: string
     blog: string
     orders: string
     inquiries?: string
@@ -385,6 +386,7 @@ export const adminI18n: Record<AdminLocale, AdminDictionary> = {
       pages: 'محرر الصفحات والأقسام',
       cars: 'أسطول السيارات',
       products: 'قطع الغيار والكتالوج',
+      categories: 'التصنيفات والأنواع',
       blog: 'المدونة والمقالات',
       orders: 'إدارة الطلبات والشحن',
       inquiries: 'الرسائل والطلبات',
@@ -758,6 +760,7 @@ export const adminI18n: Record<AdminLocale, AdminDictionary> = {
       pages: 'Page & Section Editor',
       cars: 'Fleet Management',
       products: 'Parts & Store Catalog',
+      categories: 'Categories & Types',
       blog: 'Blog & Articles',
       orders: 'Orders Management',
       inquiries: 'Inquiries & Leads',
@@ -1131,6 +1134,7 @@ export const adminI18n: Record<AdminLocale, AdminDictionary> = {
       pages: 'עורך דפים ומדורים',
       cars: 'ניהול צי הרכבים',
       products: 'קטלוג חלפים וחנות',
+      categories: 'קטגוריות וסיווגים',
       blog: 'בלוג ומאמרים',
       orders: 'ניהול הזמנות ומשלוחים',
       inquiries: 'פניות ולידים',

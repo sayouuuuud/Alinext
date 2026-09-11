@@ -4,7 +4,7 @@ import sanitizeHtml from 'sanitize-html'
 import { z } from 'zod'
 import { createAdminClient } from '@/lib/supabase/server'
 import type { ValidAdminSession } from './session-server'
-import type { BlogPostItem, CarItem, CustomerItem, MultiLangString, ProductItem, SiteFullContent } from './types'
+import type { BlogPostItem, CarItem, CategoryItem, CustomerItem, MultiLangString, ProductItem, SiteFullContent } from './types'
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 const ID = /^[a-zA-Z0-9][a-zA-Z0-9_-]{0,119}$/
@@ -112,6 +112,8 @@ async function syncProducts(products: ProductItem[]) {
     const current = byId.get(product.id)
     return {
       id: product.id, slug: product.id, sku: product.sku, name: product.name, category: product.category || 'other',
+      category_id: product.categoryId || product.category || null,
+      subcategory_id: product.subcategoryId || null,
       brand: product.brand || null, price_minor: Math.round(Number(product.price || 0) * 100), currency: 'ILS',
       stock_quantity: product.inStock ? Math.max(1, current?.stock_quantity || 25) : 0,
       max_order_quantity: current?.max_order_quantity || 10, featured: Boolean(product.featured),
@@ -145,6 +147,45 @@ async function syncProducts(products: ProductItem[]) {
   if (compatibilityRows.length) { const { error } = await admin.from('product_compatibility').insert(compatibilityRows); if (error) throw error }
 }
 
+async function syncCategories(categories: CategoryItem[]) {
+  const admin = createAdminClient()
+  const rows = categories.map((cat) => ({
+    id: cat.id,
+    slug: cat.slug || cat.id,
+    name: safeI18n(cat.name),
+    description: cat.description ? safeI18n(cat.description) : null,
+    parent_id: cat.parentId || null,
+    icon: cat.icon || null,
+    image: cat.image ? media(cat.image, '') : null,
+    sort_order: Number(cat.sortOrder) || 0,
+    is_active: cat.isActive !== false,
+  }))
+
+  const { data: existing, error: existingError } = await admin.from('categories').select('id')
+  if (existingError) throw existingError
+
+  const activeIds = new Set(rows.map((r) => r.id))
+  const removed = (existing || []).map((r) => r.id).filter((id) => !activeIds.has(id))
+  if (removed.length) {
+    const { error } = await admin.from('categories').delete().in('id', removed)
+    if (error) throw error
+  }
+
+  if (rows.length) {
+    const mainCategories = rows.filter((r) => !r.parent_id)
+    const subCategories = rows.filter((r) => !!r.parent_id)
+
+    if (mainCategories.length) {
+      const { error: mainError } = await admin.from('categories').upsert(mainCategories)
+      if (mainError) throw mainError
+    }
+    if (subCategories.length) {
+      const { error: subError } = await admin.from('categories').upsert(subCategories)
+      if (subError) throw subError
+    }
+  }
+}
+
 async function syncBlog(posts: BlogPostItem[]) {
   const admin = createAdminClient()
   const rows = posts.map((post) => ({
@@ -171,6 +212,7 @@ export type AdminSaveScope =
   | 'pages'
   | 'cars'
   | 'products'
+  | 'categories'
   | 'blog'
   | 'orders'
   | 'customers'
@@ -181,6 +223,7 @@ const saveScopeSchema = z.enum([
   'pages',
   'cars',
   'products',
+  'categories',
   'blog',
   'orders',
   'customers',
@@ -430,6 +473,25 @@ export async function saveAdminSection(
         })
     )
     await syncProducts(processedProducts)
+  }
+  if (scope === 'categories') {
+    const categories = objectArraySchema.max(1000).parse(data) as unknown as CategoryItem[]
+    const processedCategories = await Promise.all(
+      categories
+        .filter((cat) => cat.id && typeof cat.id === 'string' && cat.id.trim().length > 0)
+        .map(async (cat) => {
+          const image = cat.image ? await ensureHostedMedia(cat.image, '', 'categories') : undefined
+          return {
+            ...cat,
+            id: cat.id.trim(),
+            slug: (cat.slug && cat.slug.trim().length > 0 ? cat.slug.trim() : cat.id.trim()).replace(/\s+/g, '-'),
+            image,
+            name: safeI18n(cat.name),
+            description: cat.description ? safeI18n(cat.description) : undefined,
+          }
+        })
+    )
+    await syncCategories(processedCategories)
   }
   if (scope === 'blog') {
     const posts = objectArraySchema.max(1000).parse(data) as unknown as BlogPostItem[]

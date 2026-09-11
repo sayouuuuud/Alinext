@@ -6,6 +6,7 @@ import {
   Layers,
   Car,
   Package,
+  FolderTree,
   FileText,
   ShoppingBag,
   MessageSquareText,
@@ -53,6 +54,13 @@ export function AdminSidebar() {
       icon: Package,
       badge: content.products?.length || 0,
       badgeColor: 'bg-muted text-muted-foreground',
+    },
+    {
+      id: 'categories',
+      label: t.tabs.categories || 'التصنيفات والأنواع',
+      icon: FolderTree,
+      badge: content.categories?.length || 0,
+      badgeColor: 'bg-primary/20 text-primary',
     },
     {
       id: 'blog',

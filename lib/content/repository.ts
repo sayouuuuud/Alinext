@@ -6,6 +6,7 @@ import type { Json } from '@/lib/supabase/database.types'
 import type {
   BlogPostItem,
   CarItem,
+  CategoryItem,
   CustomerItem,
   InquiryItem,
   MultiLangString,
@@ -38,7 +39,7 @@ type CompatibilityRow = { product_id: string; notes: string | null; make: string
 
 async function loadBaseAndCatalog(includeUnpublished: boolean): Promise<SiteFullContent> {
   const admin = createAdminClient()
-  const [baseContent, privateSettingsResult, carsResult, carMediaResult, highlightsResult, productsResult, productMediaResult, specsResult, compatibilityResult, postsResult] = await Promise.all([
+  const [baseContent, privateSettingsResult, carsResult, carMediaResult, highlightsResult, productsResult, productMediaResult, specsResult, compatibilityResult, postsResult, categoriesResult] = await Promise.all([
     getPublicSiteContent(),
     admin.from('site_settings_private').select('key,value,updated_at'),
     admin.from('cars').select('*').order('featured', { ascending: false }).order('created_at', { ascending: false }),
@@ -49,9 +50,10 @@ async function loadBaseAndCatalog(includeUnpublished: boolean): Promise<SiteFull
     admin.from('product_specs').select('product_id,label,value,sort_order').order('sort_order'),
     admin.from('product_compatibility').select('product_id,make,model,notes'),
     admin.from('blog_posts').select('*').order('published_at', { ascending: false }),
+    admin.from('categories').select('*').order('sort_order', { ascending: true }),
   ])
 
-  const firstError = [privateSettingsResult, carsResult, carMediaResult, highlightsResult, productsResult, productMediaResult, specsResult, compatibilityResult, postsResult].find((result) => result.error)?.error
+  const firstError = [privateSettingsResult, carsResult, carMediaResult, highlightsResult, productsResult, productMediaResult, specsResult, compatibilityResult, postsResult, categoriesResult].find((result) => result.error)?.error
   if (firstError) throw new Error(`Supabase content query failed: ${firstError.message}`)
 
   const carMedia = (carMediaResult.data || []) as unknown as MediaRow[]
@@ -102,6 +104,8 @@ async function loadBaseAndCatalog(includeUnpublished: boolean): Promise<SiteFull
         name: i18n(product.name, product.sku),
         sku: product.sku,
         category: product.category,
+        categoryId: product.category_id || undefined,
+        subcategoryId: product.subcategory_id || undefined,
         brand: product.brand || undefined,
         price: product.price_minor / 100,
         inStock: product.stock_quantity > 0,
@@ -113,6 +117,18 @@ async function loadBaseAndCatalog(includeUnpublished: boolean): Promise<SiteFull
         description: i18n(product.description),
       }
     })
+
+  const categories: CategoryItem[] = (categoriesResult.data || []).map((cat) => ({
+    id: cat.id,
+    slug: cat.slug || cat.id,
+    name: i18n(cat.name),
+    description: cat.description ? i18n(cat.description) : undefined,
+    parentId: cat.parent_id || null,
+    icon: cat.icon || undefined,
+    image: cat.image || undefined,
+    sortOrder: typeof cat.sort_order === 'number' ? cat.sort_order : 0,
+    isActive: cat.is_active !== false,
+  }))
 
   const blog: BlogPostItem[] = (postsResult.data || [])
     .filter((post) => includeUnpublished || (post.published && (!post.published_at || new Date(post.published_at) <= new Date())))
@@ -150,6 +166,7 @@ async function loadBaseAndCatalog(includeUnpublished: boolean): Promise<SiteFull
     notifications: record(privateSettings.get('notifications')) as unknown as SiteFullContent['notifications'],
     cars,
     products,
+    categories,
     blog,
   }
 }

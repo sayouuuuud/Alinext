@@ -86,12 +86,28 @@ type CarRow = {
   updated_at: string
 }
 
+type CategoryRow = {
+  id: string
+  slug: string
+  name: Json
+  description: Json | null
+  parent_id: string | null
+  icon: string | null
+  image: string | null
+  sort_order: number
+  is_active: boolean
+  created_at: string
+  updated_at: string
+}
+
 type ProductRow = {
   id: string
   slug: string
   sku: string
   name: Json
   category: string
+  category_id: string | null
+  subcategory_id: string | null
   brand: string | null
   price_minor: number
   currency: string
@@ -236,6 +252,7 @@ export type Database = {
       cars: GeneratedTable<CarRow>
       car_media: GeneratedTable<GenericJsonRow>
       car_highlights: GeneratedTable<GenericJsonRow>
+      categories: GeneratedTable<CategoryRow>
       products: GeneratedTable<ProductRow>
       product_media: GeneratedTable<GenericJsonRow>
       product_specs: GeneratedTable<GenericJsonRow>

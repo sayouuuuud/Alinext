@@ -1,31 +1,31 @@
-# BRIEFING — 2026-09-05T04:01:55Z
+# BRIEFING — 2026-09-11T03:52:42Z
 
 ## Mission
-Monitor and route the multi-lingual policy pages and core WooCommerce pages implementation task to teamwork_preview_swe, supervise progress, and coordinate victory auditing.
+Coordinate, monitor, and route the setup and implementation of an automated Unit & Integration Testing suite using Vitest for Alifleet Next.js 16 + Supabase to teamwork_preview_orchestrator, supervise progress, and conduct mandatory victory audit.
 
 ## 🔒 My Identity
 - Archetype: sentinel
-- Working directory: d:\alifleet\.agents\sentinel
-- Orchestrator: 8ce18774-bb3c-4f1a-8e82-c2eb8eb3c6cc
+- Working directory: d:\Workspace\Alifleet-next\.agents\sentinel
+- Orchestrator: 8021a0b4-8711-4d43-b917-f474f6bb7106
 - Victory Auditor: [to be spawned on victory claim]
 
 ## 🔒 Key Constraints
 - No technical decisions — relay only
 - Victory Audit is MANDATORY before reporting completion
-- Route according to Routing Decision Table (SWE Light for single self-contained change with explicit small team request)
+- Route according to Routing Decision Table (General path -> teamwork_preview_orchestrator)
 - Always respond in Arabic unless explicitly instructed in English
 - Must run progress and liveness crons during execution
 
 ## User Context
-- **Last user request**: Implement multi-lingual policy pages (Privacy Policy, Terms & Conditions, Refund & Returns) in Next.js from live WordPress GraphQL endpoint (`https://a-f.site/graphql`), verify core WooCommerce pages (Cart, My Account, Shop). Requested small, focused team.
+- **Last user request**: Setup and implement a robust automated Unit & Integration Testing suite for Alifleet Next.js 16 + Supabase platform using Vitest, covering core business logic, category hierarchy, content synchronization, and admin API routes.
 - **Pending clarifications**: none
 - **Delivered results**: none
 
 ## Project Status
 - **Phase**: in progress
-- Active Orchestrator: 8ce18774-bb3c-4f1a-8e82-c2eb8eb3c6cc (teamwork_preview_swe)
-- Active Cron 1 (Progress Reporting): task-14 (*/8 * * * *)
-- Active Cron 2 (Liveness Check): task-16 (*/10 * * * *)
+- **Active Orchestrator**: 8021a0b4-8711-4d43-b917-f474f6bb7106 (teamwork_preview_orchestrator)
+- **Active Cron 1 (Progress Reporting)**: task-28 (*/8 * * * *)
+- **Active Cron 2 (Liveness Check)**: task-30 (*/10 * * * *)
 
 ## Victory Audit Status
 - **Triggered**: no
@@ -33,6 +33,5 @@ Monitor and route the multi-lingual policy pages and core WooCommerce pages impl
 - **Retry count**: 0
 
 ## Artifact Index
-- d:\alifleet\.agents\ORIGINAL_REQUEST.md — Authoritative verbatim user request record
-- d:\alifleet\.agents\sentinel\BRIEFING.md — Sentinel briefing file
-- d:\alifleet\.agents\teamwork_preview_swe_1\ — SWE orchestrator directory
+- d:\Workspace\Alifleet-next\.agents\ORIGINAL_REQUEST.md — Authoritative verbatim user request record
+- d:\Workspace\Alifleet-next\.agents\sentinel\BRIEFING.md — Sentinel briefing file

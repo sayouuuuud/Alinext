@@ -6,7 +6,7 @@ import { defaultSiteContent } from './default-content'
 import { adminI18n, type AdminDictionary, type AdminLocale } from './admin-i18n'
 import type { SiteFullContent } from './types'
 
-export type AdminTab = 'dashboard' | 'pages' | 'cars' | 'products' | 'blog' | 'orders' | 'inquiries' | 'customers' | 'settings'
+export type AdminTab = 'dashboard' | 'pages' | 'cars' | 'products' | 'categories' | 'blog' | 'orders' | 'inquiries' | 'customers' | 'settings'
 export type AdminTheme = 'dark' | 'light'
 type ToastMessage = { id: string; message: string; type: 'success' | 'error' | 'info' }
 type SaveScope = Exclude<AdminTab, 'dashboard'>

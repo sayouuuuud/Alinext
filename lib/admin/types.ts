@@ -126,11 +126,25 @@ export type CarItem = {
   description: MultiLangString
 }
 
+export type CategoryItem = {
+  id: string
+  slug: string
+  name: MultiLangString
+  description?: MultiLangString
+  parentId?: string | null
+  icon?: string
+  image?: string
+  sortOrder: number
+  isActive: boolean
+}
+
 export type ProductItem = {
   id: string
   name: MultiLangString
   sku: string
   category: string
+  categoryId?: string
+  subcategoryId?: string
   brand?: string
   price: number
   inStock: boolean
@@ -404,6 +418,7 @@ export type SiteFullContent = {
   }
   cars: CarItem[]
   products: ProductItem[]
+  categories?: CategoryItem[]
   blog: BlogPostItem[]
   orders: OrderRecord[]
   inquiries?: InquiryItem[]
