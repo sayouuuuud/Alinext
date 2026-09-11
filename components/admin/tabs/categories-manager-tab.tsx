@@ -257,7 +257,7 @@ export function CategoriesManagerTab() {
     if (result.ok) {
       updateContent((prev) => ({ ...prev, categories: (prev.categories || []).filter((category) => category.id !== id) }))
       setDeleteConfirmCategory(null)
-      showToast('تم حذف التصنيف بعد التحقق من عدم وجود ارتباطات')
+      showToast('تم حذف التصنيف بعد ا��تحقق من عدم وجود ارتباطات')
     } else {
       const message = result.error === 'category_has_products'
         ? 'لا يمكن حذف التصنيف لأنه مرتبط بمنتجات نشطة'
@@ -851,7 +851,7 @@ export function CategoriesManagerTab() {
               <p>
                 هل أنت متأكد من رغبتك في حذف التصنيف{' '}
                 <strong className="text-destructive font-bold">
-                  "{getCategoryName(deleteConfirmCategory)}"
+                  &quot;{getCategoryName(deleteConfirmCategory)}&quot;
                 </strong>
                 ؟
               </p>

@@ -96,18 +96,20 @@ export async function loadCheckoutDefaults(): Promise<CheckoutDefaults> {
   }
 }
 
-export async function loadTrackingOrders(limit = 50): Promise<TrackingOrdersResult> {
+export async function loadTrackingOrders(limit = 50, orderId?: string): Promise<TrackingOrdersResult> {
   const supabase = await createClient()
   const { data: userData, error: userError } = await supabase.auth.getUser()
   const user = userData.user
   if (userError || !user) return { state: 'signed_out', orders: [] }
 
-  const { data: orders, error: orderError } = await supabase
+  let orderQuery = supabase
     .from('orders')
-    .select('id,order_number,created_at,status,total_minor,currency,payment_method,payment_status,tracking_number,carrier,estimated_delivery,customer_name,customer_phone,shipping_address')
+    .select('id,order_number,created_at,status,subtotal_minor,tax_minor,shipping_minor,total_minor,currency,payment_method,payment_status,tracking_number,carrier,estimated_delivery,customer_name,customer_email,customer_phone,customer_notes,shipping_address')
     .eq('user_id', user.id)
+  if (orderId) orderQuery = orderQuery.eq('id', orderId)
+  const { data: orders, error: orderError } = await orderQuery
     .order('created_at', { ascending: false })
-    .limit(Math.max(1, Math.min(limit, 100)))
+    .limit(orderId ? 1 : Math.max(1, Math.min(limit, 100)))
   if (orderError) return { state: 'error', orders: [] }
 
   const orderIds = (orders || []).map((order) => order.id)
@@ -133,6 +135,9 @@ export async function loadTrackingOrders(limit = 50): Promise<TrackingOrdersResu
       orderNumber: order.order_number,
       createdAt: order.created_at,
       status: order.status,
+      subtotalMinor: order.subtotal_minor,
+      taxMinor: order.tax_minor,
+      shippingMinor: order.shipping_minor,
       totalMinor: order.total_minor,
       currency: order.currency,
       paymentMethod: order.payment_method,
@@ -141,7 +146,9 @@ export async function loadTrackingOrders(limit = 50): Promise<TrackingOrdersResu
       carrier: order.carrier,
       estimatedDelivery: order.estimated_delivery,
       customerName: order.customer_name,
+      customerEmail: order.customer_email,
       customerPhone: order.customer_phone,
+      customerNotes: order.customer_notes,
       shippingAddress: {
         fullName: jsonString(address.fullName) || order.customer_name,
         phone: jsonString(address.phone) || order.customer_phone,

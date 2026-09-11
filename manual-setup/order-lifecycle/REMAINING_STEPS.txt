@@ -1,20 +1,19 @@
-ALI FLEET — خطوات يدوية متبقية
+ORDER LIFECYCLE IMPLEMENTATION STATUS
 
-1) قاعدة البيانات
-- راجع ثم شغّل الملف order-lifecycle.sql يدويًا مرة واحدة.
-- لم يتم تشغيل أي SQL أو تعديل أي مشروع Supabase بواسطة v0.
-- بعد التشغيل يُفضّل مراجعة Supabase Security/Performance Advisors يدويًا.
+Completed on 2026-09-11:
+- Applied the reviewed order lifecycle schema to Supabase project nnhiauutailohjseajmf through the Supabase MCP.
+- Added notifications, payment events, the Gmail SMTP outbox, RLS, minimum grants, indexes, triggers, atomic RPCs, and Realtime publication.
+- Removed the duplicate inventory restoration and duplicate status-history paths.
+- Added direct ownership-scoped order lookup, complete invoice totals, per-notification read behavior, Realtime notification refresh, and admin customer aggregation/pagination.
+- Removed orders and customers from the general admin content payload and disabled their legacy bulk-save scopes.
+- Added Gmail SMTP delivery with deterministic Message-ID values, retries, leases, and a CRON_SECRET-protected retry endpoint.
 
-2) البريد الإلكتروني
-- لم تتم إضافة Resend ولم يتم استدعاؤه ولم تُضف أي متغيرات بيئة خاصة به، بناءً على طلبك.
-- جدول notification_email_outbox موجود كصف انتظار خامل فقط؛ لا توجد أي عملية ترسل رسائل.
-- إذا رغبت بتفعيل البريد مستقبلًا فستحتاج طبقة خادمية تقرأ الصفوف pending وتحدّثها بعد الإرسال مع idempotency key.
+Add these Vercel project variables before testing external email delivery:
+- SMTP_USER: the Gmail address that sends order email.
+- SMTP_APP_PASSWORD: a Google App Password for that account (2-Step Verification must be enabled).
+- SMTP_FROM_EMAIL: optional From address; defaults to SMTP_USER.
+- SMTP_FROM_NAME: optional sender name; defaults to ALI FLEET.
+- CRON_SECRET: optional secret for GET/POST /api/internal/email-outbox retries.
 
-3) التحقق بعد تشغيل SQL
-- أنشئ طلبًا pending من الواجهة.
-- اختبر الاعتماد والتجهيز والشحن والتسليم من لوحة الإدارة.
-- اختبر تأكيد الاستلام والإلغاء وإعادة الطلب من حساب مستخدم حقيقي.
-- اختبر أن المستخدم لا يستطيع فتح طلب أو فاتورة أو إشعار يخص مستخدمًا آخر.
-
-4) بيانات الاختبار
-- لم يتم إنشاء مستخدم أو طلب أو بيانات تجريبية، ولم يتم لمس بيانات Supabase الحالية.
+No Resend integration or RESEND_* variable is used.
+Without SMTP_USER and SMTP_APP_PASSWORD, order updates continue normally and queued email remains pending. After adding both values, create or update an order to test delivery, or call the protected retry endpoint with Authorization: Bearer <CRON_SECRET>.

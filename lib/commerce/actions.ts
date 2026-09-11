@@ -1,8 +1,10 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
+import { after } from 'next/server'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { z } from 'zod'
+import { processNotificationOutbox } from '@/lib/email/process-outbox'
 import { createAdminClient, createClient } from '@/lib/supabase/server'
 import type { Database, Json } from '@/lib/supabase/database.types'
 import type {
@@ -202,6 +204,8 @@ export async function createOrderAction(
   revalidatePath('/cart')
   revalidatePath('/account/orders')
   revalidatePath('/track-order')
+  revalidatePath('/account/notifications')
+  after(() => processNotificationOutbox(5).catch(() => undefined))
   return { status: 'success', orderNumber }
 }
 

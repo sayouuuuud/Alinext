@@ -778,3 +778,6 @@ revoke all on all functions in schema public from public, anon, authenticated;
 grant usage on schema private to service_role;
 grant execute on function private.valid_i18n(jsonb) to service_role;
 grant execute on function public.create_order(jsonb, jsonb, text, text, text) to authenticated;
+
+-- Incremental order lifecycle objects are defined in
+-- supabase/migrations/20260911000000_order_lifecycle.sql and were applied through the Supabase MCP.

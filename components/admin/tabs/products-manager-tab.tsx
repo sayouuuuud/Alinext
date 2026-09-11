@@ -1,5 +1,7 @@
 'use client'
 
+/* eslint-disable @typescript-eslint/no-explicit-any -- legacy dynamic stock filter is constrained by its select options */
+
 import React, { useState } from 'react'
 import {
   Package,

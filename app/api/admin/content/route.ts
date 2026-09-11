@@ -48,8 +48,6 @@ export async function PATCH(request: Request) {
       categories: CATEGORIES_TAG,
       blog: BLOG_TAG,
       settings: SETTINGS_TAG,
-      orders: SITE_CONTENT_TAG,
-      customers: SITE_CONTENT_TAG,
       inquiries: SITE_CONTENT_TAG,
     }[saved.scope]
     revalidateTag(scopeTag, { expire: 0 })

@@ -1,5 +1,7 @@
 'use client'
 
+/* eslint-disable @typescript-eslint/no-explicit-any -- legacy dynamic admin form fields are validated by the server repository */
+
 import React, { useState } from 'react'
 import {
   Car,

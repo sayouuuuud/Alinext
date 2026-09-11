@@ -44,6 +44,9 @@ export type TrackingOrder = {
   orderNumber: string
   createdAt: string
   status: TrackingOrderStatus
+  subtotalMinor: number
+  taxMinor: number
+  shippingMinor: number
   totalMinor: number
   currency: string
   paymentMethod: string
@@ -52,7 +55,9 @@ export type TrackingOrder = {
   carrier: string | null
   estimatedDelivery: string | null
   customerName: string
+  customerEmail: string
   customerPhone: string
+  customerNotes: string | null
   shippingAddress: {
     fullName: string
     phone: string

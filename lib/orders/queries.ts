@@ -4,7 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { loadTrackingOrders } from '@/lib/commerce/queries'
 
 export async function loadUserOrder(orderId: string) {
-  const result = await loadTrackingOrders(100)
+  const result = await loadTrackingOrders(1, orderId)
   if (result.state !== 'ready') return { state: result.state as 'signed_out' | 'error', order: null }
   const order = result.orders.find((entry) => entry.id === orderId)
   return order ? { state: 'ready' as const, order } : { state: 'not_found' as const, order: null }

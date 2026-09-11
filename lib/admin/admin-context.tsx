@@ -10,10 +10,11 @@ import type { AdminDashboardSummary } from './dashboard-summary-server'
 export type AdminTab = 'dashboard' | 'pages' | 'cars' | 'products' | 'categories' | 'blog' | 'orders' | 'inquiries' | 'customers' | 'settings'
 export type AdminTheme = 'dark' | 'light'
 type ToastMessage = { id: string; message: string; type: 'success' | 'error' | 'info' }
-type SaveScope = Exclude<AdminTab, 'dashboard'>
+type SaveScope = Exclude<AdminTab, 'dashboard' | 'orders' | 'customers'>
 
-function saveScopeForTab(tab: AdminTab): SaveScope {
-  return tab === 'dashboard' ? 'settings' : tab
+function saveScopeForTab(tab: AdminTab): SaveScope | null {
+  if (tab === 'dashboard' || tab === 'orders' || tab === 'customers') return null
+  return tab
 }
 
 function payloadForScope(scope: SaveScope, content: SiteFullContent): unknown {
@@ -159,6 +160,7 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
 
   const saveAll = async () => {
     const scope = saveScopeForTab(activeTab)
+    if (!scope) return true
     const success = await persist(scope, payloadForScope(scope, content))
     if (success) {
       showToast(adminI18n[locale].header.savedSuccess, 'success')

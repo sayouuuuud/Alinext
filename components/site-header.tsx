@@ -33,7 +33,7 @@ export function SiteHeader() {
     { label: tStr(nav?.home, locale) || t.nav.home, href: '/' },
     { label: tStr(nav?.products, locale) || t.nav.products, href: '/products' },
     { label: tStr(nav?.cars, locale) || t.nav.cars, href: '/cars' },
-    { label: tStr(nav?.trackOrder, locale) || (t.nav as any).trackOrder || 'تتبع طلبك', href: '/track-order' },
+    { label: tStr(nav?.trackOrder, locale) || ('trackOrder' in t.nav ? String(t.nav.trackOrder) : '') || 'تتبع طلبك', href: '/track-order' },
     { label: tStr(nav?.blog, locale) || t.nav.blog, href: '/blog' },
     { label: tStr(nav?.contact, locale) || t.nav.contact, href: '/contact' },
   ]

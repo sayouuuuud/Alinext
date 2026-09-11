@@ -1,6 +1,7 @@
-import { NextResponse } from 'next/server'
+import { after, NextResponse } from 'next/server'
 import { ZodError } from 'zod'
 import { updateAdminOrder } from '@/lib/admin/operations-server'
+import { processNotificationOutbox } from '@/lib/email/process-outbox'
 import { AdminSessionError } from '@/lib/admin/session-server'
 
 export const dynamic = 'force-dynamic'
@@ -12,6 +13,7 @@ export async function PATCH(request: Request, context: RouteContext) {
     const { id } = await context.params
     const payload = await request.json()
     const order = await updateAdminOrder(id, payload)
+    after(() => processNotificationOutbox(5).catch(() => undefined))
     return NextResponse.json({ order })
   } catch (error) {
     if (error instanceof AdminSessionError) return NextResponse.json({ error: error.code }, { status: error.code === 'not_authorized' ? 403 : 401 })

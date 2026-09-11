@@ -7,10 +7,8 @@ import type {
   BlogPostItem,
   CarItem,
   CategoryItem,
-  CustomerItem,
   InquiryItem,
   MultiLangString,
-  OrderRecord,
   ProductItem,
   SiteFullContent,
 } from '@/lib/admin/types'
@@ -175,91 +173,16 @@ export async function getSiteContent(): Promise<SiteFullContent> {
   return getPublicSiteContent()
 }
 
-function paymentMethod(value: string): OrderRecord['paymentMethod'] {
-  return value === 'card' || value === 'bank_transfer' ? value : 'cod'
-}
+export type AdminSiteContent = Omit<SiteFullContent, 'orders' | 'customers'>
 
-function addressSnapshot(value: Json) {
-  const data = record(value)
-  return {
-    street: typeof data.street === 'string' ? data.street : '',
-    city: typeof data.city === 'string' ? data.city : '',
-    country: typeof data.country === 'string' ? data.country : '',
-    postalCode: typeof data.postalCode === 'string' ? data.postalCode : undefined,
-  }
-}
-
-export async function getAdminSiteContent(): Promise<SiteFullContent> {
+export async function getAdminSiteContent(): Promise<AdminSiteContent> {
   const content = await loadBaseAndCatalog(true)
   const admin = createAdminClient()
-  const [ordersResult, orderItemsResult, profilesResult, addressesResult, inquiriesResult] = await Promise.all([
-    admin.from('orders').select('*').order('created_at', { ascending: false }),
-    admin.from('order_items').select('*'),
-    admin.from('profiles').select('*').order('created_at', { ascending: false }),
-    admin.from('addresses').select('*').order('is_default', { ascending: false }),
-    admin.from('inquiries').select('*').order('created_at', { ascending: false }),
-  ])
-  const firstError = [ordersResult, orderItemsResult, profilesResult, addressesResult, inquiriesResult].find((result) => result.error)?.error
-  if (firstError) throw new Error(`Supabase admin query failed: ${firstError.message}`)
-
-  const orderItems = orderItemsResult.data || []
-  const orders: OrderRecord[] = (ordersResult.data || []).map((order) => ({
-    id: order.order_number,
-    customerId: order.user_id,
-    customerName: order.customer_name,
-    customerEmail: order.customer_email,
-    customerPhone: order.customer_phone,
-    date: order.created_at,
-    status: order.status,
-    total: order.total_minor / 100,
-    currency: order.currency === 'ILS' ? '₪' : order.currency,
-    items: orderItems.filter((item) => item.order_id === order.id).map((item) => ({
-      id: item.id,
-      title: i18n(item.product_name, item.sku).en || item.sku,
-      quantity: item.quantity,
-      price: item.unit_price_minor / 100,
-      image: item.image || undefined,
-      sku: item.sku,
-    })),
-    shippingAddress: addressSnapshot(order.shipping_address),
-    paymentMethod: paymentMethod(order.payment_method),
-    paymentStatus: order.payment_status,
-    trackingNumber: order.tracking_number || undefined,
-    carrier: order.carrier || undefined,
-    estimatedDelivery: order.estimated_delivery || undefined,
-    notes: order.admin_notes || order.customer_notes || undefined,
-  }))
-
-  const addresses = addressesResult.data || []
-  const customers: CustomerItem[] = (profilesResult.data || []).map((profile) => {
-    const userOrders = orders.filter((order) => order.customerId === profile.id)
-    const billing = addresses.find((address) => address.user_id === profile.id && address.kind === 'billing')
-    const shipping = addresses.find((address) => address.user_id === profile.id && address.kind === 'shipping')
-    return {
-      id: profile.id,
-      name: profile.display_name || profile.email.split('@')[0],
-      email: profile.email,
-      phone: profile.phone || '',
-      avatar: profile.avatar_url || undefined,
-      tier: ['VIP', 'Platinum', 'Gold', 'Regular'].includes(profile.tier) ? profile.tier as CustomerItem['tier'] : 'Regular',
-      status: ['active', 'suspended', 'pending'].includes(profile.status) ? profile.status as CustomerItem['status'] : 'pending',
-      joinedDate: profile.created_at,
-      billingAddress: { street: billing?.street || '', city: billing?.city || '', country: billing?.country || '', postalCode: billing?.postal_code || undefined },
-      shippingAddress: { street: shipping?.street || '', city: shipping?.city || '', country: shipping?.country || '' },
-      totalSpent: userOrders.filter((order) => order.paymentStatus === 'paid').reduce((sum, order) => sum + order.total, 0),
-      ordersCount: userOrders.length,
-      interestedIn: profile.interested_in || undefined,
-      notes: profile.admin_notes || undefined,
-      orders: userOrders.map((order) => ({
-        id: order.id,
-        orderNumber: order.id,
-        date: order.date,
-        total: order.total,
-        status: order.status,
-        items: order.items.map((item) => ({ name: item.title, quantity: item.quantity, price: item.price })),
-      })),
-    }
-  })
+  const inquiriesResult = await admin
+    .from('inquiries')
+    .select('id,name,email,phone,service,kind,message,created_at,status')
+    .order('created_at', { ascending: false })
+  if (inquiriesResult.error) throw new Error('Supabase admin content query failed')
 
   const inquiries: InquiryItem[] = (inquiriesResult.data || []).map((item) => ({
     id: String(item.id || ''),
@@ -272,5 +195,8 @@ export async function getAdminSiteContent(): Promise<SiteFullContent> {
     status: item.status === 'contacted' || item.status === 'resolved' ? item.status : 'new',
   }))
 
-  return { ...content, orders, customers, inquiries }
+  const safeContent = Object.fromEntries(
+    Object.entries(content).filter(([key]) => key !== 'orders' && key !== 'customers'),
+  ) as AdminSiteContent
+  return { ...safeContent, inquiries }
 }

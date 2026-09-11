@@ -1,5 +1,7 @@
 'use client'
 
+/* eslint-disable @typescript-eslint/no-explicit-any -- legacy multilingual form handlers write heterogeneous page fields */
+
 import React, { useState } from 'react'
 import {
   Layers,

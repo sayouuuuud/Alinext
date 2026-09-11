@@ -64,7 +64,7 @@ export async function getAdminDashboardSummary(): Promise<AdminDashboardSummary>
     admin.from('orders').select('*', { count: 'exact', head: true }).is('archived_at', null).eq('status', 'pending'),
     admin.from('orders').select('*', { count: 'exact', head: true }).is('archived_at', null).eq('status', 'processing'),
     admin.from('orders').select('*', { count: 'exact', head: true }).is('archived_at', null).in('status', ['delivered', 'completed']),
-    admin.from('orders').select('total_minor').is('archived_at', null).neq('status', 'cancelled'),
+    admin.from('orders').select('total_minor').is('archived_at', null).eq('payment_status', 'paid').neq('status', 'cancelled'),
     admin.from('inquiries').select('*', { count: 'exact', head: true }),
     admin.from('inquiries').select('*', { count: 'exact', head: true }).eq('status', 'new'),
     admin.from('inquiries').select('*', { count: 'exact', head: true }).eq('status', 'resolved'),

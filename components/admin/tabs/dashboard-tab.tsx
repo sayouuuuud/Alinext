@@ -34,26 +34,14 @@ export function DashboardTab() {
   const products = content.products || []
   const categories = content.categories || []
   const blog = content.blog || []
-  const orders = content.orders || []
   const inquiries = content.inquiries || []
-  const customers = content.customers || []
 
   // Fast replenish loading state
   const [replenishingId, setReplenishingId] = useState<string | null>(null)
 
   // 1. Calculations: Financials & Orders
-  const validOrders = orders.filter((o) => o.status !== 'cancelled')
-  const calculatedRevenue = useMemo(() => {
-    return validOrders.reduce((sum, o) => sum + (Number(o.total) || 0), 0)
-  }, [validOrders])
-  const totalRevenue = summary?.orders.revenue ?? calculatedRevenue
-
-  const pendingOrders = orders.filter((o) => o.status === 'pending')
-  const processingOrders = orders.filter((o) => o.status === 'processing')
-  const completedOrders = orders.filter((o) => o.status === 'completed' || o.status === 'delivered')
-  const cancelledOrders = orders.filter((o) => o.status === 'cancelled')
-
-  const aov = summary?.orders.average ?? (validOrders.length > 0 ? Math.round(calculatedRevenue / validOrders.length) : 0)
+  const totalRevenue = summary?.orders.revenue ?? 0
+  const aov = summary?.orders.average ?? 0
 
   // 2. Calculations: Fleet & Showroom
   const calculatedFleetValue = useMemo(() => {
@@ -192,7 +180,7 @@ export function DashboardTab() {
                 className="inline-flex items-center gap-1.5 rounded-xl border border-border bg-background px-3.5 py-2 text-xs font-semibold text-foreground hover:bg-muted transition-all"
               >
                 <ShoppingBag className="h-3.5 w-3.5 text-emerald-500" />
-                <span>الطلبات والشحن ({summary?.orders.pending ?? pendingOrders.length} جديدة)</span>
+                <span>الطلبات والشحن ({summary?.orders.pending ?? 0} جديدة)</span>
               </button>
             </div>
           </div>
@@ -247,9 +235,9 @@ export function DashboardTab() {
             </div>
           </div>
           <div className="mt-3">
-<span className="text-2xl font-black text-foreground">{summary?.orders.total ?? orders.length}</span>
+<span className="text-2xl font-black text-foreground">{summary?.orders.total ?? 0}</span>
               <p className="mt-1 text-[11px] text-muted-foreground">
-                {summary?.orders.pending ?? pendingOrders.length} معلق • {summary?.orders.processing ?? processingOrders.length} تجهيز
+                {summary?.orders.pending ?? 0} معلق • {summary?.orders.processing ?? 0} تجهيز
             </p>
           </div>
         </div>
@@ -323,7 +311,7 @@ export function DashboardTab() {
             </div>
           </div>
           <div className="mt-3">
-<span className="text-2xl font-black text-foreground">{summary?.customers ?? customers.length}</span>
+<span className="text-2xl font-black text-foreground">{summary?.customers ?? 0}</span>
               <p className="mt-1 text-[11px] text-muted-foreground">
                 {summary?.inquiries.new ?? newInquiries.length} استفسار جديد بانتظار الرد
             </p>

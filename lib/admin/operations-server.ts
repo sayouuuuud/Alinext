@@ -37,49 +37,33 @@ export async function listAdminUsers(input: unknown) {
   await requireAdminPermission('dashboard.read')
   const parsed = listSchema.parse(input)
   const admin = createAdminClient()
-  const memberships = await admin.from('admin_memberships').select('user_id')
-  if (memberships.error) throw new Error('users_unavailable')
-  const adminIds = (memberships.data || []).map((entry) => entry.user_id)
-
-  let query = admin
-    .from('profiles')
-    .select('id,email,display_name,phone,avatar_url,status,tier,created_at', { count: 'exact' })
-  if (adminIds.length) query = query.not('id', 'in', `(${adminIds.join(',')})`)
-  if (parsed.status !== 'all') query = query.eq('status', parsed.status)
-  if (parsed.tier !== 'all') query = query.eq('tier', parsed.tier)
-  const search = safeSearch(parsed.q)
-  if (search) query = query.or(`display_name.ilike.%${search}%,email.ilike.%${search}%,phone.ilike.%${search}%`)
-  const from = (parsed.page - 1) * parsed.limit
-  const profiles = await query.order('created_at', { ascending: false }).range(from, from + parsed.limit - 1)
-  if (profiles.error) throw new Error('users_unavailable')
-
-  const ids = (profiles.data || []).map((profile) => profile.id)
-  const orderResult = ids.length
-    ? await admin.from('orders').select('user_id,total_minor,status,created_at').in('user_id', ids).is('archived_at', null)
-    : { data: [], error: null }
-  if (orderResult.error) throw new Error('users_unavailable')
-
-  const users: AdminUserListItem[] = (profiles.data || []).map((profile) => {
-    const orders = (orderResult.data || []).filter((order) => order.user_id === profile.id)
-    return {
-      id: profile.id,
-      name: profile.display_name,
-      email: profile.email,
-      phone: profile.phone || '',
-      avatarUrl: profile.avatar_url,
-      status: profile.status,
-      tier: profile.tier,
-      joinedAt: profile.created_at,
-      ordersCount: orders.length,
-      totalSpentMinor: orders.filter((order) => order.status !== 'cancelled').reduce((sum, order) => sum + order.total_minor, 0),
-      lastOrderAt: orders.sort((a, b) => b.created_at.localeCompare(a.created_at))[0]?.created_at || null,
-    }
+  const offset = (parsed.page - 1) * parsed.limit
+  const result = await admin.rpc('list_admin_customers', {
+    p_query: safeSearch(parsed.q),
+    p_status: parsed.status,
+    p_tier: parsed.tier,
+    p_sort: parsed.sort,
+    p_offset: offset,
+    p_limit: parsed.limit,
   })
-  if (parsed.sort === 'orders') users.sort((a, b) => b.ordersCount - a.ordersCount)
-  if (parsed.sort === 'spent') users.sort((a, b) => b.totalSpentMinor - a.totalSpentMinor)
-  if (parsed.sort === 'activity') users.sort((a, b) => (b.lastOrderAt || '').localeCompare(a.lastOrderAt || ''))
+  if (result.error) throw new Error('users_unavailable')
 
-  return { users, page: parsed.page, limit: parsed.limit, total: profiles.count || 0, pages: Math.max(1, Math.ceil((profiles.count || 0) / parsed.limit)) }
+  const rows = result.data || []
+  const users: AdminUserListItem[] = rows.map((row) => ({
+    id: row.id,
+    name: row.name,
+    email: row.email,
+    phone: row.phone,
+    avatarUrl: row.avatar_url,
+    status: row.status,
+    tier: row.tier,
+    joinedAt: row.joined_at,
+    ordersCount: Number(row.orders_count),
+    totalSpentMinor: Number(row.total_spent_minor),
+    lastOrderAt: row.last_order_at,
+  }))
+  const total = Number(rows[0]?.total_count || 0)
+  return { users, page: parsed.page, limit: parsed.limit, total, pages: Math.max(1, Math.ceil(total / parsed.limit)) }
 }
 
 export async function getAdminUserDetail(rawId: unknown) {
@@ -170,7 +154,13 @@ export async function updateAdminOrder(rawId: unknown, input: unknown) {
     p_note: patch.note,
     p_changed_by: session.userId,
   })
-  if (result.error) throw new Error(result.error.message.includes('invalid_order_transition') ? 'invalid_order_transition' : result.error.message.includes('shipping_details_required') ? 'shipping_details_required' : 'order_update_failed')
+  if (result.error) {
+    const message = result.error.message
+    if (message.includes('invalid_order_transition')) throw new Error('invalid_order_transition')
+    if (message.includes('invalid_payment_transition')) throw new Error('invalid_payment_transition')
+    if (message.includes('shipping_details_required')) throw new Error('shipping_details_required')
+    throw new Error('order_update_failed')
+  }
   await admin.from('admin_audit_log').insert({ actor_id: session.userId, action: 'order.updated', entity_type: 'order', entity_id: orderId, after_value: patch as unknown as Json })
   return result.data
 }

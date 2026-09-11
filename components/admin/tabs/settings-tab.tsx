@@ -1,5 +1,7 @@
 'use client'
 
+/* eslint-disable @typescript-eslint/no-explicit-any -- legacy settings controls map dynamic configuration keys */
+
 import React, { useState } from 'react'
 import {
   ShieldCheck,

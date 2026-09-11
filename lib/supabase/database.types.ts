@@ -250,6 +250,7 @@ type NotificationEmailOutboxRow = {
   status: string
   attempt_count: number
   next_attempt_at: string
+  locked_at: string | null
   provider_message_id: string | null
   last_error_code: string | null
   sent_at: string | null
@@ -333,6 +334,30 @@ export type Database = {
         Args: { p_notification_id?: string }
         Returns: number
       }
+      list_admin_customers: {
+        Args: {
+          p_query?: string
+          p_status?: string
+          p_tier?: string
+          p_sort?: string
+          p_offset?: number
+          p_limit?: number
+        }
+        Returns: {
+          id: string
+          name: string
+          email: string
+          phone: string
+          avatar_url: string | null
+          status: string
+          tier: string
+          joined_at: string
+          orders_count: number
+          total_spent_minor: number
+          last_order_at: string | null
+          total_count: number
+        }[]
+      }
       admin_update_order: {
         Args: {
           p_order_id: string
@@ -346,6 +371,31 @@ export type Database = {
           p_changed_by?: string | null
         }
         Returns: Json
+      }
+      claim_notification_email_batch: {
+        Args: { p_limit?: number }
+        Returns: {
+          outbox_id: string
+          notification_id: string
+          recipient: string
+          event_type: string
+          payload: Json
+          preferred_locale: string
+          order_id: string
+          order_number: string
+        }[]
+      }
+      complete_notification_email: {
+        Args: { p_outbox_id: string; p_provider_message_id: string }
+        Returns: boolean
+      }
+      fail_notification_email: {
+        Args: { p_outbox_id: string; p_error_code: string }
+        Returns: boolean
+      }
+      order_event_type: {
+        Args: { p_status: Database['public']['Enums']['order_status'] }
+        Returns: string
       }
     }
     Enums: {

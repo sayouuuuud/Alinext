@@ -15,7 +15,7 @@ export type AccountNotification = {
 export async function loadNotifications(limit = 20) {
   const supabase = await createClient()
   const { data: userData } = await supabase.auth.getUser()
-  if (!userData.user) return { signedIn: false as const, notifications: [], unreadCount: 0 }
+  if (!userData.user) return { signedIn: false as const, userId: null, notifications: [], unreadCount: 0 }
 
   const cappedLimit = Math.max(1, Math.min(limit, 100))
   const [listResult, countResult] = await Promise.all([
@@ -35,6 +35,7 @@ export async function loadNotifications(limit = 20) {
   if (listResult.error || countResult.error) throw new Error('notifications_unavailable')
   return {
     signedIn: true as const,
+    userId: userData.user.id,
     notifications: (listResult.data || []).map((row) => ({
       id: row.id,
       orderId: row.order_id,
