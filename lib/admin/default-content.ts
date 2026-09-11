@@ -521,7 +521,7 @@ export const defaultSiteContent: SiteFullContent = {
         },
         lastUpdated: '2026-03-01',
         content: {
-          ar: 'نحن في شركة علي فليت نلتزم بأعلى معايير الحفاظ على خصوصية بيانات العملاء وسجلات المر��بات والمشتريات وتفاصيل التخليص الجمركي.',
+          ar: 'نحن في شركة علي فليت نلتزم بأعلى معايير الحفاظ على خصوصية بيانات العملاء وسجلات المركبات والمشتريات وتفاصيل التخليص الجمركي.',
           en: 'ALI FLEET is committed to upholding strict international standards for client data privacy, vehicle records, and commercial transactions.',
           he: 'אנו בחברת עלי פליט מחויבים לסטנדרטים הגבוהים ביותר בשמירה على פרטיות לקוחותינו ופרטי העסקאות.',
         },
@@ -688,7 +688,7 @@ export const defaultSiteContent: SiteFullContent = {
         color: 'Sonic Titanium / Flare Red Leather',
       },
       description: {
-        ar: 'نسخة الـ VIP بأربعة مقاعد منفصلة، مقاعد خلفية قابلة للانحناء بـ 48 درجة، نظام الترفيه الخلف�� المزدوج، ونظام Mark Levinson 25 مكبر صوت.',
+        ar: 'نسخة الـ VIP بأربعة مقاعد منفصلة، مقاعد خلفية قابلة للانحناء بـ 48 درجة، نظام الترفيه الخلفي المزدوج، ونظام Mark Levinson 25 مكبر صوت.',
         en: 'Executive 4-seat VIP layout with 48-degree reclining rear ottoman seats, dual rear entertainment, and 25-speaker Mark Levinson sound.',
         he: 'תצורת 4 מושבי VIP אקסקלוסיבית עם מושבי אחוריים נשכבים ב-48 מעלות, מערכת בידור כפולה ומערכת שמע Mark Levinson.',
       },
@@ -1102,7 +1102,7 @@ export const defaultSiteContent: SiteFullContent = {
       id: 'post-4',
       slug: 'electric-commercial-fleets',
       title: {
-        ar: 'مستقبل الأساطيل التجارية الكهربائية: تكاليف التشغيل وا��مدى',
+        ar: 'مستقبل الأساطيل التجارية الكهربائية: تكاليف التشغيل والمدى',
         en: 'The Future of Electric Commercial Fleets: Range & Operating Costs',
         he: 'עתיד הציים המסחריים החשמליים: טווח ועלויות תפעול',
       },
@@ -1327,7 +1327,7 @@ export const defaultSiteContent: SiteFullContent = {
       joinedDate: '2026-09-08',
       totalSpent: 2950,
       ordersCount: 1,
-      interestedIn: 'قطع غيار شاحنا�� مرسيدس وسكانيا، فحمات فرامل، شواحن تيربو',
+      interestedIn: 'قطع غيار شاحنات مرسيدس وسكانيا، فحمات فرامل، شواحن تيربو',
       notes: 'تم تسجيل الحساب وإتمام عملية شراء ناجحة لقطع غيار أصلية رقم ORD-7830.',
       billingAddress: {
         street: 'طريق القدس الرئيسي 25',

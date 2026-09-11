@@ -46,6 +46,57 @@ begin
 end;
 $$;
 
+-- Keeps product -> category links valid and the legacy text column in sync.
+create or replace function private.validate_product_category_links()
+returns trigger
+language plpgsql
+security invoker
+set search_path = ''
+as $$
+declare
+  main_slug text;
+  main_parent text;
+  sub_parent text;
+begin
+  if new.category_id is null and new.category is not null then
+    select c.id into new.category_id
+    from public.categories c
+    where c.parent_id is null and c.slug = new.category
+    limit 1;
+  end if;
+
+  if new.category_id is not null then
+    select c.slug, c.parent_id into main_slug, main_parent
+    from public.categories c
+    where c.id = new.category_id;
+    if main_slug is null then
+      raise exception 'category_id % does not exist in categories', new.category_id;
+    end if;
+    if main_parent is not null then
+      raise exception 'category_id % must reference a main category, not a subcategory', new.category_id;
+    end if;
+    new.category := main_slug;
+  end if;
+
+  if new.subcategory_id is not null then
+    if new.category_id is null then
+      raise exception 'subcategory_id % requires a main category_id', new.subcategory_id;
+    end if;
+    select c.parent_id into sub_parent
+    from public.categories c
+    where c.id = new.subcategory_id;
+    if sub_parent is null then
+      raise exception 'subcategory_id % does not exist in categories', new.subcategory_id;
+    end if;
+    if sub_parent <> new.category_id then
+      raise exception 'subcategory_id % does not belong to main category %', new.subcategory_id, new.category_id;
+    end if;
+  end if;
+
+  return new;
+end;
+$$;
+
 create table public.profiles (
   id uuid primary key references auth.users(id) on delete cascade,
   email text not null,
@@ -218,12 +269,31 @@ create table public.car_highlights (
 );
 create index car_highlights_car_idx on public.car_highlights(car_id, sort_order);
 
+create table public.categories (
+  id text primary key,
+  slug text unique not null,
+  name jsonb not null check (private.valid_i18n(name)),
+  description jsonb check (description is null or private.valid_i18n(description)),
+  parent_id text references public.categories(id) on delete restrict,
+  icon text,
+  image text,
+  sort_order integer not null default 0,
+  is_active boolean not null default true,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+create index idx_categories_parent_id on public.categories(parent_id);
+create index idx_categories_sort_order on public.categories(sort_order);
+create index idx_categories_slug on public.categories(slug);
+
 create table public.products (
   id text primary key,
   slug text not null unique,
   sku text not null unique,
   name jsonb not null check (private.valid_i18n(name)),
   category text not null,
+  category_id text references public.categories(id) on delete set null,
+  subcategory_id text references public.categories(id) on delete set null,
   brand text,
   price_minor bigint not null check (price_minor >= 0),
   currency text not null default 'ILS' check (currency ~ '^[A-Z]{3}$'),
@@ -239,6 +309,12 @@ create table public.products (
   updated_at timestamptz not null default now()
 );
 create index products_public_idx on public.products(category, featured, stock_quantity) where published and archived_at is null;
+create index products_category_id_idx on public.products(category_id) where published and archived_at is null;
+create index products_subcategory_id_idx on public.products(subcategory_id) where published and archived_at is null;
+
+create trigger validate_product_category_links
+  before insert or update of category, category_id, subcategory_id on public.products
+  for each row execute function private.validate_product_category_links();
 
 create table public.product_media (
   id uuid primary key default gen_random_uuid(),
@@ -625,8 +701,8 @@ declare table_name text;
 begin
   foreach table_name in array array[
     'profiles','addresses','admin_memberships','site_settings_public','site_settings_private',
-    'page_sections','policy_pages','seo_entries','cars','products','blog_posts','carts',
-    'cart_items','orders','inquiries'
+    'page_sections','policy_pages','seo_entries','cars','categories','products','blog_posts',
+    'carts','cart_items','orders','inquiries'
   ] loop
     execute format('drop trigger if exists set_updated_at on public.%I', table_name);
     execute format('create trigger set_updated_at before update on public.%I for each row execute function private.set_updated_at()', table_name);
@@ -640,7 +716,7 @@ begin
   foreach table_name in array array[
     'profiles','addresses','admin_memberships','admin_sessions','site_content','site_settings_public',
     'site_settings_private','page_sections','policy_pages','seo_entries','cars','car_media','car_highlights',
-    'products','product_media','product_specs','product_compatibility','blog_posts','carts','cart_items',
+    'categories','products','product_media','product_specs','product_compatibility','blog_posts','carts','cart_items',
     'orders','order_items','order_status_history','inventory_movements','inquiries','admin_audit_log','seed_runs'
   ] loop
     execute format('alter table public.%I enable row level security', table_name);
@@ -661,6 +737,11 @@ create policy seo_entries_read on public.seo_entries for select to anon, authent
 create policy cars_read on public.cars for select to anon, authenticated using (published and archived_at is null);
 create policy car_media_read on public.car_media for select to anon, authenticated using (exists(select 1 from public.cars c where c.id = car_id and c.published and c.archived_at is null));
 create policy car_highlights_read on public.car_highlights for select to anon, authenticated using (exists(select 1 from public.cars c where c.id = car_id and c.published and c.archived_at is null));
+create policy categories_public_read on public.categories for select to anon, authenticated using (is_active);
+create policy categories_admin_all on public.categories
+  for all to authenticated
+  using (exists(select 1 from public.admin_memberships m where m.user_id = (select auth.uid()) and m.active = true))
+  with check (exists(select 1 from public.admin_memberships m where m.user_id = (select auth.uid()) and m.active = true));
 create policy products_read on public.products for select to anon, authenticated using (published and archived_at is null);
 create policy product_media_read on public.product_media for select to anon, authenticated using (exists(select 1 from public.products p where p.id = product_id and p.published and p.archived_at is null));
 create policy product_specs_read on public.product_specs for select to anon, authenticated using (exists(select 1 from public.products p where p.id = product_id and p.published and p.archived_at is null));
@@ -683,7 +764,7 @@ create policy inquiries_read_own on public.inquiries for select to authenticated
 -- Explicit Data API grants (new Supabase projects no longer auto-expose tables).
 revoke all on all tables in schema public from anon, authenticated;
 grant select on public.site_settings_public, public.page_sections, public.policy_pages, public.seo_entries,
-  public.cars, public.car_media, public.car_highlights, public.products, public.product_media,
+  public.cars, public.car_media, public.car_highlights, public.categories, public.products, public.product_media,
   public.product_specs, public.product_compatibility, public.blog_posts to anon, authenticated;
 grant select on public.profiles, public.addresses, public.carts, public.cart_items, public.orders,
   public.order_items, public.order_status_history, public.inquiries to authenticated;
