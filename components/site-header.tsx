@@ -10,6 +10,7 @@ import { useLanguage } from '@/lib/i18n/language-context'
 import { useCart } from '@/lib/cart-context'
 import { LanguageSwitcher } from '@/components/language-switcher'
 import { AccountMenu } from '@/components/account/account-menu'
+import { NotificationBell } from '@/components/account/notification-bell'
 import { useAuth } from '@/lib/auth/auth-context'
 import { logoutAction } from '@/lib/auth/actions'
 import { useSiteContent } from '@/lib/admin/site-content-context'
@@ -62,7 +63,7 @@ export function SiteHeader() {
   )
 
   return (
-    <header ref={headerRef} className="fixed inset-x-0 top-4 z-50 md:top-6">
+    <header ref={headerRef} className="fixed inset-x-0 top-4 z-50 print:hidden md:top-6">
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 md:px-6">
         {/* Desktop Brand Logo pill */}
         <LocaleLink
@@ -107,6 +108,7 @@ export function SiteHeader() {
         >
           <LanguageSwitcher />
           <span className="mx-1 h-6 w-px bg-border" aria-hidden="true" />
+          {signedIn ? <NotificationBell /> : null}
           <AccountMenu />
           <span className="mx-1 h-6 w-px bg-border" aria-hidden="true" />
           <a
@@ -147,6 +149,7 @@ export function SiteHeader() {
         </LocaleLink>
 
         <div className="flex items-center gap-2 md:hidden">
+          {signedIn ? <span className="rounded-full bg-card p-0.5 shadow-lg shadow-foreground/5"><NotificationBell /></span> : null}
           <LocaleLink
             href="/cart"
             aria-label={t.nav.cart}

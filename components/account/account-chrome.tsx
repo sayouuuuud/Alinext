@@ -26,9 +26,9 @@ export function AccountChrome({ children }: { children: React.ReactNode }) {
   return (
     <>
       <SiteHeader />
-      <div className="mx-auto max-w-7xl px-4 pb-24 pt-32 md:px-8 md:pb-32 md:pt-40">
-      <div className="flex flex-col gap-10 lg:flex-row lg:gap-12">
-        <aside className="lg:w-64 lg:shrink-0">
+      <div className="mx-auto max-w-7xl px-4 pb-24 pt-32 print:max-w-none print:p-0 md:px-8 md:pb-32 md:pt-40">
+      <div className="flex flex-col gap-10 print:block lg:flex-row lg:gap-12">
+        <aside className="print:hidden lg:w-64 lg:shrink-0">
           <div className="lg:sticky lg:top-28">
             <AccountNav />
           </div>

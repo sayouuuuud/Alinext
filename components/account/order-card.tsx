@@ -1,129 +1,29 @@
 'use client'
 
+import { ArrowRight } from 'lucide-react'
+import LocaleLink from '@/components/locale-link'
 import { useLanguage } from '@/lib/i18n/language-context'
 import { localeMeta } from '@/lib/i18n/config'
-import type { CustomerOrder, OrderStatus } from '@/lib/auth/types'
+import type { TrackingOrder } from '@/lib/commerce/types'
+import { orderStatusLabel } from '@/lib/orders/status'
 
-/** Muted, on-brand status tints — no new palette colours introduced. */
-const STATUS_TINT: Record<OrderStatus, string> = {
-  completed: 'bg-accent/15 text-accent ring-accent/30',
-  processing: 'bg-accent/10 text-accent ring-accent/25',
-  pending: 'bg-secondary text-secondary-foreground ring-border',
-  onhold: 'bg-secondary text-secondary-foreground ring-border',
-  checkoutdraft: 'bg-secondary text-muted-foreground ring-border',
-  cancelled: 'bg-destructive/10 text-destructive ring-destructive/30',
-  refunded: 'bg-destructive/10 text-destructive ring-destructive/30',
-  failed: 'bg-destructive/10 text-destructive ring-destructive/30',
+export function OrderStatusBadge({ status }: { status: TrackingOrder['status'] }) {
+  const { locale } = useLanguage()
+  const terminal = status === 'cancelled'
+  return <span className={`inline-flex shrink-0 rounded-full px-3 py-1 text-xs font-medium ring-1 ${terminal ? 'bg-destructive/10 text-destructive ring-destructive/30' : 'bg-accent/10 text-accent ring-accent/25'}`}>{orderStatusLabel(status, locale)}</span>
 }
 
-export function OrderStatusBadge({ status }: { status: OrderStatus }) {
-  const { t } = useLanguage()
-  return (
-    <span
-      className={`inline-flex shrink-0 items-center rounded-full px-3 py-1 text-xs font-medium ring-1 ${STATUS_TINT[status]}`}
-    >
-      {t.account.orders.statuses[status]}
-    </span>
-  )
-}
-
-function formatDate(value: string | null, locale: string) {
-  if (!value) return '—'
-  const parsed = new Date(value)
-  if (Number.isNaN(parsed.getTime())) return '—'
-  return parsed.toLocaleDateString(locale, {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-  })
-}
-
-/**
- * Price strings may contain lightweight formatting from imported backups.
- * Stripping tags keeps the account summary plain and safe.
- */
-function cleanPrice(value: string) {
-  return value.replace(/<[^>]*>/g, '').trim() || '—'
-}
-
-export function OrderCard({
-  order,
-  detailed = false,
-}: {
-  order: CustomerOrder
-  detailed?: boolean
-}) {
-  const { t, locale } = useLanguage()
-  const itemCount = order.lines.reduce((sum, line) => sum + line.quantity, 0)
+export function OrderCard({ order }: { order: TrackingOrder }) {
+  const { locale } = useLanguage()
+  const itemCount = order.items.reduce((sum, line) => sum + line.quantity, 0)
   const dateLocale = localeMeta[locale].htmlLang
+  const ar = locale === 'ar'
 
   return (
-    <article className="rounded-3xl bg-card p-5 ring-1 ring-border md:p-6">
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
-            {t.account.orders.number}
-          </p>
-          <p className="mt-1 font-serif text-xl tracking-tight text-foreground">
-            #{order.orderNumber}
-          </p>
-        </div>
-        <OrderStatusBadge status={order.status} />
-      </div>
-
-      <dl className="mt-5 grid gap-4 sm:grid-cols-3">
-        <div>
-          <dt className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
-            {t.account.orders.date}
-          </dt>
-          <dd className="mt-1 text-sm text-foreground">
-            {formatDate(order.date, dateLocale)}
-          </dd>
-        </div>
-        <div>
-          <dt className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
-            {t.account.orders.itemsCount}
-          </dt>
-          <dd className="mt-1 text-sm text-foreground">{itemCount}</dd>
-        </div>
-        <div>
-          <dt className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
-            {t.account.orders.total}
-          </dt>
-          <dd className="mt-1 text-sm font-medium text-foreground">
-            {cleanPrice(order.total)}
-          </dd>
-        </div>
-      </dl>
-
-      {detailed && order.lines.length > 0 ? (
-        <div className="mt-5 border-t border-border pt-5">
-          <ul className="flex flex-col gap-3">
-            {order.lines.map((line, index) => (
-              <li
-                key={`${line.slug ?? line.name}-${index}`}
-                className="flex items-baseline justify-between gap-4 text-sm"
-              >
-                <span className="min-w-0 text-foreground">
-                  <span className="text-muted-foreground">
-                    {line.quantity}&times;
-                  </span>{' '}
-                  {line.name}
-                </span>
-                <span className="shrink-0 text-muted-foreground">
-                  {cleanPrice(line.total)}
-                </span>
-              </li>
-            ))}
-          </ul>
-
-          {order.paymentMethodTitle ? (
-            <p className="mt-5 text-xs text-muted-foreground">
-              {t.account.orders.payment}: {order.paymentMethodTitle}
-            </p>
-          ) : null}
-        </div>
-      ) : null}
+    <article className="rounded-3xl bg-card p-5 ring-1 ring-border transition-shadow hover:shadow-md md:p-6">
+      <div className="flex flex-wrap items-start justify-between gap-4"><div><p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">{ar ? 'رقم الطلب' : 'Order number'}</p><p className="mt-1 font-serif text-xl tracking-tight text-foreground">#{order.orderNumber}</p></div><OrderStatusBadge status={order.status} /></div>
+      <dl className="mt-5 grid gap-4 sm:grid-cols-3"><div><dt className="text-xs uppercase tracking-[0.18em] text-muted-foreground">{ar ? 'التاريخ' : 'Date'}</dt><dd className="mt-1 text-sm text-foreground">{new Date(order.createdAt).toLocaleDateString(dateLocale, { year: 'numeric', month: 'short', day: 'numeric' })}</dd></div><div><dt className="text-xs uppercase tracking-[0.18em] text-muted-foreground">{ar ? 'العناصر' : 'Items'}</dt><dd className="mt-1 text-sm text-foreground">{itemCount}</dd></div><div><dt className="text-xs uppercase tracking-[0.18em] text-muted-foreground">{ar ? 'الإجمالي' : 'Total'}</dt><dd className="mt-1 text-sm font-medium text-foreground">{new Intl.NumberFormat('en', { style: 'currency', currency: order.currency }).format(order.totalMinor / 100)}</dd></div></dl>
+      <div className="mt-5 flex items-center justify-between gap-4 border-t border-border pt-4"><p className="min-w-0 truncate text-xs text-muted-foreground">{order.trackingNumber ? `${order.carrier || ''} · ${order.trackingNumber}` : ar ? 'تظهر معلومات الشحن بعد التجهيز' : 'Shipping details appear after processing'}</p><LocaleLink href={`/account/orders/${order.id}`} className="inline-flex shrink-0 items-center gap-2 text-sm font-semibold text-accent hover:underline">{ar ? 'عرض التفاصيل' : 'View details'}<ArrowRight className="size-4 rtl:rotate-180" /></LocaleLink></div>
     </article>
   )
 }
