@@ -319,7 +319,7 @@ export const he: Dictionary = {
   importDetail: {
     gallery: 'גלריה',
     overview: 'סקירה',
-    timeline: 'שלבי הייבוא של הרכב הז��',
+    timeline: 'שלבי הייבוא של הרכב הזה',
     reserveTitle: 'שריון הרכב',
     reserveLead: 'השאירו פרטים ומחלקת הייבוא תחזור אליכם תוך יום עסקים אחד.',
     similar: 'ייבוא דומה',
@@ -521,7 +521,7 @@ export const he: Dictionary = {
       lead: 'שמרו על פרטי הקשר מעודכנים כדי שנוכל ליצור איתכם קשר בנוגע להזמנות ומשלוחים.',
       sectionDetails: 'פרטי קשר',
       sectionPassword: 'שינוי סיסמה',
-      passwordLead: 'השאיר�� את שני שדות הסיסמה ריקים לשמירת הסיסמה הנוכחית.',
+      passwordLead: 'השאירו את שני שדות הסיסמה ריקים לשמירת הסיסמה הנוכחית.',
       save: 'שמירת שינויים',
       saving: 'שומר…',
       saved: 'הפרטים שלכם עודכנו.',

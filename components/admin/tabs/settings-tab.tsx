@@ -820,7 +820,7 @@ export function SettingsTab() {
               <div>
                 <div className="text-sm font-bold">
                   {maintenance.enabled
-                    ? 'وضع الصيانة مُفعّل: الموقع متوقف أمام كافة الزوا��'
+                    ? 'وضع الصيانة مُفعّل: الموقع متوقف أمام كافة الزوار'
                     : 'الموقع مفتوح ونشط: متاح لكافة الزوار والعملاء الآن'}
                 </div>
                 <div className="text-xs opacity-80 mt-0.5">
