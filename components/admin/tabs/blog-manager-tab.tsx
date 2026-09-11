@@ -21,7 +21,7 @@ import { ImageUpload } from '@/components/admin/image-upload'
 import type { BlogPostItem } from '@/lib/admin/types'
 
 export function BlogManagerTab() {
-  const { t, content, updateContent, locale, showToast, persist, isSaving } = useAdmin()
+  const { t, content, updateContent, locale, showToast, persist, deleteResource, isSaving } = useAdmin()
 
   const [search, setSearch] = useState('')
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -118,16 +118,15 @@ export function BlogManagerTab() {
 
   const handleDelete = async (id: string) => {
     setIsDeleting(true)
-    const nextBlog = blogPosts.filter((p) => p.id !== id)
-    const success = await persist('blog', nextBlog)
+    const result = await deleteResource('blog', id)
     setIsDeleting(false)
 
-    if (success) {
-      updateContent((prev) => ({ ...prev, blog: nextBlog }))
+    if (result.ok) {
+      updateContent((prev) => ({ ...prev, blog: (prev.blog || []).filter((post) => post.id !== id) }))
       setDeleteConfirmId(null)
-      showToast('تم حذف المقال وتحديث المدونة بنجاح')
+      showToast('تم إلغاء نشر المقال والاحتفاظ بسجله')
     } else {
-      showToast('تعذر حذف المقال من قاعدة البيانات', 'error')
+      showToast('تعذر إلغاء نشر المقال. تحقق من الصلاحية ثم حاول مجددًا', 'error')
     }
   }
 

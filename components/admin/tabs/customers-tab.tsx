@@ -27,7 +27,7 @@ import { useAdmin } from '@/lib/admin/admin-context'
 import type { CustomerItem, CustomerOrder } from '@/lib/admin/types'
 
 export function CustomersTab() {
-  const { t, content, updateContent, showToast } = useAdmin()
+  const { t, content, updateContent, persist, deleteResource, showToast } = useAdmin()
 
   const [search, setSearch] = useState('')
   const [tierFilter, setTierFilter] = useState<string>('all')
@@ -101,39 +101,44 @@ export function CustomersTab() {
     setIsModalOpen(true)
   }
 
-  const handleSaveCustomer = (e: React.FormEvent) => {
+  const handleSaveCustomer = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!formData.name.trim()) {
-      showToast('يرجى إدخال اسم العميل الكامل', 'error')
+    if (!formData.name.trim() || !formData.email.trim()) {
+      showToast('يرجى إدخال اسم العميل وبريده الإلكتروني', 'error')
       return
     }
 
-    if (editingCustomer) {
-      updateContent((prev) => ({
-        ...prev,
-        customers: (prev.customers || []).map((c) =>
-          c.id === formData.id ? formData : c
-        ),
-      }))
-      showToast('تم تحديث بيانات العميل بنجاح')
-    } else {
-      updateContent((prev) => ({
-        ...prev,
-        customers: [formData, ...(prev.customers || [])],
-      }))
-      showToast('تمت إضافة العميل الجديد بنجاح')
+    const nextCustomers = editingCustomer
+      ? customers.map((customer) => customer.id === formData.id ? formData : customer)
+      : [formData, ...customers]
+    const success = await persist('customers', nextCustomers)
+    if (!success) {
+      showToast('تعذر حفظ بيانات العميل في قاعدة البيانات', 'error')
+      return
     }
 
+    updateContent((prev) => ({ ...prev, customers: nextCustomers }))
+    showToast(editingCustomer ? 'تم تحديث بيانات العميل بنجاح' : 'تمت إضافة العميل الجديد بنجاح')
     setIsModalOpen(false)
   }
 
-  const handleDeleteCustomer = (id: string) => {
-    updateContent((prev) => ({
-      ...prev,
-      customers: (prev.customers || []).filter((c) => c.id !== id),
-    }))
-    setDeleteConfirmId(null)
-    showToast('تم حذف حساب العميل')
+  const handleDeleteCustomer = async (id: string) => {
+    const result = await deleteResource('customer', id)
+    if (result.ok) {
+      updateContent((prev) => ({
+        ...prev,
+        customers: (prev.customers || []).filter((customer) => customer.id !== id),
+      }))
+      setDeleteConfirmId(null)
+      showToast('تم حذف حساب العميل غير المرتبط بطلبات')
+      return
+    }
+    const message = result.error === 'customer_has_orders'
+      ? 'لا يمكن حذف العميل لأن لديه سجل طلبات. يمكنك تعليق الحساب بدلًا من ذلك.'
+      : result.error === 'customer_is_admin'
+        ? 'لا يمكن حذف هذا الحساب لأنه يملك عضوية إدارة.'
+        : 'تعذر حذف حساب العميل. تحقق من الصلاحية ثم حاول مجددًا.'
+    showToast(message, 'error')
   }
 
   const getTierBadge = (tier: CustomerItem['tier']) => {

@@ -3,7 +3,7 @@ import 'server-only'
 import sanitizeHtml from 'sanitize-html'
 import { z } from 'zod'
 import { createAdminClient } from '@/lib/supabase/server'
-import type { ValidAdminSession } from './session-server'
+import { requireAdminPermission, type ValidAdminSession } from './session-server'
 import type { BlogPostItem, CarItem, CategoryItem, CustomerItem, MultiLangString, ProductItem, SiteFullContent } from './types'
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
@@ -79,14 +79,6 @@ async function syncCars(cars: CarItem[]) {
     previous_owners: car.previousOwners ?? null, eta: car.eta || null, availability: car.availability || null,
     specs: car.specs || {}, description: car.description || { ar: '', en: '', he: '' }, primary_image: car.image, published: true, archived_at: null,
   }))
-  const { data: existing, error: existingError } = await admin.from('cars').select('id')
-  if (existingError) throw existingError
-  const activeIds = new Set(rows.map((row) => row.id))
-  const removed = (existing || []).map((row) => row.id).filter((id) => !activeIds.has(id))
-  if (removed.length) {
-    const { error } = await admin.from('cars').update({ archived_at: new Date().toISOString(), published: false }).in('id', removed)
-    if (error) throw error
-  }
   if (!rows.length) return
   const { error: upsertError } = await admin.from('cars').upsert(rows)
   if (upsertError) throw upsertError
@@ -121,12 +113,6 @@ async function syncProducts(products: ProductItem[]) {
       published: true, archived_at: null,
     }
   })
-  const activeIds = new Set(rows.map((row) => row.id))
-  const removed = (existing || []).map((row) => row.id).filter((id) => !activeIds.has(id))
-  if (removed.length) {
-    const { error } = await admin.from('products').update({ archived_at: new Date().toISOString(), published: false }).in('id', removed)
-    if (error) throw error
-  }
   if (!rows.length) return
   const { error: upsertError } = await admin.from('products').upsert(rows)
   if (upsertError) throw upsertError
@@ -162,24 +148,13 @@ async function syncCategories(categories: CategoryItem[]) {
     is_active: category.isActive !== false,
   }))
 
-  const [existingResult, linkedProductsResult] = await Promise.all([
-    admin.from('categories').select('id,parent_id'),
-    admin.from('products').select('id,category_id,subcategory_id'),
-  ])
-  if (existingResult.error) throw existingResult.error
+  const linkedProductsResult = await admin
+    .from('products')
+    .select('id,category_id,subcategory_id')
+    .is('archived_at', null)
   if (linkedProductsResult.error) throw linkedProductsResult.error
 
   const byId = new Map(rows.map((category) => [category.id, category]))
-  const activeIds = new Set(rows.map((category) => category.id))
-  const existing = existingResult.data || []
-  const removedRows = existing.filter((category) => !activeIds.has(category.id))
-  const removedIds = new Set(removedRows.map((category) => category.id))
-
-  for (const category of existing) {
-    if (category.parent_id && removedIds.has(category.parent_id)) {
-      throw new AdminContentError('category_has_children')
-    }
-  }
 
   for (const product of linkedProductsResult.data || []) {
     if (product.category_id) {
@@ -217,26 +192,6 @@ async function syncCategories(categories: CategoryItem[]) {
     if (error) throw error
   }
 
-  const removedSubcategoryIds = removedRows
-    .filter((category) => category.parent_id)
-    .map((category) => category.id)
-  const removedMainCategoryIds = removedRows
-    .filter((category) => !category.parent_id)
-    .map((category) => category.id)
-  if (removedSubcategoryIds.length) {
-    const { error } = await admin
-      .from('categories')
-      .delete()
-      .in('id', removedSubcategoryIds)
-    if (error) throw error
-  }
-  if (removedMainCategoryIds.length) {
-    const { error } = await admin
-      .from('categories')
-      .delete()
-      .in('id', removedMainCategoryIds)
-    if (error) throw error
-  }
 }
 
 async function syncBlog(posts: BlogPostItem[]) {
@@ -248,11 +203,6 @@ async function syncBlog(posts: BlogPostItem[]) {
     featured: Boolean(post.featured), published: post.published !== false,
     published_at: post.date ? new Date(post.date).toISOString() : new Date().toISOString(),
   }))
-  const { data: existing, error: existingError } = await admin.from('blog_posts').select('id')
-  if (existingError) throw existingError
-  const activeIds = new Set(rows.map((row) => row.id))
-  const removed = (existing || []).map((row) => row.id).filter((id) => !activeIds.has(id))
-  if (removed.length) { const { error } = await admin.from('blog_posts').update({ published: false }).in('id', removed); if (error) throw error }
   if (rows.length) { const { error } = await admin.from('blog_posts').upsert(rows); if (error) throw error }
 }
 
@@ -403,17 +353,6 @@ async function normalizeProductCategoryLinks(products: ProductItem[]) {
   })
 }
 
-function requireContentRole(session: ValidAdminSession) {
-  if (session.role !== 'owner' && session.role !== 'content_editor') {
-    throw new AdminContentError('insufficient_role')
-  }
-}
-
-function requireOperationsRole(session: ValidAdminSession) {
-  if (session.role !== 'owner' && session.role !== 'operations') {
-    throw new AdminContentError('insufficient_role')
-  }
-}
 
 async function savePagesScope(data: unknown) {
   const parsed = z.object({
@@ -593,10 +532,12 @@ export async function saveAdminSection(
   session: ValidAdminSession,
 ) {
   const scope = saveScopeSchema.parse(rawScope)
-  if (['pages', 'cars', 'products', 'categories', 'blog', 'settings'].includes(scope)) {
-    requireContentRole(session)
+  if (scope === 'settings') {
+    await requireAdminPermission('settings.write')
+  } else if (['pages', 'cars', 'products', 'categories', 'blog'].includes(scope)) {
+    await requireAdminPermission('content.write')
   } else {
-    requireOperationsRole(session)
+    await requireAdminPermission('operations.write')
   }
 
   if (scope === 'pages') await savePagesScope(data)

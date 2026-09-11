@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/client'
 import { defaultSiteContent } from './default-content'
 import { adminI18n, type AdminDictionary, type AdminLocale } from './admin-i18n'
 import type { SiteFullContent } from './types'
+import type { AdminDashboardSummary } from './dashboard-summary-server'
 
 export type AdminTab = 'dashboard' | 'pages' | 'cars' | 'products' | 'categories' | 'blog' | 'orders' | 'inquiries' | 'customers' | 'settings'
 export type AdminTheme = 'dark' | 'light'
@@ -52,9 +53,11 @@ type AdminContextType = {
   activeTab: AdminTab
   setActiveTab: (tab: AdminTab) => void
   content: SiteFullContent
+  summary: AdminDashboardSummary | null
   updateContent: (updater: (previous: SiteFullContent) => SiteFullContent) => void
   saveAll: () => Promise<boolean>
   persist: (scope: SaveScope, data: unknown) => Promise<boolean>
+  deleteResource: (resource: 'car' | 'product' | 'category' | 'blog' | 'customer', id: string) => Promise<{ ok: boolean; error?: string }>
   isSaving: boolean
   changePassword: (oldPassword: string, newPassword: string) => Promise<boolean>
   resetDefaults: () => void
@@ -72,6 +75,7 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
   const [theme, setThemeState] = useState<AdminTheme>('light')
   const [activeTab, setActiveTab] = useState<AdminTab>('dashboard')
   const [content, setContent] = useState<SiteFullContent>(defaultSiteContent)
+  const [summary, setSummary] = useState<AdminDashboardSummary | null>(null)
   const [isSaving, setIsSaving] = useState(false)
   const [toasts, setToasts] = useState<ToastMessage[]>([])
 
@@ -84,8 +88,12 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     async function loadContent() {
-      const response = await fetch('/api/admin/content', { cache: 'no-store' })
-      if (response.ok) setContent(await response.json())
+      const [contentResponse, summaryResponse] = await Promise.all([
+        fetch('/api/admin/content', { cache: 'no-store' }),
+        fetch('/api/admin/summary', { cache: 'no-store' }),
+      ])
+      if (contentResponse.ok) setContent(await contentResponse.json())
+      if (summaryResponse.ok) setSummary(await summaryResponse.json())
     }
     loadContent().catch(() => undefined)
     window.addEventListener('alifleet-admin-authenticated', loadContent)
@@ -104,6 +112,11 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
   const removeToast = (id: string) => setToasts((current) => current.filter((toast) => toast.id !== id))
   const updateContent = (updater: (previous: SiteFullContent) => SiteFullContent) => setContent(updater)
 
+  const refreshSummary = async () => {
+    const response = await fetch('/api/admin/summary', { cache: 'no-store' })
+    if (response.ok) setSummary(await response.json())
+  }
+
   const persist = async (scope: SaveScope, data: unknown): Promise<boolean> => {
     setIsSaving(true)
     try {
@@ -118,12 +131,29 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
       }
       const result = await response.json()
       setContent((current) => ({ ...current, lastSaved: result.lastSaved || current.lastSaved }))
+      await refreshSummary()
       return true
     } catch (error) {
       console.error(`Failed to persist scope ${scope}:`, error)
       return false
     } finally {
       setIsSaving(false)
+    }
+  }
+
+  const deleteResource: AdminContextType['deleteResource'] = async (resource, id) => {
+    try {
+      const response = await fetch('/api/admin/content', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ resource, id }),
+      })
+      const payload = await response.json().catch(() => ({ error: 'delete_failed' }))
+      if (!response.ok) return { ok: false, error: payload.error }
+      await refreshSummary()
+      return { ok: true }
+    } catch {
+      return { ok: false, error: 'delete_failed' }
     }
   }
 
@@ -191,7 +221,7 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
   return (
     <AdminContext.Provider value={{
       locale, setLocale, t: dictionary, dir: dictionary.dir, theme, setTheme, toggleTheme, activeTab, setActiveTab,
-      content, updateContent, saveAll, persist, isSaving, changePassword, resetDefaults, exportBackup, importBackup,
+      content, summary, updateContent, saveAll, persist, deleteResource, isSaving, changePassword, resetDefaults, exportBackup, importBackup,
       toasts, showToast, removeToast,
     }}>
       <div className={`${theme} admin-shell min-h-screen font-sans`} dir={dictionary.dir} lang={locale}>{children}</div>

@@ -19,7 +19,7 @@ import { ImageUpload } from '@/components/admin/image-upload'
 import type { ProductItem } from '@/lib/admin/types'
 
 export function ProductsManagerTab() {
-  const { t, content, updateContent, locale, showToast, persist, isSaving } = useAdmin()
+  const { t, content, updateContent, locale, showToast, persist, deleteResource, isSaving } = useAdmin()
 
   const [search, setSearch] = useState('')
   const [stockFilter, setStockFilter] = useState<'all' | 'inStock' | 'outOfStock'>('all')
@@ -116,16 +116,15 @@ export function ProductsManagerTab() {
 
   const handleDelete = async (id: string) => {
     setIsDeleting(true)
-    const nextProducts = products.filter((p) => p.id !== id)
-    const success = await persist('products', nextProducts)
+    const result = await deleteResource('product', id)
     setIsDeleting(false)
 
-    if (success) {
-      updateContent((prev) => ({ ...prev, products: nextProducts }))
+    if (result.ok) {
+      updateContent((prev) => ({ ...prev, products: (prev.products || []).filter((product) => product.id !== id) }))
       setDeleteConfirmId(null)
-      showToast('تم حذف القطعة وتحديث المتجر بنجاح')
+      showToast('تمت أرشفة القطعة وإخفاؤها مع الاحتفاظ بسجل الطلبات')
     } else {
-      showToast('تعذر حذف القطعة من قاعدة البيانات', 'error')
+      showToast('تعذرت أرشفة القطعة. تحقق من الصلاحية ثم حاول مجددًا', 'error')
     }
   }
 

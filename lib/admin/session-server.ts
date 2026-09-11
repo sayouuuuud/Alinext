@@ -3,16 +3,16 @@ import 'server-only'
 import { createHash, randomBytes } from 'node:crypto'
 import { cookies, headers } from 'next/headers'
 import { createAdminClient, createClient } from '@/lib/supabase/server'
-import type { Database, Json } from '@/lib/supabase/database.types'
+import type { Json } from '@/lib/supabase/database.types'
+import { permissionsForRole, roleHasPermission, type AdminPermission, type AdminRole } from './permissions'
 
 export const ADMIN_SESSION_COOKIE = 'alifleet_admin_session'
-
-type AdminRole = Database['public']['Enums']['admin_role']
 
 export type ValidAdminSession = {
   userId: string
   email: string
   role: AdminRole
+  permissions: AdminPermission[]
   mustChangePassword: boolean
   demoOnly: boolean
 }
@@ -102,6 +102,7 @@ export async function createAdminSession(): Promise<ValidAdminSession> {
     userId: user.id,
     email: user.email || '',
     role: membership.role,
+    permissions: permissionsForRole(membership.role),
     mustChangePassword: membership.must_change_password,
     demoOnly: membership.demo_only,
   }
@@ -149,9 +150,18 @@ export async function validateAdminSession(touch = true): Promise<ValidAdminSess
     userId: user.id,
     email: user.email || '',
     role: membership.role,
+    permissions: permissionsForRole(membership.role),
     mustChangePassword: membership.must_change_password,
     demoOnly: membership.demo_only,
   }
+}
+
+export async function requireAdminPermission(permission: AdminPermission) {
+  const session = await validateAdminSession()
+  if (!roleHasPermission(session.role, permission)) {
+    throw new AdminSessionError('not_authorized')
+  }
+  return session
 }
 
 export async function revokeAdminSession() {
