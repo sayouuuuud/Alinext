@@ -851,7 +851,7 @@ export function CategoriesManagerTab() {
               <p>
                 هل أنت متأكد من رغبتك في حذف التصنيف{' '}
                 <strong className="text-destructive font-bold">
-                  "{getCategoryName(deleteConfirmCategory)}"
+                  &quot;{getCategoryName(deleteConfirmCategory)}&quot;
                 </strong>
                 ؟
               </p>

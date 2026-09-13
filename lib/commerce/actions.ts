@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { z } from 'zod'
 import { createAdminClient, createClient } from '@/lib/supabase/server'
+import { processNotificationOutboxBatch } from '@/lib/email/outbox-processor'
 import type { Database, Json } from '@/lib/supabase/database.types'
 import type {
   CartLine,
@@ -201,7 +202,13 @@ export async function createOrderAction(
 
   revalidatePath('/cart')
   revalidatePath('/account/orders')
+  revalidatePath('/account/notifications')
   revalidatePath('/track-order')
+  try {
+    await processNotificationOutboxBatch(5)
+  } catch {
+    // Email failures never fail the order; rows stay pending for retry.
+  }
   return { status: 'success', orderNumber }
 }
 

@@ -2,6 +2,7 @@ import 'server-only'
 
 import { z } from 'zod'
 import { createAdminClient } from '@/lib/supabase/server'
+import { processNotificationOutboxBatch } from '@/lib/email/outbox-processor'
 import { requireAdminPermission } from '@/lib/admin/session-server'
 import type { Json } from '@/lib/supabase/database.types'
 
@@ -49,13 +50,14 @@ export async function listAdminUsers(input: unknown) {
   if (parsed.tier !== 'all') query = query.eq('tier', parsed.tier)
   const search = safeSearch(parsed.q)
   if (search) query = query.or(`display_name.ilike.%${search}%,email.ilike.%${search}%,phone.ilike.%${search}%`)
-  const from = (parsed.page - 1) * parsed.limit
-  const profiles = await query.order('created_at', { ascending: false }).range(from, from + parsed.limit - 1)
+  // Fetch all matching profiles first so sort/pagination are global, not
+  // limited to whatever page the database happened to return.
+  const profiles = await query.order('created_at', { ascending: false })
   if (profiles.error) throw new Error('users_unavailable')
 
-  const ids = (profiles.data || []).map((profile) => profile.id)
-  const orderResult = ids.length
-    ? await admin.from('orders').select('user_id,total_minor,status,created_at').in('user_id', ids).is('archived_at', null)
+  const allIds = (profiles.data || []).map((profile) => profile.id)
+  const orderResult = allIds.length
+    ? await admin.from('orders').select('user_id,total_minor,status,payment_status,created_at').in('user_id', allIds).is('archived_at', null)
     : { data: [], error: null }
   if (orderResult.error) throw new Error('users_unavailable')
 
@@ -71,15 +73,20 @@ export async function listAdminUsers(input: unknown) {
       tier: profile.tier,
       joinedAt: profile.created_at,
       ordersCount: orders.length,
-      totalSpentMinor: orders.filter((order) => order.status !== 'cancelled').reduce((sum, order) => sum + order.total_minor, 0),
+      totalSpentMinor: orders.filter((order) => order.payment_status === 'paid').reduce((sum, order) => sum + order.total_minor, 0),
       lastOrderAt: orders.sort((a, b) => b.created_at.localeCompare(a.created_at))[0]?.created_at || null,
     }
   })
   if (parsed.sort === 'orders') users.sort((a, b) => b.ordersCount - a.ordersCount)
   if (parsed.sort === 'spent') users.sort((a, b) => b.totalSpentMinor - a.totalSpentMinor)
   if (parsed.sort === 'activity') users.sort((a, b) => (b.lastOrderAt || '').localeCompare(a.lastOrderAt || ''))
+  else if (parsed.sort === 'joined') users.sort((a, b) => b.joinedAt.localeCompare(a.joinedAt))
 
-  return { users, page: parsed.page, limit: parsed.limit, total: profiles.count || 0, pages: Math.max(1, Math.ceil((profiles.count || 0) / parsed.limit)) }
+  const total = users.length
+  const from = (parsed.page - 1) * parsed.limit
+  const page = users.slice(from, from + parsed.limit)
+
+  return { users: page, page: parsed.page, limit: parsed.limit, total, pages: Math.max(1, Math.ceil(total / parsed.limit)) }
 }
 
 export async function getAdminUserDetail(rawId: unknown) {
@@ -172,6 +179,11 @@ export async function updateAdminOrder(rawId: unknown, input: unknown) {
   })
   if (result.error) throw new Error(result.error.message.includes('invalid_order_transition') ? 'invalid_order_transition' : result.error.message.includes('shipping_details_required') ? 'shipping_details_required' : 'order_update_failed')
   await admin.from('admin_audit_log').insert({ actor_id: session.userId, action: 'order.updated', entity_type: 'order', entity_id: orderId, after_value: patch as unknown as Json })
+  try {
+    await processNotificationOutboxBatch(5)
+  } catch {
+    // Email failures never revert the order update; rows stay pending.
+  }
   return result.data
 }
 

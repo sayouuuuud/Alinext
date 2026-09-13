@@ -4,7 +4,7 @@ import sanitizeHtml from 'sanitize-html'
 import { z } from 'zod'
 import { createAdminClient } from '@/lib/supabase/server'
 import { requireAdminPermission, type ValidAdminSession } from './session-server'
-import type { BlogPostItem, CarItem, CategoryItem, CustomerItem, MultiLangString, ProductItem, SiteFullContent } from './types'
+import type { BlogPostItem, CarItem, CategoryItem, MultiLangString, ProductItem, SiteFullContent } from './types'
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 const ID = /^[a-zA-Z0-9][a-zA-Z0-9_-]{0,119}$/
@@ -206,19 +206,12 @@ async function syncBlog(posts: BlogPostItem[]) {
   if (rows.length) { const { error } = await admin.from('blog_posts').upsert(rows); if (error) throw error }
 }
 
-const transitions: Record<string, string[]> = {
-  pending: ['confirmed', 'cancelled'], confirmed: ['processing', 'cancelled'], processing: ['shipping', 'cancelled'],
-  shipping: ['delivered', 'cancelled'], delivered: ['completed'], cancelled: [], completed: [],
-}
-
 export type AdminSaveScope =
   | 'pages'
   | 'cars'
   | 'products'
   | 'categories'
   | 'blog'
-  | 'orders'
-  | 'customers'
   | 'inquiries'
   | 'settings'
 
@@ -228,8 +221,6 @@ const saveScopeSchema = z.enum([
   'products',
   'categories',
   'blog',
-  'orders',
-  'customers',
   'inquiries',
   'settings',
 ])
@@ -461,61 +452,6 @@ async function saveSettingsScope(data: unknown) {
   if (error) throw error
 }
 
-async function saveOrdersScope(data: unknown) {
-  const orders = objectArraySchema.max(5000).parse(data) as unknown as SiteFullContent['orders']
-  const admin = createAdminClient()
-  const { data: currentOrders, error: lookupError } = await admin.from('orders').select('order_number,status')
-  if (lookupError) throw lookupError
-  const currentByNumber = new Map((currentOrders || []).map((order) => [order.order_number, order.status]))
-  for (const order of orders) {
-    const current = currentByNumber.get(order.id)
-    if (!current) continue
-    if (order.status !== current && !transitions[current]?.includes(order.status)) {
-      throw new Error(`Invalid order transition: ${current} -> ${order.status}`)
-    }
-    const { error } = await admin.from('orders').update({
-      status: order.status,
-      tracking_number: order.trackingNumber || null,
-      carrier: order.carrier || null,
-      estimated_delivery: order.estimatedDelivery || null,
-      admin_notes: order.notes || null,
-      payment_status: order.paymentStatus,
-    }).eq('order_number', order.id)
-    if (error) throw error
-  }
-}
-
-async function saveCustomersScope(data: unknown) {
-  const customers = objectArraySchema.max(5000).parse(data) as unknown as CustomerItem[]
-  const admin = createAdminClient()
-  for (const customer of customers) {
-    let userId = customer.id
-    if (!UUID.test(userId)) {
-      const invitation = await admin.auth.admin.inviteUserByEmail(customer.email, {
-        data: { display_name: customer.name, phone: customer.phone, preferred_locale: 'ar' },
-        ...(process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL
-          ? { redirectTo: process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL }
-          : {}),
-      })
-      if (invitation.error) throw invitation.error
-      userId = invitation.data.user.id
-    }
-    const { error } = await admin.from('profiles').update({
-      display_name: customer.name.slice(0, 120),
-      phone: customer.phone.slice(0, 40),
-      tier: customer.tier,
-      status: customer.status,
-      interested_in: customer.interestedIn || null,
-      admin_notes: customer.notes || null,
-    }).eq('id', userId)
-    if (error) throw error
-    const banResult = await admin.auth.admin.updateUserById(userId, {
-      ban_duration: customer.status === 'suspended' ? '876000h' : 'none',
-    })
-    if (banResult.error) throw banResult.error
-  }
-}
-
 async function saveInquiriesScope(data: unknown) {
   const inquiries = objectArraySchema.max(5000).parse(data) as unknown as NonNullable<SiteFullContent['inquiries']>
   const admin = createAdminClient()
@@ -626,8 +562,6 @@ export async function saveAdminSection(
     )
     await syncBlog(processedPosts)
   }
-  if (scope === 'orders') await saveOrdersScope(data)
-  if (scope === 'customers') await saveCustomersScope(data)
   if (scope === 'inquiries') await saveInquiriesScope(data)
   if (scope === 'settings') await saveSettingsScope(data)
 

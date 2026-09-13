@@ -169,6 +169,7 @@ export function PagesEditorTab() {
   const handleFleetVehicle = (
     vehicleId: string,
     field: 'title' | 'tag' | 'description' | 'image',
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     val: any
   ) => {
     updateContent((prev) => ({
@@ -189,6 +190,7 @@ export function PagesEditorTab() {
   }
 
   // Handlers for Cars and Products Pages
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleCarsPage = (field: string, val: any) => {
     updateContent((prev) => ({
       ...prev,
@@ -202,6 +204,7 @@ export function PagesEditorTab() {
     }))
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleProductsPage = (field: string, val: any) => {
     updateContent((prev) => ({
       ...prev,
@@ -216,6 +219,7 @@ export function PagesEditorTab() {
   }
 
   // Handlers for Stats
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleStatChange = (id: string, field: 'value' | 'label', val: any) => {
     updateContent((prev) => ({
       ...prev,
@@ -314,6 +318,7 @@ export function PagesEditorTab() {
   }
 
   // Handlers for Global Reach
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleGlobalChange = (field: keyof typeof home.globalReach, val: any) => {
     updateContent((prev) => ({
       ...prev,
@@ -331,6 +336,7 @@ export function PagesEditorTab() {
   }
 
   // Handlers for Services
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleServiceChange = (id: string, field: string, val: any) => {
     updateContent((prev) => ({
       ...prev,
@@ -347,6 +353,7 @@ export function PagesEditorTab() {
   }
 
   // Handlers for CTA
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleCtaChange = (field: keyof typeof home.cta, val: any) => {
     updateContent((prev) => ({
       ...prev,
@@ -377,6 +384,7 @@ export function PagesEditorTab() {
   }
 
   // Handlers for Contact
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleContactChange = (field: keyof typeof contact, val: any) => {
     updateContent((prev) => ({
       ...prev,
@@ -394,6 +402,7 @@ export function PagesEditorTab() {
   const handlePageHeader = (
     page: 'blog' | 'cart' | 'trackOrder' | 'contact',
     field: keyof PageHeaderContent,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     val: any
   ) => {
     updateContent((prev) => ({
@@ -1535,7 +1544,7 @@ export function PagesEditorTab() {
                   <input
                     type="url"
                     dir="ltr"
-                    value={(content.general.social as any)?.[item.key] || ''}
+                    value={(content.general.social as Record<string, string> | undefined)?.[item.key] || ''}
                     onChange={(e) => handleSocialChange(item.key, e.target.value)}
                     placeholder={`https://${item.key}.com/...`}
                     className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-xs font-mono text-foreground focus:border-accent focus:outline-hidden"
@@ -1602,7 +1611,7 @@ function PageHeaderEditor({
     titleEm?: MultiLangString
     lead: MultiLangString
   }
-  onChange: (field: keyof PageHeaderContent, val: any) => void
+  onChange: (field: keyof PageHeaderContent, val: PageHeaderContent[keyof PageHeaderContent]) => void
 }) {
   return (
     <div className="space-y-6 rounded-3xl bg-card p-6 ring-1 ring-border shadow-sm">

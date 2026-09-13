@@ -182,7 +182,7 @@ export function ProductsManagerTab() {
         <div className="flex items-center gap-2">
           <select
             value={stockFilter}
-            onChange={(e) => setStockFilter(e.target.value as any)}
+            onChange={(e) => setStockFilter(e.target.value as 'all' | 'inStock' | 'outOfStock')}
             className="rounded-xl border border-border bg-card px-3 py-2 text-xs font-medium text-foreground focus:border-primary focus:outline-hidden"
           >
             <option value="all">كافة الحالات</option>

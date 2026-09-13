@@ -250,6 +250,7 @@ type NotificationEmailOutboxRow = {
   status: string
   attempt_count: number
   next_attempt_at: string
+  locked_at: string | null
   provider_message_id: string | null
   last_error_code: string | null
   sent_at: string | null
@@ -346,6 +347,18 @@ export type Database = {
           p_changed_by?: string | null
         }
         Returns: Json
+      }
+      claim_notification_email_batch: {
+        Args: { p_limit?: number }
+        Returns: Json
+      }
+      complete_notification_email: {
+        Args: { p_outbox_id: string; p_provider_message_id: string }
+        Returns: boolean
+      }
+      fail_notification_email: {
+        Args: { p_outbox_id: string; p_error_code: string }
+        Returns: boolean
       }
     }
     Enums: {

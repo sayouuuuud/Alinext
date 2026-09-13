@@ -187,7 +187,7 @@ export function CarsManagerTab() {
           {/* Type Filter */}
           <select
             value={typeFilter}
-            onChange={(e) => setTypeFilter(e.target.value as any)}
+            onChange={(e) => setTypeFilter(e.target.value as 'all' | 'sale' | 'import')}
             className="rounded-xl border border-border bg-card px-3 py-2 text-xs font-medium text-foreground focus:border-primary focus:outline-hidden"
           >
             <option value="all">{t.carsManager.filterAll}</option>
@@ -360,7 +360,7 @@ export function CarsManagerTab() {
                   </label>
                   <select
                     value={formData.type}
-                    onChange={(e) => setFormData({ ...formData, type: e.target.value as any })}
+                    onChange={(e) => setFormData({ ...formData, type: e.target.value as CarItem['type'] })}
                     className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-xs font-semibold text-foreground focus:border-primary focus:outline-hidden"
                   >
                     <option value="sale">بيع مباشر (Sale)</option>
@@ -374,7 +374,7 @@ export function CarsManagerTab() {
                   </label>
                   <select
                     value={formData.status}
-                    onChange={(e) => setFormData({ ...formData, status: e.target.value as any })}
+                    onChange={(e) => setFormData({ ...formData, status: e.target.value as CarItem['status'] })}
                     className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-xs font-semibold text-foreground focus:border-primary focus:outline-hidden"
                   >
                     <option value="available">متوفرة (Available)</option>

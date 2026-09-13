@@ -427,7 +427,7 @@ export function SettingsTab() {
                     ...prev,
                     commerce: {
                       ...prev.commerce,
-                      currencyPosition: e.target.value as any,
+                      currencyPosition: e.target.value as 'before' | 'after' | 'left' | 'right',
                     },
                   }))
                 }
@@ -501,7 +501,7 @@ export function SettingsTab() {
                   </span>
                   <input
                     type="checkbox"
-                    checked={Boolean((commerce as any)[method.key])}
+                     checked={Boolean((commerce as Record<string, unknown>)[method.key])}
                     onChange={(e) =>
                       updateContent((prev) => ({
                         ...prev,

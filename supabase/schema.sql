@@ -778,3 +778,100 @@ revoke all on all functions in schema public from public, anon, authenticated;
 grant usage on schema private to service_role;
 grant execute on function private.valid_i18n(jsonb) to service_role;
 grant execute on function public.create_order(jsonb, jsonb, text, text, text) to authenticated;
+
+-- ============================================================================
+-- Order lifecycle extension (synced with live 2026-09-13).
+-- Full idempotent DDL + RPC/trigger bodies:
+--   supabase/migrations/20260913000000_order_lifecycle_sync.sql
+-- Summary: notifications + notification_email_outbox (with locked_at claim
+-- lease) + payment_events, single-writer lifecycle/payment triggers plus an
+-- inventory-only cancel trigger, atomic RPCs (admin_update_order,
+-- cancel_order, confirm_order_received, mark_notifications_read,
+-- claim/complete/fail_notification_email), owner-only RLS, least-privilege
+-- grants, and notifications added to the supabase_realtime publication.
+-- ============================================================================
+
+create table if not exists public.notifications (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  order_id uuid references public.orders(id) on delete cascade,
+  event_type text not null check (event_type in ('order_received','order_confirmed','order_processing','order_shipping','order_delivered','order_completed','order_cancelled')),
+  payload jsonb not null default '{}'::jsonb,
+  read_at timestamptz,
+  created_at timestamptz not null default now(),
+  unique (order_id, event_type)
+);
+
+create table if not exists public.notification_email_outbox (
+  id uuid primary key default gen_random_uuid(),
+  notification_id uuid not null unique references public.notifications(id) on delete cascade,
+  recipient text not null,
+  status text not null default 'pending' check (status in ('pending','processing','sent','failed')),
+  attempt_count integer not null default 0 check (attempt_count >= 0),
+  next_attempt_at timestamptz not null default now(),
+  locked_at timestamptz,
+  provider_message_id text,
+  last_error_code text,
+  sent_at timestamptz,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create table if not exists public.payment_events (
+  id uuid primary key default gen_random_uuid(),
+  order_id uuid not null references public.orders(id) on delete cascade,
+  user_id uuid not null references auth.users(id) on delete cascade,
+  from_status public.payment_status,
+  to_status public.payment_status not null,
+  amount_minor bigint not null check (amount_minor >= 0),
+  currency text not null,
+  payment_method text,
+  changed_by uuid references auth.users(id) on delete set null,
+  note text,
+  created_at timestamptz not null default now()
+);
+
+create unique index if not exists notifications_order_id_event_type_key
+  on public.notifications (order_id, event_type);
+create index if not exists notifications_user_unread_idx
+  on public.notifications (user_id, created_at desc) where read_at is null;
+create index if not exists notifications_user_created_idx
+  on public.notifications (user_id, created_at desc);
+create index if not exists notification_outbox_ready_idx
+  on public.notification_email_outbox (next_attempt_at, created_at)
+  where status in ('pending','failed');
+create index if not exists payment_events_user_created_idx
+  on public.payment_events (user_id, created_at desc);
+create index if not exists payment_events_order_created_idx
+  on public.payment_events (order_id, created_at);
+-- order_status_history is already covered by the base
+-- order_status_history_order_idx(order_id, created_at) above.
+
+alter table public.notifications enable row level security;
+alter table public.notification_email_outbox enable row level security;
+alter table public.payment_events enable row level security;
+
+drop policy if exists notifications_select_own on public.notifications;
+create policy notifications_select_own on public.notifications
+  for select to authenticated using ((select auth.uid()) = user_id);
+drop policy if exists payment_events_select_own on public.payment_events;
+create policy payment_events_select_own on public.payment_events
+  for select to authenticated using ((select auth.uid()) = user_id);
+drop policy if exists order_status_history_select_own on public.order_status_history;
+create policy order_status_history_select_own on public.order_status_history
+  for select to authenticated using (
+    exists (select 1 from public.orders o
+      where o.id = order_status_history.order_id
+        and o.user_id = (select auth.uid()))
+  );
+
+revoke all on public.notifications from anon;
+revoke insert, update, delete on public.notifications from authenticated;
+grant select on public.notifications to authenticated;
+revoke all on public.notification_email_outbox from anon, authenticated;
+revoke all on public.payment_events from anon;
+revoke insert, update, delete on public.payment_events from authenticated;
+grant select on public.payment_events to authenticated;
+grant execute on function public.cancel_order(uuid, text) to authenticated, service_role;
+grant execute on function public.confirm_order_received(uuid) to authenticated, service_role;
+grant execute on function public.mark_notifications_read(uuid) to authenticated, service_role;

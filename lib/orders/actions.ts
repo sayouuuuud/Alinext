@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 import { createClient } from '@/lib/supabase/server'
+import { processNotificationOutboxBatch } from '@/lib/email/outbox-processor'
 
 const orderIdSchema = z.string().uuid()
 const cancelSchema = z.object({ orderId: orderIdSchema, reason: z.string().trim().min(3).max(500) })
@@ -28,6 +29,11 @@ export async function cancelOrderAction(input: { orderId: string; reason: string
   })
   if (error) return { ok: false as const, error: 'cancel_not_allowed' }
   refreshOrderPaths(parsed.data.orderId)
+  try {
+    await processNotificationOutboxBatch(5)
+  } catch {
+    // Email failures never revert the cancellation; rows stay pending.
+  }
   return { ok: true as const }
 }
 
@@ -41,6 +47,11 @@ export async function confirmOrderReceivedAction(orderId: string) {
   const { error } = await supabase.rpc('confirm_order_received', { p_order_id: parsed.data })
   if (error) return { ok: false as const, error: 'confirmation_not_allowed' }
   refreshOrderPaths(parsed.data)
+  try {
+    await processNotificationOutboxBatch(5)
+  } catch {
+    // Email failures never revert the confirmation; rows stay pending.
+  }
   return { ok: true as const }
 }
 

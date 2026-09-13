@@ -104,7 +104,7 @@ export async function loadTrackingOrders(limit = 50): Promise<TrackingOrdersResu
 
   const { data: orders, error: orderError } = await supabase
     .from('orders')
-    .select('id,order_number,created_at,status,total_minor,currency,payment_method,payment_status,tracking_number,carrier,estimated_delivery,customer_name,customer_phone,shipping_address')
+    .select('id,order_number,created_at,status,subtotal_minor,tax_minor,shipping_minor,total_minor,currency,payment_method,payment_status,tracking_number,carrier,estimated_delivery,customer_name,customer_phone,customer_notes,shipping_address')
     .eq('user_id', user.id)
     .order('created_at', { ascending: false })
     .limit(Math.max(1, Math.min(limit, 100)))
@@ -133,6 +133,9 @@ export async function loadTrackingOrders(limit = 50): Promise<TrackingOrdersResu
       orderNumber: order.order_number,
       createdAt: order.created_at,
       status: order.status,
+      subtotalMinor: order.subtotal_minor ?? order.total_minor,
+      taxMinor: order.tax_minor ?? 0,
+      shippingMinor: order.shipping_minor ?? 0,
       totalMinor: order.total_minor,
       currency: order.currency,
       paymentMethod: order.payment_method,
@@ -142,6 +145,7 @@ export async function loadTrackingOrders(limit = 50): Promise<TrackingOrdersResu
       estimatedDelivery: order.estimated_delivery,
       customerName: order.customer_name,
       customerPhone: order.customer_phone,
+      customerNotes: order.customer_notes || null,
       shippingAddress: {
         fullName: jsonString(address.fullName) || order.customer_name,
         phone: jsonString(address.phone) || order.customer_phone,

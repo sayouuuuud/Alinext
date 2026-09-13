@@ -1,20 +1,37 @@
-ALI FLEET — خطوات يدوية متبقية
+ALI FLEET — خطوات يدوية متبقية (محدّث 2026-09-13)
 
-1) قاعدة البيانات
-- راجع ثم شغّل الملف order-lifecycle.sql يدويًا مرة واحدة.
-- لم يتم تشغيل أي SQL أو تعديل أي مشروع Supabase بواسطة v0.
-- بعد التشغيل يُفضّل مراجعة Supabase Security/Performance Advisors يدويًا.
+1) قاعدة البيانات — تم ✅
+- طُبّقت دورة الطلبات على المشروع الحي nnhiauutailohjseajmf (جداول notifications
+  وnotification_email_outbox وpayment_events + المشغلات + RPCs + RLS + Realtime).
+- النسخة المطابقة داخل الريبو:
+  supabase/migrations/20260913000000_order_lifecycle_sync.sql (مصدر الحقيقة)
+  + مقتطف الجداول/السياسات داخل supabase/schema.sql
+  + الأنواع داخل lib/supabase/database.types.ts
+- ملف manual-setup/order-lifecycle/order-lifecycle.sql القديم للتاريخ فقط؛
+  لا تشغّله (يفتقد عمود locked_at ودوال claim الجديدة).
+- يُفضّل مراجعة Supabase Security/Performance Advisors بعد أي تغيير لاحق.
 
-2) البريد الإلكتروني
-- لم تتم إضافة Resend ولم يتم استدعاؤه ولم تُضف أي متغيرات بيئة خاصة به، بناءً على طلبك.
-- جدول notification_email_outbox موجود كصف انتظار خامل فقط؛ لا توجد أي عملية ترسل رسائل.
-- إذا رغبت بتفعيل البريد مستقبلًا فستحتاج طبقة خادمية تقرأ الصفوف pending وتحدّثها بعد الإرسال مع idempotency key.
+2) البريد الإلكتروني (Gmail SMTP) — جاهز للتجربة ⏳
+- لا حاجة لـ Resend. الكود يستخدم Gmail SMTP عبر Nodemailer:
+  lib/email/smtp.ts + lib/email/order-status-email.ts (قوالب ar/en/he)
+  + lib/email/outbox-processor.ts + GET /api/cron/notifications (محمي بـ CRON_SECRET).
+- ضع في Vercel / .env.local (server-only، لا تضعها في NEXT_PUBLIC_*):
+  SMTP_USER="you@gmail.com"
+  SMTP_APP_PASSWORD="xxxx-xxxx-xxxx-xxxx"  (Google → 2-Step Verification → App passwords)
+  SMTP_FROM_EMAIL="you@gmail.com"          (اختياري)
+  SMTP_FROM_NAME="ALI FLEET"               (اختياري)
+  CRON_SECRET="random-long-secret"         (اختياري، يفعّل endpoint الكرون)
+  NEXT_PUBLIC_SITE_URL="https://your-domain" (لروابط الطلب/الفاتورة داخل البريد)
+- بدون SMTP_USER/SMTP_APP_PASSWORD يبقى الإرسال متوقفًا بأمان وصفوف outbox
+  pending (لا يفشل الطلب أبدًا بسبب البريد).
+- بعد وضع المفتاح: نفّذ طلبًا تجريبيًا ثم راقب
+  notification_email_outbox (pending → processing → sent).
 
-3) التحقق بعد تشغيل SQL
+3) التحقق بعد التشغيل
 - أنشئ طلبًا pending من الواجهة.
-- اختبر الاعتماد والتجهيز والشحن والتسليم من لوحة الإدارة.
+- اختبر الاعتماد والتجهيز والشحن والتتبع والتسليم من لوحة الإدارة.
 - اختبر تأكيد الاستلام والإلغاء وإعادة الطلب من حساب مستخدم حقيقي.
 - اختبر أن المستخدم لا يستطيع فتح طلب أو فاتورة أو إشعار يخص مستخدمًا آخر.
 
 4) بيانات الاختبار
-- لم يتم إنشاء مستخدم أو طلب أو بيانات تجريبية، ولم يتم لمس بيانات Supabase الحالية.
+- يوجد طلب demo واحد (AF-DEMO-0001) لأغراض الفحص؛ لا توجد بيانات تجريبية أخرى.
