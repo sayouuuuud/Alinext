@@ -110,7 +110,7 @@ export function AdminSidebar() {
 
   return (
     <aside
-      className={`relative flex h-full max-h-full shrink-0 flex-col overflow-y-auto border-e border-border bg-card transition-all duration-300 ${
+      className={`relative flex h-full max-h-full shrink-0 flex-col overflow-y-auto no-scrollbar border-e border-border bg-card transition-all duration-300 ${
         collapsed ? 'w-20' : 'w-72'
       }`}
     >
@@ -176,21 +176,6 @@ export function AdminSidebar() {
           )
         })}
       </nav>
-
-      {/* Footer Info Box */}
-      {!collapsed && (
-        <div className="m-4 rounded-2xl bg-secondary p-4">
-          <div className="flex items-center gap-2.5">
-            <div className="size-2.5 rounded-full bg-accent animate-pulse" />
-            <span className="text-sm font-semibold text-foreground">
-              ALI FLEET Engine
-            </span>
-          </div>
-          <p className="mt-1.5 text-sm leading-6 text-muted-foreground">
-            نظام إدارة فوري ومزود بـ 3 لغات (AR, HE, EN)
-          </p>
-        </div>
-      )}
     </aside>
   )
 }
