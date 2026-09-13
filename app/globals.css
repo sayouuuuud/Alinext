@@ -142,7 +142,7 @@
 :root {
   color-scheme: light;
   /* ALI FLEET brand — light & clean: white surfaces, navy + teal accents from logo */
-  --background: oklch(0.975 0.003 240);
+  --background: oklch(0.985 0.002 240);
   --foreground: oklch(0.2 0.02 255);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.28 0.045 250);
@@ -157,7 +157,7 @@
   --accent: oklch(0.68 0.13 235);
   --accent-foreground: oklch(0.99 0.002 240);
   --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.28 0.045 250 / 16%);
+  --border: oklch(0.28 0.045 250 / 10%);
   --input: oklch(0.28 0.045 250 / 14%);
   --ring: oklch(0.68 0.13 235);
   --chart-1: oklch(0.68 0.13 235);

@@ -20,11 +20,11 @@ export default function AdminLayout({
   return (
     <AdminProvider>
       <AdminAuthGuard>
-        <div className="flex h-screen flex-col bg-background text-foreground selection:bg-primary selection:text-primary-foreground">
+        <div className="flex min-h-screen flex-col bg-background text-foreground selection:bg-primary selection:text-primary-foreground">
           <AdminHeader />
-          <div className="flex min-h-0 flex-1 overflow-hidden">
+          <div className="flex flex-1 overflow-hidden">
             <AdminSidebar />
-            <main className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
+            <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
               <div className="mx-auto max-w-7xl">
                 {children}
               </div>

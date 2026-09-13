@@ -110,7 +110,7 @@ export function AdminSidebar() {
 
   return (
     <aside
-      className={`relative flex h-full max-h-full shrink-0 flex-col overflow-y-auto border-e border-border bg-card transition-all duration-300 ${
+      className={`relative flex flex-col border-e border-border bg-card transition-all duration-300 ${
         collapsed ? 'w-20' : 'w-72'
       }`}
     >
