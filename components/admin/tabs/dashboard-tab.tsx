@@ -437,7 +437,7 @@ export function DashboardTab() {
             </div>
 
             {/* List breakdown with counts */}
-            <div className="mt-4 divide-y divide-border/60 max-h-56 overflow-y-auto pe-1">
+            <div className="no-scrollbar mt-4 divide-y divide-border/60 max-h-56 overflow-y-auto pe-1">
               {categoryDistribution.map((item, idx) => {
                 const pct = products.length > 0 ? Math.round((item.count / products.length) * 100) : 0
                 return (
