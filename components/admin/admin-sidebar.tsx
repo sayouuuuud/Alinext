@@ -110,7 +110,7 @@ export function AdminSidebar() {
 
   return (
     <aside
-      className={`relative flex flex-col border-e border-border bg-card transition-all duration-300 ${
+      className={`relative flex flex-col shrink-0 h-full overflow-y-auto no-scrollbar border-e border-slate-200/90 dark:border-zinc-800 bg-white dark:bg-zinc-900/95 transition-all duration-300 ${
         collapsed ? 'w-20' : 'w-72'
       }`}
     >
@@ -118,7 +118,7 @@ export function AdminSidebar() {
       <button
         type="button"
         onClick={() => setCollapsed(!collapsed)}
-        className={`absolute -end-3.5 top-20 z-40 flex size-7 items-center justify-center rounded-full border border-border bg-card text-foreground shadow-md transition-transform hover:bg-muted ${
+        className={`absolute -end-3.5 top-20 z-40 flex size-7 items-center justify-center rounded-full border border-slate-200/90 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-foreground shadow-md transition-transform hover:bg-slate-50 dark:hover:bg-zinc-700 ${
           dir === 'rtl' ? 'rotate-180' : ''
         }`}
         title={collapsed ? 'توسيع القائمة' : 'تصغير القائمة'}
@@ -179,7 +179,7 @@ export function AdminSidebar() {
 
       {/* Footer Info Box */}
       {!collapsed && (
-        <div className="m-4 rounded-2xl bg-secondary p-4">
+        <div className="m-4 mt-auto rounded-2xl border border-slate-200/80 dark:border-zinc-800 bg-slate-50/90 dark:bg-zinc-800/60 p-4">
           <div className="flex items-center gap-2.5">
             <div className="size-2.5 rounded-full bg-accent animate-pulse" />
             <span className="text-sm font-semibold text-foreground">

@@ -146,7 +146,7 @@ export function DashboardTab() {
   return (
     <div className="space-y-6">
       {/* Top Banner — Executive Hub */}
-      <div className="relative overflow-hidden rounded-3xl bg-card p-6 ring-1 ring-border sm:p-8 shadow-xs">
+      <div className="relative overflow-hidden rounded-3xl bg-white dark:bg-zinc-900/90 p-6 border border-slate-200/90 dark:border-zinc-800 ring-1 ring-black/[0.03] dark:ring-white/[0.05] sm:p-8 shadow-xs">
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="max-w-2xl">
             <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
@@ -173,7 +173,7 @@ export function DashboardTab() {
               <button
                 type="button"
                 onClick={() => setActiveTab('products')}
-                className="inline-flex items-center gap-1.5 rounded-xl border border-border bg-background px-3.5 py-2 text-xs font-semibold text-foreground hover:bg-muted transition-all"
+                className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200/90 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3.5 py-2 text-xs font-semibold text-foreground hover:bg-slate-50 dark:hover:bg-zinc-750 shadow-2xs transition-all"
               >
                 <Package className="h-3.5 w-3.5 text-accent" />
                 <span>إضافة قطعة غيار</span>
@@ -181,7 +181,7 @@ export function DashboardTab() {
               <button
                 type="button"
                 onClick={() => setActiveTab('categories')}
-                className="inline-flex items-center gap-1.5 rounded-xl border border-border bg-background px-3.5 py-2 text-xs font-semibold text-foreground hover:bg-muted transition-all"
+                className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200/90 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3.5 py-2 text-xs font-semibold text-foreground hover:bg-slate-50 dark:hover:bg-zinc-750 shadow-2xs transition-all"
               >
                 <FolderTree className="h-3.5 w-3.5 text-primary" />
                 <span>إدارة التصنيفات ({categories.length})</span>
@@ -189,7 +189,7 @@ export function DashboardTab() {
               <button
                 type="button"
                 onClick={() => setActiveTab('orders')}
-                className="inline-flex items-center gap-1.5 rounded-xl border border-border bg-background px-3.5 py-2 text-xs font-semibold text-foreground hover:bg-muted transition-all"
+                className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200/90 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3.5 py-2 text-xs font-semibold text-foreground hover:bg-slate-50 dark:hover:bg-zinc-750 shadow-2xs transition-all"
               >
                 <ShoppingBag className="h-3.5 w-3.5 text-emerald-500" />
                 <span>الطلبات والشحن ({summary?.orders.pending ?? pendingOrders.length} جديدة)</span>
@@ -198,13 +198,13 @@ export function DashboardTab() {
           </div>
 
           {/* Mini Realtime Status Pill */}
-          <div className="hidden lg:flex flex-col gap-2 rounded-2xl border border-border bg-background/80 p-4 shrink-0 min-w-[220px]">
+          <div className="hidden lg:flex flex-col gap-2 rounded-2xl border border-slate-200/90 dark:border-zinc-700/80 bg-slate-50/90 dark:bg-zinc-800/70 p-4 shrink-0 min-w-[220px]">
             <div className="flex items-center justify-between text-xs text-muted-foreground">
               <span>حالة النظام والبيانات</span>
               <span className="flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
             </div>
             <p className="text-sm font-bold text-foreground">قاعدة البيانات متصلة ومحدثة</p>
-            <div className="flex items-center justify-between pt-1 text-[11px] text-muted-foreground border-t border-border/60">
+            <div className="flex items-center justify-between pt-1 text-[11px] text-muted-foreground border-t border-slate-200/80 dark:border-zinc-700/60">
               <span>آخر مزامنة سحابية</span>
               <span className="font-mono">الآن</span>
             </div>
@@ -217,10 +217,10 @@ export function DashboardTab() {
         {/* 1. Total Revenue */}
         <div
           onClick={() => setActiveTab('orders')}
-          className="group cursor-pointer rounded-2xl border border-border bg-card p-4.5 shadow-xs transition-all hover:-translate-y-0.5 hover:border-primary/50"
+          className="group cursor-pointer rounded-2xl border border-slate-200/90 dark:border-zinc-800 bg-white dark:bg-zinc-900/90 p-4.5 shadow-xs hover:shadow-md transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/50 ring-1 ring-black/[0.02] dark:ring-white/[0.04]"
         >
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-muted-foreground">إجمالي الإيرادات</span>
+            <span className="text-xs font-semibold text-muted-foreground">إجمالي الإيرادات</span>
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
               <DollarSign className="h-4.5 w-4.5" />
             </div>
@@ -238,18 +238,18 @@ export function DashboardTab() {
         {/* 2. Total Orders */}
         <div
           onClick={() => setActiveTab('orders')}
-          className="group cursor-pointer rounded-2xl border border-border bg-card p-4.5 shadow-xs transition-all hover:-translate-y-0.5 hover:border-primary/50"
+          className="group cursor-pointer rounded-2xl border border-slate-200/90 dark:border-zinc-800 bg-white dark:bg-zinc-900/90 p-4.5 shadow-xs hover:shadow-md transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/50 ring-1 ring-black/[0.02] dark:ring-white/[0.04]"
         >
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-muted-foreground">إجمالي الطلبات</span>
+            <span className="text-xs font-semibold text-muted-foreground">إجمالي الطلبات</span>
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-accent/15 text-accent">
               <ShoppingBag className="h-4.5 w-4.5" />
             </div>
           </div>
           <div className="mt-3">
-<span className="text-2xl font-black text-foreground">{summary?.orders.total ?? orders.length}</span>
-              <p className="mt-1 text-[11px] text-muted-foreground">
-                {summary?.orders.pending ?? pendingOrders.length} معلق • {summary?.orders.processing ?? processingOrders.length} تجهيز
+            <span className="text-2xl font-black text-foreground">{summary?.orders.total ?? orders.length}</span>
+            <p className="mt-1 text-[11px] text-muted-foreground">
+              {summary?.orders.pending ?? pendingOrders.length} معلق • {summary?.orders.processing ?? processingOrders.length} تجهيز
             </p>
           </div>
         </div>
@@ -257,10 +257,10 @@ export function DashboardTab() {
         {/* 3. Fleet Valuation & Cars */}
         <div
           onClick={() => setActiveTab('cars')}
-          className="group cursor-pointer rounded-2xl border border-border bg-card p-4.5 shadow-xs transition-all hover:-translate-y-0.5 hover:border-primary/50"
+          className="group cursor-pointer rounded-2xl border border-slate-200/90 dark:border-zinc-800 bg-white dark:bg-zinc-900/90 p-4.5 shadow-xs hover:shadow-md transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/50 ring-1 ring-black/[0.02] dark:ring-white/[0.04]"
         >
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-muted-foreground">أسطول المعرض</span>
+            <span className="text-xs font-semibold text-muted-foreground">أسطول المعرض</span>
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10 text-primary">
               <Car className="h-4.5 w-4.5" />
             </div>
@@ -276,18 +276,18 @@ export function DashboardTab() {
         {/* 4. Products & Stock Health */}
         <div
           onClick={() => setActiveTab('products')}
-          className="group cursor-pointer rounded-2xl border border-border bg-card p-4.5 shadow-xs transition-all hover:-translate-y-0.5 hover:border-primary/50"
+          className="group cursor-pointer rounded-2xl border border-slate-200/90 dark:border-zinc-800 bg-white dark:bg-zinc-900/90 p-4.5 shadow-xs hover:shadow-md transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/50 ring-1 ring-black/[0.02] dark:ring-white/[0.04]"
         >
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-muted-foreground">قطع الغيار</span>
+            <span className="text-xs font-semibold text-muted-foreground">قطع الغيار</span>
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400">
               <Package className="h-4.5 w-4.5" />
             </div>
           </div>
           <div className="mt-3">
-<span className="text-2xl font-black text-foreground">{summary?.products.total ?? products.length}</span>
-              <p className="mt-1 text-[11px] text-muted-foreground">
-                {summary?.products.inStock ?? inStockProducts.length} متوفر • {summary?.products.outOfStock ?? outOfStockProducts.length} نفد
+            <span className="text-2xl font-black text-foreground">{summary?.products.total ?? products.length}</span>
+            <p className="mt-1 text-[11px] text-muted-foreground">
+              {summary?.products.inStock ?? inStockProducts.length} متوفر • {summary?.products.outOfStock ?? outOfStockProducts.length} نفد
             </p>
           </div>
         </div>
@@ -295,18 +295,18 @@ export function DashboardTab() {
         {/* 5. Categories & Taxonomy */}
         <div
           onClick={() => setActiveTab('categories')}
-          className="group cursor-pointer rounded-2xl border border-border bg-card p-4.5 shadow-xs transition-all hover:-translate-y-0.5 hover:border-primary/50"
+          className="group cursor-pointer rounded-2xl border border-slate-200/90 dark:border-zinc-800 bg-white dark:bg-zinc-900/90 p-4.5 shadow-xs hover:shadow-md transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/50 ring-1 ring-black/[0.02] dark:ring-white/[0.04]"
         >
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-muted-foreground">التصنيفات والأنواع</span>
+            <span className="text-xs font-semibold text-muted-foreground">التصنيفات والأنواع</span>
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400">
               <FolderTree className="h-4.5 w-4.5" />
             </div>
           </div>
           <div className="mt-3">
-<span className="text-2xl font-black text-foreground">{summary?.categories.total ?? categories.length}</span>
-              <p className="mt-1 text-[11px] text-muted-foreground">
-                {summary?.categories.main ?? mainCategories.length} رئيسي • {summary?.categories.sub ?? subCategories.length} فرعي
+            <span className="text-2xl font-black text-foreground">{summary?.categories.total ?? categories.length}</span>
+            <p className="mt-1 text-[11px] text-muted-foreground">
+              {summary?.categories.main ?? mainCategories.length} رئيسي • {summary?.categories.sub ?? subCategories.length} فرعي
             </p>
           </div>
         </div>
@@ -314,18 +314,18 @@ export function DashboardTab() {
         {/* 6. Customers & Inquiries */}
         <div
           onClick={() => setActiveTab('customers')}
-          className="group cursor-pointer rounded-2xl border border-border bg-card p-4.5 shadow-xs transition-all hover:-translate-y-0.5 hover:border-primary/50"
+          className="group cursor-pointer rounded-2xl border border-slate-200/90 dark:border-zinc-800 bg-white dark:bg-zinc-900/90 p-4.5 shadow-xs hover:shadow-md transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/50 ring-1 ring-black/[0.02] dark:ring-white/[0.04]"
         >
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-muted-foreground">العملاء والطلبات</span>
+            <span className="text-xs font-semibold text-muted-foreground">العملاء والطلبات</span>
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400">
               <Users className="h-4.5 w-4.5" />
             </div>
           </div>
           <div className="mt-3">
-<span className="text-2xl font-black text-foreground">{summary?.customers ?? customers.length}</span>
-              <p className="mt-1 text-[11px] text-muted-foreground">
-                {summary?.inquiries.new ?? newInquiries.length} استفسار جديد بانتظار الرد
+            <span className="text-2xl font-black text-foreground">{summary?.customers ?? customers.length}</span>
+            <p className="mt-1 text-[11px] text-muted-foreground">
+              {summary?.inquiries.new ?? newInquiries.length} استفسار جديد بانتظار الرد
             </p>
           </div>
         </div>
@@ -333,7 +333,7 @@ export function DashboardTab() {
 
       {/* Row 2: Inventory Alert Banner (if any out of stock) */}
       {outOfStockProducts.length > 0 && (
-        <div className="rounded-2xl border border-amber-500/30 bg-amber-500/5 p-4 sm:p-5 shadow-xs">
+        <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 dark:bg-amber-500/5 p-4 sm:p-5 shadow-xs">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-amber-500/15 pb-3">
             <div className="flex items-center gap-2.5">
               <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-amber-500/15 text-amber-600 dark:text-amber-400 shrink-0">
@@ -361,13 +361,13 @@ export function DashboardTab() {
             {outOfStockProducts.slice(0, 4).map((item) => (
               <div
                 key={item.id}
-                className="flex items-center justify-between rounded-xl border border-border bg-card p-2.5"
+                className="flex items-center justify-between rounded-xl border border-slate-200/90 dark:border-zinc-700/80 bg-white dark:bg-zinc-900/90 p-2.5 shadow-2xs"
               >
                 <div className="flex items-center gap-2 min-w-0">
                   <img
                     src={item.image}
                     alt={item.sku}
-                    className="h-9 w-9 rounded-lg object-cover border border-border/80 shrink-0"
+                    className="h-9 w-9 rounded-lg object-cover border border-slate-200/80 dark:border-zinc-700/80 shrink-0"
                   />
                   <div className="min-w-0">
                     <p className="text-xs font-bold text-foreground truncate">
@@ -400,8 +400,8 @@ export function DashboardTab() {
       {/* Row 3: Category Distribution & Fleet Composition Analytics */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Left: Products Category Distribution (Visual Bar Chart) */}
-        <div className="rounded-2xl border border-border bg-card p-5 shadow-xs">
-          <div className="flex items-center justify-between border-b border-border/70 pb-3">
+        <div className="rounded-2xl border border-slate-200/90 dark:border-zinc-800 bg-white dark:bg-zinc-900/90 p-5 shadow-xs ring-1 ring-black/[0.02] dark:ring-white/[0.04]">
+          <div className="flex items-center justify-between border-b border-slate-200/80 dark:border-zinc-800 pb-3">
             <div>
               <h2 className="text-sm font-bold text-foreground flex items-center gap-2">
                 <BarChart3 className="h-4 w-4 text-primary" />
@@ -422,7 +422,7 @@ export function DashboardTab() {
 
           <div className="mt-4 space-y-3">
             {/* Visual Stacked Progress Bar */}
-            <div className="h-3 w-full rounded-full bg-muted overflow-hidden flex">
+            <div className="h-3 w-full rounded-full bg-slate-100 dark:bg-zinc-800 overflow-hidden flex">
               {categoryDistribution.map((item, idx) => {
                 const pct = products.length > 0 ? (item.count / products.length) * 100 : 0
                 return (
@@ -436,12 +436,12 @@ export function DashboardTab() {
               })}
             </div>
 
-            {/* List breakdown with counts */}
-            <div className="mt-4 divide-y divide-border/60 max-h-56 overflow-y-auto pe-1">
+            {/* List breakdown with counts - SCROLLBAR HIDDEN */}
+            <div className="mt-4 divide-y divide-slate-100 dark:divide-zinc-800/80 max-h-56 overflow-y-auto no-scrollbar [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden pe-1">
               {categoryDistribution.map((item, idx) => {
                 const pct = products.length > 0 ? Math.round((item.count / products.length) * 100) : 0
                 return (
-                  <div key={idx} className="flex items-center justify-between py-2 text-xs">
+                  <div key={idx} className="flex items-center justify-between py-2.5 px-1.5 rounded-lg hover:bg-slate-50/80 dark:hover:bg-zinc-800/40 transition-colors text-xs">
                     <div className="flex items-center gap-2">
                       <span className={`h-2.5 w-2.5 rounded-full ${item.color}`} />
                       <span className="font-semibold text-foreground">{item.name}</span>
@@ -460,8 +460,8 @@ export function DashboardTab() {
         </div>
 
         {/* Right: Fleet Showroom Analytics */}
-        <div className="rounded-2xl border border-border bg-card p-5 shadow-xs">
-          <div className="flex items-center justify-between border-b border-border/70 pb-3">
+        <div className="rounded-2xl border border-slate-200/90 dark:border-zinc-800 bg-white dark:bg-zinc-900/90 p-5 shadow-xs ring-1 ring-black/[0.02] dark:ring-white/[0.04]">
+          <div className="flex items-center justify-between border-b border-slate-200/80 dark:border-zinc-800 pb-3">
             <div>
               <h2 className="text-sm font-bold text-foreground flex items-center gap-2">
                 <Car className="h-4 w-4 text-accent" />
@@ -483,26 +483,26 @@ export function DashboardTab() {
           <div className="mt-4 space-y-4">
             {/* Status Pills */}
             <div className="grid grid-cols-4 gap-2">
-              <div className="rounded-xl border border-border bg-background p-2.5 text-center">
-                <span className="text-[10px] text-muted-foreground block">متوفر</span>
+              <div className="rounded-xl border border-slate-200/80 dark:border-zinc-700/80 bg-slate-50/90 dark:bg-zinc-800/60 p-2.5 text-center shadow-2xs">
+                <span className="text-[10px] font-medium text-muted-foreground block">متوفر</span>
                 <span className="text-base font-extrabold text-emerald-600 dark:text-emerald-400">
                   {summary?.cars.available ?? availableCars.length}
                 </span>
               </div>
-              <div className="rounded-xl border border-border bg-background p-2.5 text-center">
-                <span className="text-[10px] text-muted-foreground block">محجوز</span>
+              <div className="rounded-xl border border-slate-200/80 dark:border-zinc-700/80 bg-slate-50/90 dark:bg-zinc-800/60 p-2.5 text-center shadow-2xs">
+                <span className="text-[10px] font-medium text-muted-foreground block">محجوز</span>
                 <span className="text-base font-extrabold text-amber-600 dark:text-amber-400">
                   {summary?.cars.reserved ?? reservedCars.length}
                 </span>
               </div>
-              <div className="rounded-xl border border-border bg-background p-2.5 text-center">
-                <span className="text-[10px] text-muted-foreground block">تم البيع</span>
+              <div className="rounded-xl border border-slate-200/80 dark:border-zinc-700/80 bg-slate-50/90 dark:bg-zinc-800/60 p-2.5 text-center shadow-2xs">
+                <span className="text-[10px] font-medium text-muted-foreground block">تم البيع</span>
                 <span className="text-base font-extrabold text-muted-foreground">
                   {summary?.cars.sold ?? soldCars.length}
                 </span>
               </div>
-              <div className="rounded-xl border border-border bg-background p-2.5 text-center">
-                <span className="text-[10px] text-muted-foreground block">قيد الاستيراد</span>
+              <div className="rounded-xl border border-slate-200/80 dark:border-zinc-700/80 bg-slate-50/90 dark:bg-zinc-800/60 p-2.5 text-center shadow-2xs">
+                <span className="text-[10px] font-medium text-muted-foreground block">قيد الاستيراد</span>
                 <span className="text-base font-extrabold text-blue-600 dark:text-blue-400">
                   {summary?.cars.incoming ?? incomingCars.length}
                 </span>
@@ -510,7 +510,7 @@ export function DashboardTab() {
             </div>
 
             {/* Fuel Type Distribution */}
-            <div className="rounded-xl border border-border/80 bg-muted/20 p-3">
+            <div className="rounded-xl border border-slate-200/80 dark:border-zinc-700/80 bg-slate-50/80 dark:bg-zinc-800/40 p-3">
               <div className="flex items-center gap-1.5 text-xs font-semibold text-foreground mb-2">
                 <Fuel className="h-3.5 w-3.5 text-primary" />
                 <span>أنواع الوقود والمحركات في الأسطول</span>
@@ -519,10 +519,10 @@ export function DashboardTab() {
                 {Object.entries(fuelCounts).map(([fuel, count]) => (
                   <span
                     key={fuel}
-                    className="inline-flex items-center gap-1.5 rounded-lg bg-card border border-border px-2.5 py-1 text-xs font-medium text-foreground shadow-2xs"
+                    className="inline-flex items-center gap-1.5 rounded-lg bg-white dark:bg-zinc-800 border border-slate-200/90 dark:border-zinc-700 px-2.5 py-1 text-xs font-semibold text-foreground shadow-2xs"
                   >
                     <span>{fuel}</span>
-                    <span className="rounded-md bg-muted px-1.5 py-0.2 text-[10px] font-bold">
+                    <span className="rounded-md bg-slate-100 dark:bg-zinc-700 px-1.5 py-0.2 text-[10px] font-bold">
                       {count}
                     </span>
                   </span>
@@ -531,7 +531,7 @@ export function DashboardTab() {
             </div>
 
             {/* Quick summary line */}
-            <div className="flex items-center justify-between text-xs text-muted-foreground pt-1 border-t border-border/60">
+            <div className="flex items-center justify-between text-xs text-muted-foreground pt-1 border-t border-slate-200/70 dark:border-zinc-800">
               <span>نوع المعروض: {saleCarsCount} بيع فوري بالمعرض</span>
               <span>{importCarsCount} طلبات استيراد مخصصة</span>
             </div>
@@ -542,8 +542,8 @@ export function DashboardTab() {
       {/* Row 4: Two Columns - Recent Fleet Vehicles & Recent Inquiries/Activity */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Left: Showroom Snapshot */}
-        <div className="rounded-2xl border border-border bg-card p-5 shadow-xs">
-          <div className="flex items-center justify-between border-b border-border/70 pb-3">
+        <div className="rounded-2xl border border-slate-200/90 dark:border-zinc-800 bg-white dark:bg-zinc-900/90 p-5 shadow-xs ring-1 ring-black/[0.02] dark:ring-white/[0.04]">
+          <div className="flex items-center justify-between border-b border-slate-200/80 dark:border-zinc-800 pb-3">
             <div>
               <h2 className="text-sm font-bold text-foreground">
                 أحدث سيارات المعرض
@@ -561,7 +561,7 @@ export function DashboardTab() {
             </button>
           </div>
 
-          <div className="mt-4 divide-y divide-border/60">
+          <div className="mt-4 divide-y divide-slate-100 dark:divide-zinc-800/60">
             {cars.slice(0, 4).map((car) => {
               const carTitle = car.title?.[locale] || car.title?.ar || car.make
               return (
@@ -569,7 +569,7 @@ export function DashboardTab() {
                   <img
                     src={car.image}
                     alt={carTitle}
-                    className="h-12 w-16 rounded-xl object-cover border border-border/80 shrink-0"
+                    className="h-12 w-16 rounded-xl object-cover border border-slate-200/80 dark:border-zinc-700/80 shrink-0"
                   />
                   <div className="flex-1 min-w-0">
                     <p className="truncate text-xs font-bold text-foreground">{carTitle}</p>
@@ -600,8 +600,8 @@ export function DashboardTab() {
         </div>
 
         {/* Right: Recent Inquiries & Customer Pulse */}
-        <div className="rounded-2xl border border-border bg-card p-5 shadow-xs">
-          <div className="flex items-center justify-between border-b border-border/70 pb-3">
+        <div className="rounded-2xl border border-slate-200/90 dark:border-zinc-800 bg-white dark:bg-zinc-900/90 p-5 shadow-xs ring-1 ring-black/[0.02] dark:ring-white/[0.04]">
+          <div className="flex items-center justify-between border-b border-slate-200/80 dark:border-zinc-800 pb-3">
             <div>
               <h2 className="text-sm font-bold text-foreground">
                 أحدث الاستفسارات والطلبات الواردة
@@ -628,7 +628,7 @@ export function DashboardTab() {
               inquiries.slice(0, 4).map((inq) => (
                 <div
                   key={inq.id}
-                  className="rounded-xl border border-border/80 bg-background/50 p-3 hover:border-primary/40 transition-colors"
+                  className="rounded-xl border border-slate-200/80 dark:border-zinc-700/80 bg-slate-50/70 dark:bg-zinc-800/50 p-3 hover:border-primary/40 hover:bg-white dark:hover:bg-zinc-800 transition-all shadow-2xs"
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
