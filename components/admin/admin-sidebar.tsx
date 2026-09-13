@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
+import { usePathname, useRouter } from 'next/navigation'
 import {
   LayoutDashboard,
   Layers,
@@ -20,6 +21,17 @@ import { useAdmin, type AdminTab } from '@/lib/admin/admin-context'
 export function AdminSidebar() {
   const { t, activeTab, setActiveTab, content, dir } = useAdmin()
   const [collapsed, setCollapsed] = useState(false)
+  const router = useRouter()
+  const pathname = usePathname()
+  const onAdminHome = pathname === '/admin'
+
+  function go(tab: AdminTab) {
+    setActiveTab(tab)
+    // Tab state alone only switches content on /admin itself. From any other
+    // admin route (e.g. /admin/users/[id]) we must navigate back as well,
+    // otherwise the click appears to do nothing.
+    if (!onAdminHome) router.push('/admin')
+  }
 
   const pendingOrdersCount =
     content.orders?.filter((o) => o.status === 'pending').length || 0
@@ -122,13 +134,15 @@ export function AdminSidebar() {
       <nav className="flex flex-1 flex-col gap-2 p-4">
         {navItems.map((item) => {
           const Icon = item.icon
-          const isActive = activeTab === item.id
+          const isActive = onAdminHome
+            ? activeTab === item.id
+            : item.id === 'customers' && pathname.startsWith('/admin/users')
 
           return (
             <button
               key={item.id}
               type="button"
-              onClick={() => setActiveTab(item.id)}
+              onClick={() => go(item.id)}
               className={`group flex w-full items-center gap-4 rounded-full px-5 py-3.5 text-sm font-semibold transition-all ${
                 isActive
                   ? 'bg-foreground text-background shadow-sm'
