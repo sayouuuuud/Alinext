@@ -43,8 +43,9 @@ const nextConfig = {
     // Next.js 16 rejects any quality that is not declared here.
     qualities: [70, 75, 80, 82],
     // Declaring `localPatterns` at all opts every other local path out of
-    // optimization, so the bundled artwork under /images is listed explicitly.
-    localPatterns: [{ pathname: '/images/**' }],
+    // optimization, so the bundled artwork under /images and the local
+    // upload folder under /uploads are listed explicitly.
+    localPatterns: [{ pathname: '/images/**' }, { pathname: '/uploads/**' }],
     remotePatterns: [
       { protocol: 'https', hostname: '**' },
       { protocol: 'http', hostname: '**' },

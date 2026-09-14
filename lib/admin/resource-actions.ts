@@ -2,6 +2,7 @@ import 'server-only'
 
 import { z } from 'zod'
 import { createAdminClient } from '@/lib/supabase/server'
+import { pruneMediaUrls } from '@/lib/media/prune'
 import { requireAdminPermission } from './session-server'
 
 const resourceSchema = z.enum(['car', 'product', 'category', 'blog', 'customer'])
@@ -24,15 +25,30 @@ export async function deleteAdminResource(rawResource: unknown, rawId: unknown) 
 
   if (resource === 'car' || resource === 'product') {
     const table = resource === 'car' ? 'cars' : 'products'
+    const mediaTable = resource === 'car' ? 'car_media' : 'product_media'
+    const mediaFk = resource === 'car' ? 'car_id' : 'product_id'
+    const fallbackImage = resource === 'car' ? '/images/fleet-truck.png' : '/images/part-brake-pads.png'
+    const [rowSnapshot, mediaSnapshot] = await Promise.all([
+      admin.from(table).select('primary_image').eq('id', id).maybeSingle(),
+      admin.from(mediaTable).select('url').eq(mediaFk, id),
+    ])
+    const candidateUrls = [
+      rowSnapshot.data?.primary_image as string | null,
+      ...((mediaSnapshot.data || []).map((entry) => (entry as { url: string }).url)),
+    ]
     const { data, error } = await admin
       .from(table)
-      .update({ archived_at: new Date().toISOString(), published: false })
+      .update({ archived_at: new Date().toISOString(), published: false, primary_image: fallbackImage })
       .eq('id', id)
       .is('archived_at', null)
       .select('id')
       .maybeSingle()
     if (error) throw new AdminResourceError('delete_failed', 500)
     if (!data) throw new AdminResourceError('resource_not_found', 404)
+    // Detach this entity's media rows first so the reference check below sees
+    // the files as orphaned (unless another entity still uses them).
+    await admin.from(mediaTable).delete().eq(mediaFk, id)
+    await pruneMediaUrls(admin, candidateUrls, { table, id })
     operation = 'archived'
   } else if (resource === 'blog') {
     const { data, error } = await admin
@@ -52,9 +68,11 @@ export async function deleteAdminResource(rawResource: unknown, rawId: unknown) 
     if (children.error || products.error) throw new AdminResourceError('dependency_check_failed', 500)
     if (children.count) throw new AdminResourceError('category_has_children', 409)
     if (products.count) throw new AdminResourceError('category_has_products', 409)
+    const imageSnapshot = await admin.from('categories').select('image').eq('id', id).maybeSingle()
     const { data, error } = await admin.from('categories').delete().eq('id', id).select('id').maybeSingle()
     if (error) throw new AdminResourceError('delete_failed', 500)
     if (!data) throw new AdminResourceError('resource_not_found', 404)
+    await pruneMediaUrls(admin, [imageSnapshot.data?.image as string | null], { table: 'categories', id })
     operation = 'deleted'
   } else {
     const [membership, orders] = await Promise.all([

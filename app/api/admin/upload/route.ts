@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { requireAdminPermission, AdminSessionError } from '@/lib/admin/session-server'
-import { createAdminClient } from '@/lib/supabase/server'
+import { LocalMediaError, saveLocalUpload } from '@/lib/media/local-storage'
 
 export const dynamic = 'force-dynamic'
 
@@ -45,30 +45,24 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'file_too_large' }, { status: 413 })
     }
 
-    const ext = mimeType.split('/')[1]?.replace('jpeg', 'jpg') || 'jpg'
     const safeName = originalName.replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 30)
-    const filePath = `uploads/${Date.now()}-${safeName}.${ext}`
 
-    const admin = createAdminClient()
-    const { error: uploadError } = await admin.storage
-      .from('alifleet-media')
-      .upload(filePath, buffer, {
-        contentType: mimeType,
-        upsert: true,
-      })
-
-    if (uploadError) {
-      console.error('Supabase storage upload error:', uploadError)
+    let url: string
+    try {
+      // Local server storage (public/uploads/*) instead of Supabase Storage.
+      url = await saveLocalUpload({ buffer, mimeType, folder: 'uploads', originalName: safeName })
+    } catch (uploadError) {
+      if (uploadError instanceof LocalMediaError) {
+        const status = uploadError.code === 'unsupported_file_type' ? 415 : 413
+        return NextResponse.json({ error: uploadError.code }, { status })
+      }
+      console.error('Local storage upload error:', uploadError)
       return NextResponse.json({ error: 'upload_failed' }, { status: 500 })
     }
 
-    const { data: publicUrlData } = admin.storage
-      .from('alifleet-media')
-      .getPublicUrl(filePath)
-
     return NextResponse.json({
       success: true,
-      url: publicUrlData.publicUrl,
+      url,
     })
   } catch (error) {
     if (error instanceof AdminSessionError) {

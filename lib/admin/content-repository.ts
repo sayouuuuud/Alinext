@@ -3,6 +3,8 @@ import 'server-only'
 import sanitizeHtml from 'sanitize-html'
 import { z } from 'zod'
 import { createAdminClient } from '@/lib/supabase/server'
+import { saveLocalUpload } from '@/lib/media/local-storage'
+import { pruneMediaUrls } from '@/lib/media/prune'
 import { requireAdminPermission, type ValidAdminSession } from './session-server'
 import type { BlogPostItem, CarItem, CategoryItem, MultiLangString, ProductItem, SiteFullContent } from './types'
 
@@ -35,20 +37,8 @@ async function ensureHostedMedia(url: string | undefined, fallback: string, fold
   try {
     const match = clean.match(/^data:(image\/[a-zA-Z0-9+.-]+);base64,(.+)$/)
     if (!match) return clean
-    const mimeType = match[1]
-    const buffer = Buffer.from(match[2], 'base64')
-    const ext = mimeType.split('/')[1]?.replace('jpeg', 'jpg') || 'jpg'
-    const filePath = `${folder}/${Date.now()}-${crypto.randomUUID().slice(0, 8)}.${ext}`
-    const admin = createAdminClient()
-    const { error } = await admin.storage
-      .from('alifleet-media')
-      .upload(filePath, buffer, { contentType: mimeType, upsert: true })
-    if (error) {
-      console.error('Failed to host base64 media:', error)
-      return clean
-    }
-    const { data } = admin.storage.from('alifleet-media').getPublicUrl(filePath)
-    return data.publicUrl
+    // Local server storage (public/uploads): no third-party round-trip.
+    return await saveLocalUpload({ buffer: Buffer.from(match[2], 'base64'), mimeType: match[1], folder })
   } catch (err) {
     console.error('ensureHostedMedia error:', err)
     return clean
@@ -71,6 +61,15 @@ function safeI18n(value?: MultiLangString | null, html = false): MultiLangString
 
 async function syncCars(cars: CarItem[]) {
   const admin = createAdminClient()
+  const syncIds = cars.map((car) => car.id)
+  const [existingPrimaries, existingMedia] = await Promise.all([
+    syncIds.length ? admin.from('cars').select('primary_image').in('id', syncIds) : Promise.resolve({ data: [], error: null }),
+    syncIds.length ? admin.from('car_media').select('url').in('car_id', syncIds) : Promise.resolve({ data: [], error: null }),
+  ])
+  const replacedUrls = [
+    ...((existingPrimaries.data || []).map((row) => (row as { primary_image: string }).primary_image)),
+    ...((existingMedia.data || []).map((row) => (row as { url: string }).url)),
+  ]
   const rows = cars.map((car) => ({
     id: car.id, slug: car.id, type: car.type || 'sale', title: car.title || { ar: '', en: '', he: '' }, make: car.make || 'ALI FLEET', model: car.model || car.id,
     year: Number(car.year) || new Date().getFullYear(), price_minor: car.price == null ? null : Math.round(Number(car.price) * 100), currency: 'ILS',
@@ -93,10 +92,21 @@ async function syncCars(cars: CarItem[]) {
   const highlightRows = cars.flatMap((car) => (car.highlights || []).map((content, index) => ({ car_id: car.id, content, sort_order: index })))
   if (mediaRows.length) { const { error } = await admin.from('car_media').insert(mediaRows); if (error) throw error }
   if (highlightRows.length) { const { error } = await admin.from('car_highlights').insert(highlightRows); if (error) throw error }
+  // Files replaced by this save that nothing references anymore are removed.
+  await pruneMediaUrls(admin, replacedUrls)
 }
 
 async function syncProducts(products: ProductItem[]) {
   const admin = createAdminClient()
+  const syncIds = products.map((product) => product.id)
+  const [existingPrimaries, existingMedia] = await Promise.all([
+    syncIds.length ? admin.from('products').select('primary_image').in('id', syncIds) : Promise.resolve({ data: [], error: null }),
+    syncIds.length ? admin.from('product_media').select('url').in('product_id', syncIds) : Promise.resolve({ data: [], error: null }),
+  ])
+  const replacedUrls = [
+    ...((existingPrimaries.data || []).map((row) => (row as { primary_image: string }).primary_image)),
+    ...((existingMedia.data || []).map((row) => (row as { url: string }).url)),
+  ]
   const { data: existing, error: existingError } = await admin.from('products').select('id,stock_quantity,max_order_quantity')
   if (existingError) throw existingError
   const byId = new Map((existing || []).map((row) => [row.id, row]))
@@ -131,6 +141,8 @@ async function syncProducts(products: ProductItem[]) {
   if (mediaRows.length) { const { error } = await admin.from('product_media').insert(mediaRows); if (error) throw error }
   if (specRows.length) { const { error } = await admin.from('product_specs').insert(specRows); if (error) throw error }
   if (compatibilityRows.length) { const { error } = await admin.from('product_compatibility').insert(compatibilityRows); if (error) throw error }
+  // Files replaced by this save that nothing references anymore are removed.
+  await pruneMediaUrls(admin, replacedUrls)
 }
 
 async function syncCategories(categories: CategoryItem[]) {
