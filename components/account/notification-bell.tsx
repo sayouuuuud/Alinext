@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useId, useState } from 'react'
 import useSWR from 'swr'
 import { Bell, CheckCheck } from 'lucide-react'
 import LocaleLink from '@/components/locale-link'
@@ -20,6 +20,11 @@ const fetcher = async (url: string) => {
 export function NotificationBell() {
   const { locale } = useLanguage()
   const [open, setOpen] = useState(false)
+  // The header renders two bell instances (desktop + mobile, one hidden by
+  // CSS). supabase-js reuses channels by topic, so each instance needs its
+  // own topic — otherwise the second .on() throws "cannot add callbacks
+  // after subscribe()".
+  const channelId = useId().replace(/[^a-zA-Z0-9_-]/g, '')
   const { data, mutate } = useSWR<Payload>('/api/account/notifications?limit=5', fetcher, {
     revalidateOnFocus: true,
     refreshInterval: 60_000,
@@ -28,13 +33,13 @@ export function NotificationBell() {
   useEffect(() => {
     const supabase = createClient()
     const channel = supabase
-      .channel('bell-notifications')
+      .channel(`bell-notifications-${channelId}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'notifications' }, () => mutate())
       .subscribe()
     return () => {
       void supabase.removeChannel(channel)
     }
-  }, [mutate])
+  }, [mutate, channelId])
 
   async function openNotification(id: string) {
     await fetch('/api/account/notifications', {

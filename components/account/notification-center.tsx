@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useId } from 'react'
 import useSWR from 'swr'
 import { Bell, CheckCheck, Package } from 'lucide-react'
 import LocaleLink from '@/components/locale-link'
@@ -30,13 +30,14 @@ export function notificationText(notification: AccountNotification, locale: stri
 
 export function NotificationCenter() {
   const { locale } = useLanguage()
+  const channelId = useId().replace(/[^a-zA-Z0-9_-]/g, '')
   const { data, error, isLoading, mutate } = useSWR('/api/account/notifications?limit=100', fetcher, { revalidateOnFocus: true })
 
   useEffect(() => {
     const supabase = createClient()
-    const channel = supabase.channel('account-notifications').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications' }, () => mutate()).subscribe()
+    const channel = supabase.channel(`account-notifications-${channelId}`).on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications' }, () => mutate()).subscribe()
     return () => { void supabase.removeChannel(channel) }
-  }, [mutate])
+  }, [mutate, channelId])
 
   async function markAll() {
     await fetch('/api/account/notifications', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ markAll: true }) })
