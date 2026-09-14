@@ -106,7 +106,7 @@ async function loadBaseAndCatalog(includeUnpublished: boolean): Promise<SiteFull
         subcategoryId: product.subcategory_id || undefined,
         brand: product.brand || undefined,
         price: product.price_minor / 100,
-        inStock: product.stock_quantity > 0,
+        inStock: true, // Forced to true as requested by user
         featured: product.featured,
         compatibility: compatibilityItems.join(', ') || product.compatibility_summary || '',
         image: product.primary_image || images[0] || '/images/part-brake-pads.png',
