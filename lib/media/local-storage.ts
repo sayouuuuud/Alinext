@@ -143,6 +143,27 @@ export function isLocalMediaUrl(url: string | null | undefined): boolean {
   return typeof url === 'string' && url.startsWith(LOCAL_UPLOAD_PREFIX)
 }
 
+/**
+ * Resolves request path segments (e.g. from /uploads/a/b.jpg) to an absolute
+ * file inside the upload root. Returns null for anything suspicious.
+ */
+export function resolveUploadFile(segments: string[]): string | null {
+  if (!segments.length || segments.length > 4) return null
+  for (const segment of segments) {
+    if (!segment || segment === '.' || segment === '..') return null
+    if (!/^[a-zA-Z0-9_.-]+$/.test(segment)) return null
+  }
+  const fileName = segments[segments.length - 1]
+  if (!fileName.includes('.')) return null
+  const ext = fileName.split('.').pop()!.toLowerCase()
+  const allowed = new Set(['jpg', 'jpeg', 'png', 'webp', 'avif', 'gif', 'svg', 'mp4', 'webm'])
+  if (!allowed.has(ext)) return null
+  const root = path.resolve(uploadRoot())
+  const resolved = path.resolve(root, ...segments)
+  if (resolved !== root && !resolved.startsWith(root + path.sep)) return null
+  return resolved
+}
+
 /** Writable temp dir for tests/diagnostics (never the upload folder). */
 export function mediaTempDir(): string {
   return tmpdir()

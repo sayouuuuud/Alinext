@@ -36,6 +36,14 @@ const nextConfig = {
   // Canonical public paths end in a slash, while private routes keep their
   // existing shape. The locale proxy owns that distinction.
   skipTrailingSlashRedirect: true,
+  async rewrites() {
+    return [
+      // Uploads are served from disk on every request (see
+      // app/api/uploads/[...path]/route.ts): Next snapshots public/ at boot,
+      // so runtime uploads would 404 until restart without this.
+      { source: '/uploads/:path*', destination: '/api/uploads/:path*' },
+    ]
+  },
   images: {
     // Optimization is ON: local imagery is resized and served as AVIF/WebP
     // instead of raw originals.
