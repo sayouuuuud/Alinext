@@ -5,7 +5,6 @@ node_modules
 .env
 .env.*
 !.env.example
-C:\Users\ASUS\AppData\Local\Temp
 *.log
 public/uploads/*
 !public/uploads/.gitkeep
