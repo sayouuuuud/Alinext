@@ -28,7 +28,9 @@ COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package.json ./package.json
 COPY --from=builder /app/next.config.mjs ./next.config.mjs
-RUN mkdir -p ./public/uploads && chown -R app:app ./public/uploads
+RUN mkdir -p ./public/uploads && chown -R app:app ./.next ./public ./package.json ./next.config.mjs
 USER app
 EXPOSE 3000
-CMD ["pnpm", "start"]
+# Run next directly (not via pnpm): the runtime user owns no write access
+# to node_modules and must never trigger installs at boot.
+CMD ["./node_modules/.bin/next", "start"]
