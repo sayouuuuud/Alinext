@@ -15,8 +15,3 @@ __v0_jsx-dev-runtime.ts
 node_modules
 .next/
 .DS_Store
-
-# Local server uploads (binary user content, never commit; the folder itself
-# is created on demand with a .gitkeep placeholder)
-public/uploads/*
-!public/uploads/.gitkeep
